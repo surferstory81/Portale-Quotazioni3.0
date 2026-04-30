@@ -1,0 +1,76 @@
+<section class="page-shell">
+  <header class="page-header">
+    <h2>Stato Quotazioni</h2>
+    <p>Monitora l'avanzamento e filtra le tue richieste.</p>
+  </header>
+
+  <form class="filters" [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
+    <label>
+      Codice progetto
+      <input type="text" formControlName="projectCode" />
+    </label>
+
+    <label>
+      Nome progetto
+      <input type="text" formControlName="projectName" />
+    </label>
+
+    <div class="actions">
+      <button type="submit">Filtra</button>
+      <button type="button" class="secondary" (click)="resetFilters()">Reset</button>
+    </div>
+  </form>
+
+  <p class="message error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <p *ngIf="isLoading" class="info">Caricamento quotazioni...</p>
+
+  <div class="table-wrap" *ngIf="!isLoading">
+    <table *ngIf="quotations.length > 0; else emptyState">
+      <thead>
+        <tr>
+          <th>
+            <button type="button" class="sort-btn" (click)="setSort('projectCode')">
+              Codice
+            </button>
+          </th>
+          <th>Nome</th>
+          <th>
+            <button type="button" class="sort-btn" (click)="setSort('status')">
+              Stato
+            </button>
+          </th>
+          <th>
+            <button type="button" class="sort-btn" (click)="setSort('updatedAt')">
+              Aggiornata il
+            </button>
+          </th>
+          <th>Storico</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let quotation of pagedQuotations; trackBy: trackById">
+          <td>{{ quotation.projectCode }}</td>
+          <td>{{ quotation.projectName }}</td>
+          <td><span class="status">{{ quotation.status }}</span></td>
+          <td>{{ quotation.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <a [routerLink]="['/dashboard/quotations/history', quotation.id]">
+              Apri dettaglio
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <footer class="pager" *ngIf="quotations.length > 0">
+      <button type="button" (click)="prevPage()" [disabled]="currentPage === 1">Precedente</button>
+      <span>Pagina {{ currentPage }} di {{ totalPages }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages">Successiva</button>
+    </footer>
+
+    <ng-template #emptyState>
+      <p class="info">Nessuna quotazione trovata con i filtri selezionati.</p>
+    </ng-template>
+  </div>
+</section>

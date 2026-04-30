@@ -1,0 +1,36 @@
+<section class="auth-page">
+  <div class="auth-card">
+
+    <!-- Loading -->
+    <div *ngIf="state === 'loading'" class="state-block">
+      <div class="spinner"></div>
+      <p>Verifica in corso...</p>
+    </div>
+
+    <!-- Success -->
+    <div *ngIf="state === 'success'" class="state-block">
+      <div class="icon success-icon">✓</div>
+      <h2>Email verificata</h2>
+      <p>Il tuo account è attivo. Verrai reindirizzato al login tra pochi secondi.</p>
+      <button type="button" (click)="goToLogin()">Vai al login</button>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="state === 'error'" class="state-block">
+      <div class="icon error-icon">✗</div>
+      <h2>Verifica non riuscita</h2>
+      <p class="error-msg">{{ errorMessage }}</p>
+      <p>Il link potrebbe essere scaduto (validità 24 ore) o già utilizzato.</p>
+      <a routerLink="/auth/login">Torna al login per richiedere un nuovo link</a>
+    </div>
+
+    <!-- Token mancante -->
+    <div *ngIf="state === 'missing'" class="state-block">
+      <div class="icon error-icon">!</div>
+      <h2>Link non valido</h2>
+      <p>Il link di verifica non è completo.</p>
+      <a routerLink="/auth/login">Torna al login</a>
+    </div>
+
+  </div>
+</section>

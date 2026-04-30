@@ -1,0 +1,17 @@
+Crea frontend Angular 17 per il portale "Quotazioni Infrastrutturali".
+
+Requisiti:
+- Architettura modulare
+- Routing
+- Layout:
+  - sidebar
+  - navbar
+
+Pagine:
+- login
+- registrazione
+- dashboard
+
+Output:
+- Struttura progetto Angular
+- Routing base

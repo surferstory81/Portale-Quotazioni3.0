@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: {{ .Release.Namespace }}
+data:
+  NODE_ENV: "production"
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  APP_PORT: "3000"
+  APP_BASE_URL: "http://{{ .Values.frontend.ingress.host }}"
+  FRONTEND_URL: "http://{{ .Values.frontend.ingress.host }}"
+  EMAIL_ENABLED: "true"
+  SMTP_HOST: "smtp.gmail.com"
+  SMTP_PORT: "587"
+  SMTP_SECURE: "false"
+  SMTP_USER: "daniele.celauro@gmail.com"
+  SMTP_FROM: "Portale Quotazioni <no-reply@credit-agricole.it>"
+  EMAIL_ADMIN_RECIPIENTS: "admin@credit-agricole.it"
+  JWT_ACCESS_EXPIRATION: "15m"
+  JWT_REFRESH_EXPIRATION: "7d"
+  ADMIN_MATRICOLA: "ADMIN001"
+  ADMIN_EMAIL: "admin@quotazioni.local"
+  SSO_ENABLED: "false"

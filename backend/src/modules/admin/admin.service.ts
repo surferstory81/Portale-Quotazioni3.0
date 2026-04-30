@@ -1,0 +1,273 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import { Quotation, QuotationStatus } from '../../entities/quotation.entity';
+import { Role } from '../../entities/role.entity';
+import { User } from '../../entities/user.entity';
+import { RefreshToken } from '../../entities/refresh-token.entity';
+import { AppSetting } from '../../entities/app-setting.entity';
+import { EmailVerificationToken } from '../../entities/email-verification-token.entity';
+import { EmailService } from '../email/email.service';
+
+export interface SystemSettings {
+  email_enabled: boolean;
+  sso_enabled: boolean;
+}
+
+@Injectable()
+export class AdminService {
+  constructor(
+    @InjectRepository(Quotation)
+    private readonly quotationRepo: Repository<Quotation>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    @InjectRepository(Role)
+    private readonly roleRepo: Repository<Role>,
+    @InjectRepository(RefreshToken)
+    private readonly refreshTokenRepo: Repository<RefreshToken>,
+    @InjectRepository(AppSetting)
+    private readonly settingRepo: Repository<AppSetting>,
+    @InjectRepository(EmailVerificationToken)
+    private readonly emailTokenRepo: Repository<EmailVerificationToken>,
+    private readonly emailService: EmailService,
+  ) {}
+
+  async findAllQuotations(): Promise<Quotation[]> {
+    return this.quotationRepo.find({
+      relations: ['createdBy', 'createdBy.role', 'assignedAdmin', 'assignedAdmin.role'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async takeInCharge(quotationId: string, adminUser: User): Promise<Quotation> {
+    const quotation = await this.findQuotationOrFail(quotationId);
+    const previousStatus = quotation.status;
+
+    if (quotation.status !== QuotationStatus.INVIATA) {
+      throw new BadRequestException(
+        'La presa in carico e consentita solo per quotazioni in stato INVIATA',
+      );
+    }
+
+    quotation.assignedAdmin = adminUser;
+    quotation.takenInChargeAt = new Date();
+    quotation.status = QuotationStatus.IN_VALUTAZIONE;
+
+    const savedQuotation = await this.quotationRepo.save(quotation);
+    await this.emailService.sendQuotationStatusChangedEmail(
+      savedQuotation,
+      previousStatus,
+    );
+
+    return savedQuotation;
+  }
+
+  async updateQuotationStatus(
+    quotationId: string,
+    status: string,
+  ): Promise<Quotation> {
+    const quotation = await this.findQuotationOrFail(quotationId);
+    const previousStatus = quotation.status;
+    const nextStatus = status as QuotationStatus;
+
+    if (!this.isAllowedTransition(quotation.status, nextStatus)) {
+      throw new BadRequestException(
+        `Transizione non valida da ${quotation.status} a ${status}`,
+      );
+    }
+
+    if (
+      nextStatus === QuotationStatus.COMPLETATA &&
+      Number(quotation.totalAmount) <= 0
+    ) {
+      throw new BadRequestException(
+        'Inserire prima la quotazione economica per completare la richiesta',
+      );
+    }
+
+    quotation.status = nextStatus;
+    const savedQuotation = await this.quotationRepo.save(quotation);
+
+    if (nextStatus === QuotationStatus.COMPLETATA) {
+      await this.emailService.sendQuotationCompletedEmail(savedQuotation);
+    } else {
+      await this.emailService.sendQuotationStatusChangedEmail(
+        savedQuotation,
+        previousStatus,
+      );
+    }
+
+    return savedQuotation;
+  }
+
+  async setEconomicQuotation(
+    quotationId: string,
+    totalAmount: number,
+  ): Promise<Quotation> {
+    const quotation = await this.findQuotationOrFail(quotationId);
+
+    if (quotation.status !== QuotationStatus.IN_VALUTAZIONE) {
+      throw new BadRequestException(
+        'La quotazione economica puo essere inserita solo in stato IN VALUTAZIONE',
+      );
+    }
+
+    quotation.totalAmount = totalAmount;
+    return this.quotationRepo.save(quotation);
+  }
+
+  async listUsers(): Promise<Partial<User>[]> {
+    const users = await this.userRepo.find({ relations: ['role'], order: { createdAt: 'DESC' } });
+    return users.map(({ passwordHash: _, ...u }) => u);
+  }
+
+  async assignAdminRole(userId: string, assignAdmin: boolean): Promise<User> {
+    const user = await this.findUserOrFail(userId);
+    const roleName = assignAdmin ? 'ADMIN' : 'USER';
+    const role = await this.roleRepo.findOne({ where: { name: roleName } });
+
+    if (!role) {
+      throw new NotFoundException(`Ruolo ${roleName} non trovato`);
+    }
+
+    user.role = role;
+    return this.userRepo.save(user);
+  }
+
+  async blockUser(userId: string, isBlocked: boolean): Promise<User> {
+    const user = await this.findUserOrFail(userId);
+    user.isBlocked = isBlocked;
+    user.blockedAt = isBlocked ? new Date() : null;
+
+    const savedUser = await this.userRepo.save(user);
+
+    if (isBlocked) {
+      await this.refreshTokenRepo.update(
+        { userId: user.id, isRevoked: false },
+        { isRevoked: true },
+      );
+    }
+
+    return savedUser;
+  }
+
+  async resetUserPassword(userId: string, newPassword: string): Promise<{ message: string }> {
+    const user = await this.findUserOrFail(userId);
+    user.passwordHash = await bcrypt.hash(newPassword, 12);
+    await this.userRepo.save(user);
+
+    await this.refreshTokenRepo.update(
+      { userId: user.id, isRevoked: false },
+      { isRevoked: true },
+    );
+
+    return { message: 'Password utente reimpostata con successo' };
+  }
+
+  // ─── SYSTEM SETTINGS ─────────────────────────────────────
+  async getSystemSettings(): Promise<SystemSettings> {
+    const rows = await this.settingRepo.find();
+    const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+    return {
+      email_enabled: map['email_enabled'] === 'true',
+      sso_enabled:   map['sso_enabled']   === 'true',
+    };
+  }
+
+  async setSystemSetting(key: string, value: boolean): Promise<SystemSettings> {
+    const allowed = ['email_enabled', 'sso_enabled'];
+    if (!allowed.includes(key)) {
+      throw new BadRequestException(`Impostazione non valida: ${key}`);
+    }
+    await this.settingRepo.upsert({ key, value: String(value) }, ['key']);
+    if (key === 'email_enabled') {
+      this.emailService.setEnabled(value);
+    }
+    return this.getSystemSettings();
+  }
+
+  // ─── USER MANAGEMENT (extended) ──────────────────────────
+  async verifyUserEmail(userId: string): Promise<Partial<User>> {
+    const user = await this.findUserOrFail(userId);
+    if (user.isVerified) {
+      throw new BadRequestException('L\'utente è già verificato');
+    }
+    user.isVerified = true;
+    await this.emailTokenRepo.update({ userId: user.id, isUsed: false }, { isUsed: true });
+    const saved = await this.userRepo.save(user);
+    const { passwordHash: _, ...rest } = saved;
+    return rest;
+  }
+
+  async deleteUser(userId: string, requestingAdminId: string): Promise<{ message: string }> {
+    if (userId === requestingAdminId) {
+      throw new BadRequestException('Non puoi eliminare il tuo stesso account');
+    }
+    const user = await this.findUserOrFail(userId);
+
+    const quotationCount = await this.quotationRepo.count({ where: { createdBy: { id: userId } } });
+    if (quotationCount > 0) {
+      throw new BadRequestException(
+        `Impossibile eliminare: l'utente ha ${quotationCount} quotazion${quotationCount === 1 ? 'e' : 'i'} associate`,
+      );
+    }
+
+    if (user.role?.name === 'ADMIN') {
+      const adminCount = await this.userRepo.count({ where: { role: { name: 'ADMIN' } } });
+      if (adminCount <= 1) {
+        throw new BadRequestException('Impossibile eliminare l\'ultimo amministratore');
+      }
+    }
+
+    await this.refreshTokenRepo.delete({ userId: user.id });
+    await this.emailTokenRepo.delete({ userId: user.id });
+    await this.userRepo.remove(user);
+
+    return { message: `Utente ${user.email} eliminato` };
+  }
+
+  private async findQuotationOrFail(quotationId: string): Promise<Quotation> {
+    const quotation = await this.quotationRepo.findOne({
+      where: { id: quotationId },
+      relations: ['createdBy', 'createdBy.role', 'assignedAdmin', 'assignedAdmin.role'],
+    });
+
+    if (!quotation) {
+      throw new NotFoundException('Quotazione non trovata');
+    }
+
+    return quotation;
+  }
+
+  private async findUserOrFail(userId: string): Promise<User> {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['role'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('Utente non trovato');
+    }
+
+    return user;
+  }
+
+  private isAllowedTransition(
+    currentStatus: QuotationStatus,
+    nextStatus: QuotationStatus,
+  ): boolean {
+    return (
+      (currentStatus === QuotationStatus.INVIATA &&
+        nextStatus === QuotationStatus.IN_VALUTAZIONE) ||
+      (currentStatus === QuotationStatus.IN_VALUTAZIONE &&
+        nextStatus === QuotationStatus.COMPLETATA) ||
+      (currentStatus === QuotationStatus.IN_VALUTAZIONE &&
+        nextStatus === QuotationStatus.RESPINTA)
+    );
+  }
+}

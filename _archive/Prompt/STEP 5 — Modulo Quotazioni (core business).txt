@@ -1,0 +1,91 @@
+Implementa il modulo Quotazioni nel backend NestJS.
+
+Funzionalità:
+
+1. Creazione nuova quotazione:
+- endpoint POST /quotations
+- stato iniziale: INVIATA
+- validazione completa dati
+- form della quotazione:
+{
+  "QuestionarioBudgetCTO": {
+    "fields": [
+      { "label": "Codice Project",
+        "type": "text",
+        "maxLength": 11,
+        "pattern": "^(PRJ|RPRJ)[A-Za-z0-9]{0,7}$",
+        "errorMessage": "Il codice deve iniziare con PRJ o RPRJ e avere massimo 11 caratteri."
+      },
+	  { "label": "Nome Progetto", "type": "text" },
+      { "label": "Data Inizio Progetto", "type": "date" },
+      { "label": "Data Fine Progetto", "type": "date" },
+      { "label": "Durata progettuale", "type": "select", "options": ["1 – 6 mesi", "7 – 12 mesi", "> 1 anno", "pluriennale"] },
+      { "label": "Budget Progettuale (k€, i.i.)", "type": "select", "options": ["Fino a 500", "500 – 1.000", "1.000 – 5.000", "> 5.000"] },
+      { "label": "Impatto Architetturale/Infrastrutturale", "type": "select", "options": ["NO", "SI"] },
+      { "label": "Cloud SaaS", "type": "checkbox" },
+      { "label": "Cloud IaaS / PaaS (Landing Zone CA)", "type": "checkbox" },
+      { "label": "Host (Mainframe)", "type": "checkbox" },
+      { "label": "OnPremis (Dipartimentale)", "type": "checkbox" },
+      { "label": "Necessità di nuove infrastrutture", "type": "checkbox" },
+      { "label": "Infra su VM", "type": "checkbox" },
+      { "label": "Infra a Microservizi", "type": "checkbox" },
+      { "label": "Entità Impatto", "type": "select", "options": ["Limitato", "Moderato", "Considerevole", "Sostanziale"] },
+      { "label": "Fruitore del servizio", "type": "text" },
+      { "label": "Volumi servizio (n° Utenti al giorno)", "type": "number" },
+      { "label": "Impatto Tecnologico", "type": "select", "options": ["NA", "In continuità con AS IS", "Evoluzione tecnologica", "Cambio tecnologico"] },
+      { "label": "Sviluppato internamente", "type": "checkbox" },
+      { "label": "Sviluppato da esterni", "type": "checkbox" },
+      { "label": "Proprietà intellettuale CA del codice", "type": "checkbox" },
+      { "label": "Esposizione del servizio", "type": "checkbox" },
+      { "label": "Trattasi di un prodotto di mercato", "type": "checkbox" },
+      { "label": "Dipendenze con servizi esternalizzati", "type": "checkbox" },
+      { "label": "Integrazioni con sistemi interni", "type": "checkbox" },
+      { "label": "Trattasi di un prodotto SaaS", "type": "checkbox" },
+      { "label": "Trattasi di tool di monitoring / sicurezza", "type": "checkbox" },
+      { "label": "Numero release previste", "type": "number" },
+      { "label": "Progetto nuovo / evolutiva / CIF", "type": "select", "options": ["Nuovo", "Evolutiva", "CIF"] },
+      { "label": "Rischio sul Servizio", "type": "select", "options": ["Minimo", "Moderato", "Rilevante", "Radicale"] },
+      { "label": "Pipeline", "type": "select", "options": ["Max 10", "10-30", "30-60", "> 60"] },
+      { "label": "Numero Microservizi", "type": "number" },
+      { "label": "Impatto Base Dati (Dip)", "type": "checkbox" },
+      { "label": "Tipo DB SQL (Oracle/PostgreSQL/MS SQL)", "type": "checkbox" },
+      { "label": "Impatto Base Dati (Host/DB2)", "type": "checkbox" },
+      { "label": "Spazio Storage (GB)", "type": "number" },
+      { "label": "Potenza di calcolo (core)", "type": "number" },
+      { "label": "N° Batch schedulazioni", "type": "number" },
+      { "label": "Sistemi di monitoraggio", "type": "select", "options": ["NA", "Esistente (no action)", "SI"] },
+      { "label": "Observability", "type": "select", "options": ["NA", "Esistente (no action)", "SI"] },
+      { "label": "Magnitudo test (Governance test)", "type": "select", "options": ["Fino a 100", "100–1.000", "1.000–10.000", ">10.000"] },
+      { "label": "QA", "type": "select", "options": ["NA", "SI", "NO"] }
+    ]
+  }
+}
+
+
+
+2. Lista quotazioni utente:
+- GET /quotations
+- filtro per:
+  - codice progetto
+  - nome progetto
+
+3. Stati:
+- INVIATA
+- IN VALUTAZIONE
+- RESPINTA
+- COMPLETATA
+
+4. Modifica:
+- consentita solo se RESPINTA
+
+5. Storico:
+- GET /quotations/completed
+
+6. Permessi:
+- utente vede solo le proprie quotazioni
+
+Output:
+- Controller
+- Service
+- DTO
+- Validazioni

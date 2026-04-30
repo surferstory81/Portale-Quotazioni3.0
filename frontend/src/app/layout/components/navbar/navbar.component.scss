@@ -1,0 +1,139 @@
+.topbar {
+	display: flex;
+	align-items: center;
+	gap: 0;
+	height: 88px;
+	padding: 0 32px;
+	background: #fff;
+	border-bottom: 1px solid #dde4ef;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+	position: sticky;
+	top: 0;
+	z-index: 50;
+}
+
+// Brand
+.topbar__brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.topbar__logo {
+	width: 104px;
+	height: 104px;
+	object-fit: contain;
+}
+
+.topbar__brand-text {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.1;
+
+	strong {
+		font-size: 0.68rem;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		color: #00794d;
+	}
+}
+
+.topbar__portal {
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: #0f2033;
+	padding-left: 16px;
+	border-left: 2px solid #dde4ef;
+	margin-left: 6px;
+	white-space: nowrap;
+}
+
+// Navigation
+.topbar__nav {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	margin: 0 auto;
+	padding: 0 24px;
+
+	a {
+		padding: 8px 14px;
+		border-radius: 8px;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #475569;
+		text-decoration: none;
+		white-space: nowrap;
+		transition: background 0.15s, color 0.15s;
+
+		&:hover {
+			background: #f1f5f9;
+			color: #033540;
+		}
+
+		&.active {
+			background: #e6faf4;
+			color: #00794d;
+		}
+	}
+}
+
+// User actions
+.topbar__actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-shrink: 0;
+}
+
+.topbar__user {
+	font-size: 0.82rem;
+	color: #64748b;
+	max-width: 180px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.topbar__logout {
+	padding: 8px 18px;
+	border: 1.5px solid #dde4ef;
+	border-radius: 8px;
+	background: #fff;
+	color: #475569;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: border-color 0.15s, color 0.15s;
+
+	&:hover {
+		border-color: #033540;
+		color: #033540;
+	}
+}
+
+@media (max-width: 1100px) {
+	.topbar__portal { display: none; }
+}
+
+@media (max-width: 900px) {
+	.topbar {
+		padding: 0 16px;
+		flex-wrap: wrap;
+		height: auto;
+		padding-top: 10px;
+		padding-bottom: 10px;
+		gap: 8px;
+	}
+
+	.topbar__nav {
+		order: 3;
+		width: 100%;
+		margin: 0;
+		padding: 0;
+		flex-wrap: wrap;
+		border-top: 1px solid #dde4ef;
+		padding-top: 8px;
+	}
+}

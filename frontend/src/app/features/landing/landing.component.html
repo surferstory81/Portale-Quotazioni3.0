@@ -1,0 +1,103 @@
+<!-- Full-screen background slider -->
+<div class="landing-bg">
+  <img
+    *ngFor="let img of images; let i = index"
+    [src]="img"
+    [class.active]="i === currentImageIndex"
+    aria-hidden="true"
+    alt=""
+  />
+  <div class="landing-overlay"></div>
+</div>
+
+<!-- Header CA style -->
+<header class="ca-header">
+  <div class="ca-header__brand">
+    <img src="assets/logo-credit-agricole.svg" alt="Crédit Agricole" class="ca-header__logo" />
+    <div class="ca-header__brand-text">
+      <strong>CRÉDIT</strong>
+      <strong>AGRICOLE</strong>
+    </div>
+  </div>
+
+  <span class="ca-header__portal-name">Portale Quotazioni Infrastrutturali</span>
+
+  <div class="ca-header__actions">
+    <button class="ca-header__accedi" type="button" (click)="openLogin()">
+      Accedi
+    </button>
+  </div>
+</header>
+
+<!-- Hero -->
+<main class="landing-hero">
+  <div class="landing-hero__content">
+    <h1>Portale Quotazioni<br />Infrastrutturali</h1>
+    <p>
+      La piattaforma interna per la gestione e valutazione delle richieste
+      di costo per progetti IT e infrastrutturali.<br />
+      Sottometti le tue proposte di investimento e monitora lo stato
+      di valutazione in tempo reale.
+    </p>
+    <button class="landing-hero__cta" type="button" (click)="openLogin()">
+      Accedi al portale →
+    </button>
+  </div>
+</main>
+
+<!-- Login modal -->
+<div
+  class="login-modal"
+  *ngIf="showLogin"
+  (click)="onBackdropClick($event)"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-title"
+>
+  <div class="login-modal__card">
+    <button
+      class="login-modal__close"
+      type="button"
+      (click)="closeLogin()"
+      aria-label="Chiudi"
+    >✕</button>
+
+    <h2 id="modal-title">Accedi alla tua area riservata</h2>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <label>
+        Email
+        <input
+          type="email"
+          placeholder="nome@azienda.it"
+          formControlName="email"
+          autocomplete="email"
+        />
+        <small class="error" *ngIf="hasError('email')">Inserisci una email valida.</small>
+      </label>
+
+      <label>
+        Password
+        <input
+          type="password"
+          placeholder="Inserisci password"
+          formControlName="password"
+          autocomplete="current-password"
+        />
+        <small class="error" *ngIf="hasError('password')">La password è obbligatoria.</small>
+      </label>
+
+      <div class="login-modal__forgot">
+        <a routerLink="/auth/forgot-password" (click)="closeLogin()">Password dimenticata?</a>
+      </div>
+
+      <button type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Accesso in corso...' : 'Entra' }}
+      </button>
+    </form>
+
+    <div *ngIf="errorMessage" class="error-block">
+      <p class="error">{{ errorMessage }}</p>
+    </div>
+  </div>
+</div>

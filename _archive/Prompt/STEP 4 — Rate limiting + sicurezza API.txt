@@ -1,0 +1,24 @@
+Aggiungi sicurezza avanzata al backend NestJS.
+
+Implementa:
+
+1. Rate limiting:
+- Endpoint login: max 5 richieste/minuto
+- Endpoint register: max 3 richieste/minuto
+- Middleware globale rate limit
+
+2. Protezione:
+- Helmet (security headers)
+- CORS configurabile
+- Protezione XSS e CSRF
+
+3. Logging sicurezza:
+- Log tentativi login falliti
+- Log accessi
+
+4. Blocchi:
+- Blocco temporaneo IP dopo troppi tentativi
+
+Output:
+- Middleware configurati
+- Esempi configurazione

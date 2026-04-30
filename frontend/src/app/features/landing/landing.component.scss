@@ -1,0 +1,306 @@
+// ── background slider ─────────────────────────────────────────────────────────
+.landing-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1s ease;
+    z-index: 0;
+
+    &.active {
+      opacity: 1;
+      z-index: 1;
+    }
+  }
+}
+
+.landing-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 60, 38, 0.72) 0%,
+    rgba(0, 30, 20, 0.55) 100%
+  );
+  z-index: 2;
+}
+
+// ── header CA style ───────────────────────────────────────────────────────────
+.ca-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 32px;
+  height: 68px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.ca-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.ca-header__logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.ca-header__brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+
+  strong {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #00794d;
+  }
+}
+
+.ca-header__portal-name {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3a5068;
+  padding-left: 20px;
+  border-left: 1px solid #d5dce8;
+}
+
+.ca-header__actions {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.ca-header__accedi {
+  padding: 9px 24px;
+  border: 2px solid #00794d;
+  border-radius: 24px;
+  background: transparent;
+  color: #00794d;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover {
+    background: #00794d;
+    color: #fff;
+  }
+}
+
+// ── hero ──────────────────────────────────────────────────────────────────────
+.landing-hero {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 0 10vw;
+  padding-top: 68px;
+}
+
+.landing-hero__content {
+  max-width: 600px;
+
+  h1 {
+    margin: 0 0 20px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.15;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  p {
+    margin: 0 0 32px;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.88);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.landing-hero__cta {
+  padding: 14px 32px;
+  border: none;
+  border-radius: 28px;
+  background: #00794d;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+
+  &:hover {
+    background: #005c3c;
+    transform: translateY(-1px);
+  }
+}
+
+// ── login modal ───────────────────────────────────────────────────────────────
+.login-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 20, 12, 0.55);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.login-modal__card {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 36px 32px;
+  width: min(440px, 92vw);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  animation: slideUp 0.25s ease;
+
+  h2 {
+    margin: 0 0 24px;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #102844;
+    text-align: center;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.login-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid #d0d9e8;
+  border-radius: 50%;
+  background: #fff;
+  color: #6b7fa0;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.15s, color 0.15s;
+
+  &:hover {
+    border-color: #102844;
+    color: #102844;
+    background: #fff;
+  }
+}
+
+form {
+  display: grid;
+  gap: 14px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: #30425d;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  input {
+    border: 1.5px solid #c3cede;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s;
+
+    &:focus {
+      border-color: #00794d;
+    }
+  }
+}
+
+.error {
+  color: #a92f2f;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.error-block {
+  margin-top: 8px;
+}
+
+.login-modal__forgot {
+  text-align: right;
+  margin-top: -4px;
+
+  a {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #00794d;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+}
+
+button[type="submit"] {
+  margin-top: 4px;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  background: #00794d;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) { background: #005c3c; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+// ── responsive ────────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .ca-header__portal-name { display: none; }
+
+  .landing-hero {
+    padding: 0 6vw;
+    padding-top: 68px;
+    align-items: flex-end;
+    padding-bottom: 60px;
+  }
+
+  .login-modal__card {
+    padding: 32px 24px 28px;
+  }
+}

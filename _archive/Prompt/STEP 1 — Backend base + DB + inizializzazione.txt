@@ -1,0 +1,31 @@
+Crea un backend usando NestJS per un'applicazione di gestione quotazioni IT.
+
+Requisiti:
+- Database PostgreSQL 16+
+- ORM: TypeORM
+- Configurazione via environment variables
+
+Implementa:
+1. Connessione al database
+2. Migrazioni automatiche:
+   - Creazione tabelle: users, roles, quotations, quotation_details, logs
+   - Inserimento dati iniziali:
+     - ruolo USER e ADMIN
+     - utente ADMIN di default
+
+3. Entity principali:
+- User (id, matricola, email, password_hash, is_verified, role, created_at)
+- Role
+- Quotation
+- QuotationDetails
+- Log
+
+4. Script di bootstrap:
+- Il DB deve inizializzarsi automaticamente al primo avvio
+
+Output:
+- Struttura progetto NestJS
+- Config DB
+- Entity
+- Migration script
+- Istruzioni avvio

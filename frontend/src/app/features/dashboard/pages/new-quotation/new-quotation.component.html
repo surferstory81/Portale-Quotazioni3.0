@@ -1,0 +1,145 @@
+<section class="page-shell">
+  <header class="page-header">
+    <h2>Nuova Quotazione</h2>
+    <p>Compila il questionario per inviare una nuova richiesta di quotazione infrastrutturale.</p>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="quotation-form">
+
+    <article class="section-card" *ngFor="let section of sections">
+      <h3 class="section-title">{{ section.title }}</h3>
+
+      <!-- Sezione Infrastruttura: layout custom a gruppi -->
+      <ng-container *ngIf="section.title === 'Infrastruttura'; else defaultSection">
+        <div class="infra-groups">
+          <div class="infra-group">
+            <h4>Cloud</h4>
+            <label class="checkbox-field">
+              <input type="checkbox" [formControlName]="'cloudSaas'" />
+              <span>Cloud SaaS</span>
+            </label>
+            <label class="checkbox-field">
+              <input type="checkbox" [formControlName]="'cloudIaasPaasLandingZoneCa'" />
+              <span>Cloud IaaS / PaaS (Landing Zone CA)</span>
+            </label>
+          </div>
+          <div class="infra-group">
+            <h4>Mainframe / OnPremise</h4>
+            <label class="checkbox-field">
+              <input type="checkbox" [formControlName]="'hostMainframe'" />
+              <span>Host (Mainframe)</span>
+            </label>
+            <label class="checkbox-field">
+              <input type="checkbox" [formControlName]="'onPremiseDipartimentale'" />
+              <span>OnPremise (Dipartimentale)</span>
+            </label>
+          </div>
+          <div class="infra-group">
+            <h4>Virtualizzazione</h4>
+            <label class="checkbox-field">
+              <input type="checkbox" [formControlName]="'infraOnVm'" />
+              <span>Infra su VM</span>
+            </label>
+            <label class="checkbox-field">
+              <input type="checkbox" [formControlName]="'infraMicroservices'" />
+              <span>Infra a Microservizi</span>
+            </label>
+          </div>
+          <div class="infra-group">
+            <h4>Altre</h4>
+            <label class="checkbox-field">
+              <input type="checkbox" [formControlName]="'needNewInfrastructure'" />
+              <span>Necessità di nuove infrastrutture</span>
+            </label>
+            <label class="field" *ngIf="impactField">
+              <span class="field-label">Entità Impatto <em>*</em></span>
+              <select [formControlName]="'impactEntity'">
+                <option value="">Seleziona...</option>
+                <option *ngFor="let option of impactField.options" [value]="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+              <small class="error" *ngIf="getFieldError(impactField)">
+                {{ getFieldError(impactField) }}
+              </small>
+            </label>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Sezioni standard: griglia 3 colonne, checkbox separati -->
+      <ng-template #defaultSection>
+
+        <!-- Campi input/select/multiselect -->
+        <div class="fields-grid" *ngIf="hasNonCheckbox(section.fields)">
+          <ng-container *ngFor="let field of section.fields">
+            <ng-container *ngIf="!asCheckbox(field)">
+
+              <label class="field" [ngClass]="colspanClass(field)">
+                <span class="field-label">
+                  {{ field.label }} <em *ngIf="field.required">*</em>
+                </span>
+
+                <!-- Text / Date / Number -->
+                <input
+                  *ngIf="field.type === 'text' || field.type === 'date' || field.type === 'number'"
+                  [attr.type]="field.type"
+                  [formControlName]="field.key"
+                />
+
+                <!-- Select -->
+                <select *ngIf="field.type === 'select'" [formControlName]="field.key">
+                  <option value="">Seleziona...</option>
+                  <option *ngFor="let option of field.options" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+
+                <!-- Multiselect -->
+                <div *ngIf="asMultiselect(field)" class="multiselect-wrapper">
+                  <select multiple [formControlName]="field.key" class="multiselect">
+                    <option *ngFor="let option of field.options" [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                  <small class="multiselect-hint">
+                    Tieni premuto <kbd>Ctrl</kbd> (o <kbd>⌘</kbd> su Mac) per selezionare più voci.
+                  </small>
+                </div>
+
+                <small class="error" *ngIf="getFieldError(field)">
+                  {{ getFieldError(field) }}
+                </small>
+              </label>
+
+            </ng-container>
+          </ng-container>
+        </div>
+
+        <!-- Checkbox separati in griglia propria -->
+        <div class="checkbox-section" *ngIf="hasCheckbox(section.fields)">
+          <p class="checkbox-section__label">Caratteristiche</p>
+          <div class="checkbox-grid">
+            <ng-container *ngFor="let field of section.fields">
+              <label class="checkbox-field" *ngIf="asCheckbox(field)">
+                <input type="checkbox" [formControlName]="field.key" />
+                <span>{{ field.label }}</span>
+              </label>
+            </ng-container>
+          </div>
+        </div>
+
+      </ng-template>
+    </article>
+
+    <div class="submit-bar">
+      <button type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Invio in corso...' : 'Invia Quotazione' }}
+      </button>
+    </div>
+
+    <p class="message success" *ngIf="successMessage">{{ successMessage }}</p>
+    <p class="message error"   *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  </form>
+</section>

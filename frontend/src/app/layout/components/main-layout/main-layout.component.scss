@@ -1,0 +1,27 @@
+.layout-shell {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	background: #f4f7fb;
+}
+
+.page-content {
+	flex: 1;
+	padding: 36px 48px;
+	max-width: 1400px;
+	width: 100%;
+	margin: 0 auto;
+	box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+	.page-content {
+		padding: 24px 24px;
+	}
+}
+
+@media (max-width: 640px) {
+	.page-content {
+		padding: 16px;
+	}
+}

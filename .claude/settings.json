@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('image:', d.get\\('image'\\)\\); print\\('imageID:', d.get\\('imageID'\\)\\); lc=d.get\\('lastState',{}\\).get\\('terminated',{}\\); print\\('last exit code:', lc.get\\('exitCode'\\)\\); print\\('last reason:', lc.get\\('reason'\\)\\)\")",
+      "Bash(docker build *)",
+      "Bash(kind load *)",
+      "Bash(kubectl rollout *)",
+      "Bash(node_modules/.bin/tsc --version)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "Write-Output '{\"systemMessage\": \"Ricorda: se hai scoperto gap nei skill files o in CLAUDE.md, aggiornali prima di chiudere la sessione.\"}'",
+            "shell": "powershell",
+            "statusMessage": "Verifica documentazione..."
+          }
+        ]
+      }
+    ]
+  }
+}

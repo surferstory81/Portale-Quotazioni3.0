@@ -1,0 +1,32 @@
+<section class="auth-page">
+	<div class="auth-card">
+		<h2>Registrazione</h2>
+		<p>Crea il tuo account per inviare nuove richieste</p>
+
+		<form [formGroup]="form" (ngSubmit)="onSubmit()">
+			<label>Matricola
+				<input type="text" placeholder="J12345" formControlName="matricola" />
+				<small class="error" *ngIf="hasError('matricola')">La matricola deve iniziare con "J" (max 50 caratteri).</small>
+			</label>
+
+			<label>Email
+				<input type="email" placeholder="nome@azienda.it" formControlName="email" />
+				<small class="error" *ngIf="hasError('email')">Inserisci una email valida.</small>
+			</label>
+
+			<label>Password
+				<input type="password" placeholder="Crea password" formControlName="password" autocomplete="new-password" />
+				<small class="hint">Min 8 caratteri · maiuscola · minuscola · numero · simbolo speciale</small>
+				<small class="hint muted">Simboli accettati: &#64; $ ! % * ? &amp; . , ; : _ - + = ^ ~ # |</small>
+				<small class="error" *ngIf="hasError('password')">Password non valida. Controlla i requisiti indicati sopra.</small>
+			</label>
+
+			<button type="submit" [disabled]="isSubmitting">{{ isSubmitting ? 'Registrazione in corso...' : 'Registrati' }}</button>
+		</form>
+
+		<p class="success global" *ngIf="successMessage">{{ successMessage }}</p>
+		<p class="error global" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+		<a routerLink="/auth/login">Hai gia un account? Accedi</a>
+	</div>
+</section>

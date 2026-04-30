@@ -1,0 +1,24 @@
+<header class="topbar">
+	<!-- Brand -->
+	<div class="topbar__brand">
+		<img src="assets/logo-credit-agricole.svg" alt="Crédit Agricole" class="topbar__logo" />
+		<span class="topbar__portal">Portale Quotazioni</span>
+	</div>
+
+	<!-- Navigation -->
+	<nav class="topbar__nav">
+		<a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+		<a routerLink="/dashboard/quotations/new" routerLinkActive="active">Nuova Quotazione</a>
+		<a routerLink="/dashboard/quotations/status" routerLinkActive="active">Stato Quotazioni</a>
+		<a *ngIf="isAdmin" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Admin</a>
+		<a *ngIf="isAdmin" routerLink="/admin/quotations" routerLinkActive="active">Gestione Quotazioni</a>
+		<a *ngIf="isAdmin" routerLink="/admin/users" routerLinkActive="active">Utenti</a>
+		<a *ngIf="isAdmin" routerLink="/admin/settings" routerLinkActive="active">Impostazioni</a>
+	</nav>
+
+	<!-- User actions -->
+	<div class="topbar__actions">
+		<span class="topbar__user" *ngIf="userEmail">{{ userEmail }}</span>
+		<button class="topbar__logout" type="button" (click)="logout()">Esci</button>
+	</div>
+</header>

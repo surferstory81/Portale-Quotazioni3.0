@@ -1,0 +1,203 @@
+.dashboard {
+	display: flex;
+	flex-direction: column;
+	gap: 32px;
+}
+
+// ── header ────────────────────────────────────────────────────────────────────
+.dashboard__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+
+	h2 {
+		margin: 0;
+		font-size: 1.6rem;
+		font-weight: 800;
+		color: #0f2033;
+	}
+}
+
+.dashboard__subtitle {
+	margin: 4px 0 0;
+	color: #64748b;
+	font-size: 0.9rem;
+}
+
+.dashboard__actions {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+// ── buttons ───────────────────────────────────────────────────────────────────
+.btn-primary {
+	background-color: #4df3c1;
+	color: #033540;
+	border: none;
+	border-radius: 10px;
+	padding: 10px 20px;
+	font-weight: 700;
+	font-size: 0.9rem;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	transition: filter 0.15s;
+
+	&:hover { filter: brightness(0.92); }
+}
+
+.btn-secondary {
+	background: #fff;
+	color: #033540;
+	border: 1.5px solid #c8d6e5;
+	border-radius: 10px;
+	padding: 10px 20px;
+	font-weight: 600;
+	font-size: 0.9rem;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	transition: border-color 0.15s, background 0.15s;
+
+	&:hover {
+		border-color: #033540;
+		background: #f1faf7;
+	}
+}
+
+// ── KPI cards ─────────────────────────────────────────────────────────────────
+.cards {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 20px;
+}
+
+.card {
+	background: #fff;
+	border: 1px solid #e2eaf4;
+	border-radius: 16px;
+	padding: 24px 28px;
+	border-top: 4px solid #cbd5e1;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+
+	&--valutazione { border-top-color: #f59e0b; }
+	&--completata  { border-top-color: #4df3c1; }
+	&--respinta    { border-top-color: #f87171; }
+}
+
+.card__label {
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.card__value {
+	font-size: 2.4rem;
+	font-weight: 800;
+	color: #0f2033;
+	line-height: 1;
+}
+
+// ── recent table ──────────────────────────────────────────────────────────────
+.recent__title {
+	margin: 0 0 16px;
+	font-size: 1rem;
+	font-weight: 700;
+	color: #0f2033;
+}
+
+.table-wrapper {
+	background: #fff;
+	border: 1px solid #e2eaf4;
+	border-radius: 16px;
+	overflow: hidden;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9rem;
+}
+
+thead {
+	background: #f8fafc;
+	border-bottom: 1px solid #e2eaf4;
+}
+
+th {
+	padding: 12px 20px;
+	text-align: left;
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+td {
+	padding: 14px 20px;
+	color: #1e293b;
+	border-bottom: 1px solid #f1f5f9;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+
+tbody tr:hover { background: #f8fafc; }
+
+.td-code {
+	font-family: monospace;
+	font-size: 0.85rem;
+	color: #475569;
+}
+
+.td-date {
+	color: #64748b;
+	font-size: 0.85rem;
+}
+
+// ── badges ────────────────────────────────────────────────────────────────────
+.badge {
+	display: inline-block;
+	padding: 3px 10px;
+	border-radius: 20px;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.badge--inviata       { background: #dbeafe; color: #1d4ed8; }
+.badge--in-valutazione { background: #fef3c7; color: #92400e; }
+.badge--completata    { background: #d1fae5; color: #065f46; }
+.badge--respinta      { background: #fee2e2; color: #991b1b; }
+.badge--default       { background: #f1f5f9; color: #475569; }
+
+// ── empty state ───────────────────────────────────────────────────────────────
+.empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16px;
+	padding: 60px 0;
+	color: #64748b;
+	font-size: 1rem;
+}
+
+// ── responsive ────────────────────────────────────────────────────────────────
+@media (max-width: 900px) {
+	.cards { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+	.cards { grid-template-columns: 1fr; }
+}

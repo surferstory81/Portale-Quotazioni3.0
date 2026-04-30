@@ -1,0 +1,72 @@
+<section class="dashboard">
+
+	<!-- Header -->
+	<div class="dashboard__header">
+		<div>
+			<h2>Dashboard</h2>
+			<p class="dashboard__subtitle">Panoramica delle quotazioni infrastrutturali</p>
+		</div>
+		<div class="dashboard__actions">
+			<a routerLink="/dashboard/quotations/status" class="btn-secondary">Stato quotazioni</a>
+			<a routerLink="/dashboard/quotations/new" class="btn-primary">+ Nuova quotazione</a>
+		</div>
+	</div>
+
+	<!-- Loading / Error -->
+	<p *ngIf="isLoading" class="info">Caricamento...</p>
+	<p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
+
+	<!-- KPI cards -->
+	<div class="cards" *ngIf="!isLoading">
+		<article class="card">
+			<span class="card__label">Inviate</span>
+			<strong class="card__value">{{ countInviata }}</strong>
+		</article>
+		<article class="card card--valutazione">
+			<span class="card__label">In Valutazione</span>
+			<strong class="card__value">{{ countInValutazione }}</strong>
+		</article>
+		<article class="card card--completata">
+			<span class="card__label">Completate</span>
+			<strong class="card__value">{{ countCompletata }}</strong>
+		</article>
+		<article class="card card--respinta">
+			<span class="card__label">Respinte</span>
+			<strong class="card__value">{{ countRespinta }}</strong>
+		</article>
+	</div>
+
+	<!-- Recent quotations -->
+	<section class="recent" *ngIf="!isLoading && recentQuotations.length > 0">
+		<h3 class="recent__title">Ultime quotazioni</h3>
+		<div class="table-wrapper">
+			<table>
+				<thead>
+					<tr>
+						<th>Codice</th>
+						<th>Nome progetto</th>
+						<th>Stato</th>
+						<th>Aggiornata</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let q of recentQuotations">
+						<td class="td-code">{{ q.projectCode }}</td>
+						<td>{{ q.projectName }}</td>
+						<td>
+							<span class="badge" [ngClass]="badgeClass(q.status)">{{ q.status }}</span>
+						</td>
+						<td class="td-date">{{ q.updatedAt | date: 'dd/MM/yyyy' }}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<!-- Empty state -->
+	<div class="empty-state" *ngIf="!isLoading && quotations.length === 0">
+		<p>Nessuna quotazione trovata.</p>
+		<a routerLink="/dashboard/quotations/new" class="btn-primary">+ Crea la prima quotazione</a>
+	</div>
+
+</section>

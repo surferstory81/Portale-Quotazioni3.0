@@ -1,0 +1,21 @@
+Implementa il modulo Admin nel backend.
+
+Accesso:
+- solo utenti con ruolo ADMIN
+
+Funzionalità:
+
+1. Visualizzare tutte le quotazioni
+2. Cambiare stato:
+   - INVIATA → IN VALUTAZIONE → COMPLETATA
+3. Inserire quotazione economica
+4. Prendere in carico richieste
+5. Gestione utenti:
+   - assegnare ruolo ADMIN
+   - bloccare utenti
+   - reset password
+
+Output:
+- Admin controller
+- Role guard
+- Service admin

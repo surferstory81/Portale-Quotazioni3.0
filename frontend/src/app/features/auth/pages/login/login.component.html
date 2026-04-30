@@ -1,0 +1,58 @@
+<!-- Full-screen background slider -->
+<div class="login-bg">
+  <img
+    *ngFor="let img of images; let i = index"
+    [src]="img"
+    [class.active]="i === currentImageIndex"
+    aria-hidden="true"
+    alt=""
+  />
+  <div class="login-overlay"></div>
+</div>
+
+<!-- Login card -->
+<div class="login-wrapper">
+  <div class="login-card">
+    <h2>Accedi alla tua area riservata</h2>
+    <p>Portale Quotazioni Infrastrutturali</p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <label>
+        Email
+        <input type="email" placeholder="nome@azienda.it" formControlName="email" autocomplete="email" />
+        <small class="error" *ngIf="hasError('email')">Inserisci una email valida.</small>
+      </label>
+
+      <label>
+        Password
+        <input type="password" placeholder="Inserisci password" formControlName="password" autocomplete="current-password" />
+        <small class="error" *ngIf="hasError('password')">La password è obbligatoria.</small>
+      </label>
+
+      <div class="forgot-link">
+        <a routerLink="/auth/forgot-password">Password dimenticata?</a>
+      </div>
+
+      <button type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Accesso in corso...' : 'Entra' }}
+      </button>
+    </form>
+
+    <div *ngIf="errorMessage" class="error-block">
+      <p class="error global">{{ errorMessage }}</p>
+      <button
+        *ngIf="showResend"
+        type="button"
+        class="btn-resend"
+        [disabled]="isResending"
+        (click)="onResendVerification()"
+      >
+        {{ isResending ? 'Invio in corso...' : 'Invia nuovamente l\'email di verifica' }}
+      </button>
+    </div>
+
+    <p *ngIf="resendMessage" class="success-msg">{{ resendMessage }}</p>
+
+    <a routerLink="/auth/register">Non hai un account? Registrati</a>
+  </div>
+</div>

@@ -1,0 +1,28 @@
+<section class="page-shell">
+  <header class="page-header">
+    <h2>Storico Quotazione</h2>
+    <a routerLink="/dashboard/quotations/status">Torna allo stato quotazioni</a>
+  </header>
+
+  <p *ngIf="isLoading" class="info">Caricamento dettaglio...</p>
+  <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
+
+  <article class="detail-card" *ngIf="quotation">
+    <div class="main-info">
+      <h3>{{ quotation.projectName }}</h3>
+      <p><strong>Codice:</strong> {{ quotation.projectCode }}</p>
+      <p><strong>Stato:</strong> {{ quotation.status }}</p>
+      <p><strong>Ultimo aggiornamento:</strong> {{ quotation.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+    </div>
+
+    <div class="form-data">
+      <h4>Dati del form</h4>
+      <dl>
+        <ng-container *ngFor="let item of quotation.formData | keyvalue">
+          <dt>{{ item.key }}</dt>
+          <dd>{{ item.value }}</dd>
+        </ng-container>
+      </dl>
+    </div>
+  </article>
+</section>

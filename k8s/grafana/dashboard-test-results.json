@@ -1,0 +1,194 @@
+{
+  "title": "Portale Quotazioni — Test Results",
+  "uid": "portale-test-results",
+  "tags": ["tests", "portale-quotazioni"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+
+    {
+      "id": 1,
+      "title": "Ultimo run — Stato",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "passed": { "text": "✓ PASSATO", "color": "green", "index": 0 } } },
+            { "type": "value", "options": { "failed": { "text": "✗ FALLITO", "color": "red",   "index": 1 } } }
+          ]
+        }
+      },
+      "targets": [{
+        "datasource": { "type": "loki" },
+        "expr": "{job=\"test-results\", type=\"summary\"} | json | line_format \"{{.status}}\"",
+        "legendFormat": "status"
+      }]
+    },
+
+    {
+      "id": 2,
+      "title": "Test Passati (ultimi 24h)",
+      "type": "stat",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["sum"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "green", "mode": "fixed" }, "unit": "short" } },
+      "targets": [{
+        "datasource": { "type": "loki" },
+        "expr": "sum(count_over_time({job=\"test-results\", type=\"test\", status=\"passed\"}[24h]))",
+        "legendFormat": "Passati"
+      }]
+    },
+
+    {
+      "id": 3,
+      "title": "Test Falliti (ultimi 24h)",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["sum"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "red", "mode": "fixed" }, "unit": "short" } },
+      "targets": [{
+        "datasource": { "type": "loki" },
+        "expr": "sum(count_over_time({job=\"test-results\", type=\"test\", status=\"failed\"}[24h]))",
+        "legendFormat": "Falliti"
+      }]
+    },
+
+    {
+      "id": 4,
+      "title": "Backend vs Frontend — Test nel tempo",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 6 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [
+        {
+          "datasource": { "type": "loki" },
+          "expr": "sum by(app) (count_over_time({job=\"test-results\", type=\"test\", status=\"passed\"}[5m]))",
+          "legendFormat": "{{app}} — passati"
+        },
+        {
+          "datasource": { "type": "loki" },
+          "expr": "sum by(app) (count_over_time({job=\"test-results\", type=\"test\", status=\"failed\"}[5m]))",
+          "legendFormat": "{{app}} — falliti"
+        }
+      ]
+    },
+
+    {
+      "id": 5,
+      "title": "Test Falliti — Dettaglio",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 10, "w": 24, "h": 8 },
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": true,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "targets": [{
+        "datasource": { "type": "loki" },
+        "expr": "{job=\"test-results\", type=\"test\", status=\"failed\"} | json",
+        "legendFormat": ""
+      }]
+    },
+
+    {
+      "id": 6,
+      "title": "Sommario Esecuzioni",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 18, "w": 24, "h": 6 },
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "wrapLogMessage": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [{
+        "datasource": { "type": "loki" },
+        "expr": "{job=\"test-results\", type=\"summary\"} | json | line_format \"[{{.app}}] {{.status}} — {{.passed}}✓ {{.failed}}✗ / {{.total}} ({{.duration_ms}}ms)\"",
+        "legendFormat": ""
+      }]
+    },
+
+    {
+      "id": 7,
+      "title": "Suite più lente (ultimi run)",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 6 },
+      "options": { "sortBy": [{ "displayName": "duration_ms", "desc": true }] },
+      "targets": [{
+        "datasource": { "type": "loki" },
+        "expr": "{job=\"test-results\", type=\"test\"} | json | duration_ms > 100",
+        "legendFormat": "{{suite}}",
+        "instant": false
+      }]
+    },
+
+    {
+      "id": 8,
+      "title": "Log completi (tutti i test)",
+      "type": "logs",
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 6 },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "wrapLogMessage": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [{
+        "datasource": { "type": "loki" },
+        "expr": "{job=\"test-results\"} | json",
+        "legendFormat": ""
+      }]
+    }
+
+  ],
+
+  "templating": {
+    "list": [
+      {
+        "name": "app",
+        "label": "Applicazione",
+        "type": "custom",
+        "query": "backend,frontend,all",
+        "current": { "text": "all", "value": "all" },
+        "options": [
+          { "text": "Tutti", "value": "all", "selected": true },
+          { "text": "Backend", "value": "backend" },
+          { "text": "Frontend", "value": "frontend" }
+        ]
+      }
+    ]
+  },
+
+  "annotations": {
+    "list": [{
+      "name": "Test runs",
+      "datasource": { "type": "loki" },
+      "expr": "{job=\"test-results\", type=\"summary\"} | json",
+      "enable": true,
+      "hide": false,
+      "iconColor": "blue",
+      "titleFormat": "{{app}} — {{status}}"
+    }]
+  }
+}

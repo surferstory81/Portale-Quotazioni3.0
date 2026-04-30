@@ -1,0 +1,19 @@
+Estendi frontend Angular.
+
+Implementa:
+
+1. Nuova Quotazione:
+- form dinamica basata su JSON
+- validazione
+
+2. Stato Quotazioni:
+- lista + filtri
+
+3. Storico:
+- dettaglio quotazione
+
+4. Integrazione API backend
+
+Output:
+- Componenti
+- Servizi Angular

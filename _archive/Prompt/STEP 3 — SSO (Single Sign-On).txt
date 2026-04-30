@@ -1,0 +1,28 @@
+Aggiungi autenticazione SSO al backend NestJS.
+
+Requisiti:
+- Supporto OAuth2 / OpenID Connect
+- Esempio: Azure AD o provider generico
+
+Implementa:
+1. Configurazione provider SSO via environment variables
+
+2. Endpoint:
+- /auth/sso/login
+- /auth/sso/callback
+
+3. Logica:
+- Validazione token provider
+- Estrazione email utente
+- Se utente non esiste → crearlo automaticamente
+- Se esiste → login
+
+4. Mapping ruoli:
+- default USER
+- configurabile
+
+5. Possibilità di attivare/disattivare SSO
+
+Output:
+- Strategia SSO (Passport o equivalente)
+- Configurazione modulare

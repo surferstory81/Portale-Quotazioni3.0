@@ -1,0 +1,12 @@
+Aggiungi sezione Admin al frontend Angular.
+
+Funzionalità:
+- dashboard admin
+- gestione utenti
+- gestione quotazioni
+- cambio stato
+- inserimento costi
+
+Output:
+- componenti admin
+- protezione route (admin guard)

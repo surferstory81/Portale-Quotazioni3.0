@@ -1,0 +1,58 @@
+<section class="page-shell">
+  <header class="page-header">
+    <h2>Impostazioni di sistema</h2>
+  </header>
+
+  <p *ngIf="isLoading" class="info">Caricamento impostazioni...</p>
+  <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
+  <p *ngIf="successMessage" class="message success">{{ successMessage }}</p>
+
+  <div class="settings-grid" *ngIf="settings && !isLoading">
+
+    <div class="setting-card">
+      <div class="setting-info">
+        <h3>Invio email</h3>
+        <p>Abilita o disabilita l'invio di tutte le email di sistema (verifica, reset password, notifiche quotazioni). La modifica è immediata e persistente.</p>
+      </div>
+      <div class="setting-control">
+        <span class="status-badge" [ngClass]="settings.email_enabled ? 'on' : 'off'">
+          {{ settings.email_enabled ? 'Abilitato' : 'Disabilitato' }}
+        </span>
+        <button
+          type="button"
+          class="btn-toggle"
+          [ngClass]="settings.email_enabled ? 'btn-disable' : 'btn-enable'"
+          [disabled]="toggleLoading['email_enabled']"
+          (click)="toggle('email_enabled')"
+        >
+          {{ toggleLoading['email_enabled'] ? '...' : (settings.email_enabled ? 'Disabilita' : 'Abilita') }}
+        </button>
+      </div>
+    </div>
+
+    <div class="setting-card">
+      <div class="setting-info">
+        <h3>SSO (Single Sign-On)</h3>
+        <p>
+          Abilita o disabilita l'accesso tramite SSO. La disabilitazione è immediata.
+          <strong>L'abilitazione richiede il riavvio del servizio</strong> se SSO non era attivo all'avvio (il client OIDC viene inizializzato solo al boot).
+        </p>
+      </div>
+      <div class="setting-control">
+        <span class="status-badge" [ngClass]="settings.sso_enabled ? 'on' : 'off'">
+          {{ settings.sso_enabled ? 'Abilitato' : 'Disabilitato' }}
+        </span>
+        <button
+          type="button"
+          class="btn-toggle"
+          [ngClass]="settings.sso_enabled ? 'btn-disable' : 'btn-enable'"
+          [disabled]="toggleLoading['sso_enabled']"
+          (click)="toggle('sso_enabled')"
+        >
+          {{ toggleLoading['sso_enabled'] ? '...' : (settings.sso_enabled ? 'Disabilita' : 'Abilita') }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</section>

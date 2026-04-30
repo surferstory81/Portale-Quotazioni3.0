@@ -1,0 +1,36 @@
+Estendi il backend NestJS aggiungendo autenticazione completa.
+
+Implementa:
+
+1. Registrazione:
+- matricola, email, password
+- validazioni
+- password hash (bcrypt)
+- controllo unicità
+
+2. Login:
+- JWT authentication
+- access token + refresh token
+
+3. Verifica email:
+- generazione token (UUID o JWT con scadenza)
+- tabella email_verification_tokens
+- endpoint:
+  - POST /auth/register
+  - GET /auth/verify-email
+
+4. Blocca login se email non verificata
+
+5. Recupero password:
+- forgot-password
+- reset-password
+- token temporaneo
+
+6. Protezione route:
+- AuthGuard
+- RoleGuard (USER / ADMIN)
+
+Output:
+- Controller auth
+- Service auth
+- Middleware sicurezza

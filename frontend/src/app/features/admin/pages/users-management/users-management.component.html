@@ -1,0 +1,106 @@
+<section class="page-shell">
+  <header class="page-header">
+    <h2>Gestione Utenti</h2>
+  </header>
+
+  <p *ngIf="isLoading" class="info">Caricamento utenti...</p>
+  <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
+  <p *ngIf="successMessage" class="message success">{{ successMessage }}</p>
+
+  <div class="table-wrapper" *ngIf="!isLoading && users.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Matricola</th>
+          <th>Email</th>
+          <th>Ruolo</th>
+          <th>Stato</th>
+          <th>Email verificata</th>
+          <th>Provider</th>
+          <th>Registrazione</th>
+          <th>Azioni</th>
+          <th>Reset password</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users; trackBy: trackById">
+          <td>{{ user.matricola }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="badge" [ngClass]="user.role.name === 'ADMIN' ? 'badge--admin' : 'badge--user'">
+              {{ user.role.name }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="user.isBlocked ? 'badge--bloccato' : 'badge--attivo'">
+              {{ user.isBlocked ? 'Bloccato' : 'Attivo' }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="user.isVerified ? 'badge--attivo' : 'badge--bloccato'">
+              {{ user.isVerified ? 'Verificata' : 'Non verificata' }}
+            </span>
+          </td>
+          <td>{{ user.authProvider }}</td>
+          <td>{{ user.createdAt | date: 'dd/MM/yyyy' }}</td>
+          <td class="actions-cell">
+            <button
+              type="button"
+              class="btn-sm"
+              [disabled]="actionLoading[user.id]"
+              (click)="toggleBlock(user)"
+            >
+              {{ user.isBlocked ? 'Sblocca' : 'Blocca' }}
+            </button>
+
+            <button
+              type="button"
+              class="btn-sm btn-secondary"
+              [disabled]="actionLoading[user.id] || user.authProvider === 'sso'"
+              (click)="toggleAdminRole(user)"
+            >
+              {{ user.role.name === 'ADMIN' ? 'Retrocedi USER' : 'Promuovi ADMIN' }}
+            </button>
+
+            <button
+              *ngIf="!user.isVerified"
+              type="button"
+              class="btn-sm btn-success"
+              [disabled]="actionLoading[user.id]"
+              (click)="verifyEmail(user)"
+            >
+              Verifica email
+            </button>
+
+            <button
+              type="button"
+              class="btn-sm btn-danger"
+              [disabled]="actionLoading[user.id]"
+              (click)="deleteUser(user)"
+            >
+              Elimina
+            </button>
+          </td>
+          <td>
+            <form [formGroup]="getResetForm(user.id)" (ngSubmit)="submitResetPassword(user)" class="reset-form">
+              <input
+                type="password"
+                formControlName="newPassword"
+                placeholder="Nuova password"
+                class="input-sm"
+              />
+              <button type="submit" class="btn-sm" [disabled]="resetPasswordLoading[user.id]">
+                {{ resetPasswordLoading[user.id] ? '...' : 'Reset' }}
+              </button>
+              <span *ngIf="resetPasswordMessages[user.id]" class="inline-msg">
+                {{ resetPasswordMessages[user.id] }}
+              </span>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p *ngIf="!isLoading && users.length === 0" class="info">Nessun utente trovato.</p>
+</section>

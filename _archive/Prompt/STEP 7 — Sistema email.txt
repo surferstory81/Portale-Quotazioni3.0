@@ -1,0 +1,15 @@
+Implementa sistema email nel backend.
+
+Requisiti:
+- SMTP configurabile via env
+
+Email da implementare:
+1. Verifica email
+2. Reset password
+3. Invio nuova quotazione
+4. Cambio stato
+5. Completamento quotazione
+
+Output:
+- Email service
+- Template base HTML

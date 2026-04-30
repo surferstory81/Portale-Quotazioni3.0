@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: portale-quotazioni-2-be
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: portale-quotazioni-2-fe

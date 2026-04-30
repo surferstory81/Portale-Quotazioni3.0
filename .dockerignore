@@ -1,0 +1,20 @@
+# Node modules (re-installed in Docker)
+node_modules/
+frontend/node_modules/
+
+# Build artifacts
+dist/
+frontend/dist/
+frontend/.angular/
+
+# Dev / local files
+.env
+.env.*
+!.env.example
+*.log
+coverage/
+
+# Git / IDE
+.git/
+.vscode/
+.idea/
