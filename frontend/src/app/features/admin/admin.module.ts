@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AdminRoutingModule } from './admin-routing.module';
 import { LayoutModule } from '../../layout/layout.module';
 import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard.component';
@@ -16,7 +16,7 @@ import { AdminGuard } from './services/admin.guard';
     QuotationsManagementComponent,
     AdminSettingsComponent,
   ],
-  imports: [CommonModule, ReactiveFormsModule, LayoutModule, AdminRoutingModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, LayoutModule, AdminRoutingModule],
   providers: [AdminGuard],
 })
 export class AdminModule {}

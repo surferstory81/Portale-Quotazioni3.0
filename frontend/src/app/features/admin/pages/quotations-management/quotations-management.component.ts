@@ -21,8 +21,14 @@ export class QuotationsManagementComponent implements OnInit {
   economicMessages: Record<string, string> = {};
 
   statusLoading: Record<string, boolean> = {};
+  retryingQuotationId: string | null = null;
 
   readonly statusOptions: AllowedStatus[] = ['IN VALUTAZIONE', 'COMPLETATA', 'RESPINTA'];
+
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 20;
+  itemsPerPageOptions = [10, 20, 50, 0]; // 0 = tutte
 
   constructor(private readonly adminService: AdminService) {}
 
@@ -127,6 +133,62 @@ export class QuotationsManagementComponent implements OnInit {
 
   trackById(_: number, q: AdminQuotation): string {
     return q.id;
+  }
+
+  get paginatedQuotations(): AdminQuotation[] {
+    // Se itemsPerPage è 0, mostra tutte
+    if (this.itemsPerPage === 0) {
+      return this.quotations;
+    }
+
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.quotations.slice(startIndex, endIndex);
+  }
+
+  get totalPages(): number {
+    if (this.itemsPerPage === 0) {
+      return 1;
+    }
+    return Math.ceil(this.quotations.length / this.itemsPerPage);
+  }
+
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  changePage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  changeItemsPerPage(value: number): void {
+    this.itemsPerPage = value;
+    this.currentPage = 1;
+  }
+
+  retryAiEstimation(quotationId: string): void {
+    this.retryingQuotationId = quotationId;
+    this.clearMessages();
+
+    this.adminService.retryAiEstimation(quotationId).subscribe({
+      next: (response) => {
+        this.successMessage = response.message;
+        this.retryingQuotationId = null;
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 5000);
+      },
+      error: (err: unknown) => {
+        this.errorMessage = this.adminService.extractApiError(err);
+        this.retryingQuotationId = null;
+      },
+    });
+  }
+
+  isRetrying(quotationId: string): boolean {
+    return this.retryingQuotationId === quotationId;
   }
 
   private loadQuotations(): void {

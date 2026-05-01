@@ -6,9 +6,15 @@ import { QuotationsService } from './quotations.service';
 import { QuotationsController } from './quotations.controller';
 import { EmailModule } from '../email/email.module';
 import { AIEstimationModule } from '../ai-estimation/ai-estimation.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Quotation, QuotationDetail]), EmailModule, AIEstimationModule],
+  imports: [
+    TypeOrmModule.forFeature([Quotation, QuotationDetail]),
+    EmailModule,
+    AIEstimationModule,
+    AuthModule,
+  ],
   controllers: [QuotationsController],
   providers: [QuotationsService],
   exports: [QuotationsService],

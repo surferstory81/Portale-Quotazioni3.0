@@ -6,6 +6,7 @@
 
   <p *ngIf="isLoading" class="info">Caricamento...</p>
   <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
+  <p *ngIf="retrySuccessMessage" class="message success">{{ retrySuccessMessage }}</p>
 
   <div class="cards" *ngIf="!isLoading">
     <article>
@@ -26,8 +27,22 @@
     </article>
   </div>
 
-  <section class="recent-quotations" *ngIf="recentQuotations.length > 0">
-    <h3>Ultime 10 quotazioni</h3>
+  <section class="recent-quotations" *ngIf="quotations.length > 0">
+    <div class="section-header">
+      <h3>Quotazioni ({{ quotations.length }} totali)</h3>
+      <div class="pagination-controls">
+        <label>
+          Mostra:
+          <select [(ngModel)]="itemsPerPage" (change)="changeItemsPerPage(itemsPerPage)">
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+            <option [value]="0">Tutte</option>
+          </select>
+          per pagina
+        </label>
+      </div>
+    </div>
     <table>
       <thead>
         <tr>
@@ -36,10 +51,11 @@
           <th>Richiedente</th>
           <th>Stato</th>
           <th>Data creazione</th>
+          <th>Azioni</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let q of recentQuotations">
+        <tr *ngFor="let q of paginatedQuotations">
           <td>{{ q.projectCode }}</td>
           <td>{{ q.projectName }}</td>
           <td>{{ q.createdBy.email }}</td>
@@ -47,8 +63,49 @@
             <span class="badge" [ngClass]="badgeClass(q.status)">{{ q.status }}</span>
           </td>
           <td>{{ q.createdAt | date: 'dd/MM/yyyy' }}</td>
+          <td>
+            <button
+              class="btn btn--secondary btn--small"
+              (click)="retryAiEstimation(q.id)"
+              [disabled]="isRetrying(q.id)"
+              title="Richiedi nuova stima AI per questa quotazione">
+              <span *ngIf="!isRetrying(q.id)">🔄 Retry AI</span>
+              <span *ngIf="isRetrying(q.id)">⏳ Processando...</span>
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
+
+    <!-- Pagination controls -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button
+        class="pagination-btn"
+        [disabled]="currentPage === 1"
+        (click)="changePage(currentPage - 1)">
+        ← Precedente
+      </button>
+
+      <span class="pagination-info">
+        Pagina {{ currentPage }} di {{ totalPages }}
+      </span>
+
+      <div class="pagination-pages" *ngIf="totalPages <= 10">
+        <button
+          *ngFor="let page of pageNumbers"
+          class="pagination-btn"
+          [class.active]="page === currentPage"
+          (click)="changePage(page)">
+          {{ page }}
+        </button>
+      </div>
+
+      <button
+        class="pagination-btn"
+        [disabled]="currentPage === totalPages"
+        (click)="changePage(currentPage + 1)">
+        Successiva →
+      </button>
+    </div>
   </section>
 </section>

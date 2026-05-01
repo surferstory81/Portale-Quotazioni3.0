@@ -1,6 +1,19 @@
 <section class="page-shell">
   <header class="page-header">
     <h2>Gestione Quotazioni</h2>
+    <div class="header-controls" *ngIf="!isLoading">
+      <span class="quotations-count">{{ quotations.length }} quotazioni totali</span>
+      <label class="items-per-page">
+        Mostra:
+        <select [(ngModel)]="itemsPerPage" (change)="changeItemsPerPage(itemsPerPage)">
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+          <option [value]="50">50</option>
+          <option [value]="0">Tutte</option>
+        </select>
+        per pagina
+      </label>
+    </div>
   </header>
 
   <p *ngIf="isLoading" class="info">Caricamento quotazioni...</p>
@@ -19,10 +32,11 @@
           <th>Creata</th>
           <th>Azioni stato</th>
           <th>Quotazione economica</th>
+          <th>AI Retry</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let q of quotations; trackBy: trackById">
+        <tr *ngFor="let q of paginatedQuotations; trackBy: trackById">
           <td>{{ q.projectCode }}</td>
           <td>{{ q.projectName }}</td>
           <td>{{ q.createdBy.email }}</td>
@@ -93,10 +107,51 @@
               {{ q.totalAmount > 0 ? ('€ ' + (q.totalAmount | number: '1.2-2')) : '—' }}
             </span>
           </td>
+          <td class="actions-cell">
+            <button
+              type="button"
+              class="btn-sm btn-secondary"
+              (click)="retryAiEstimation(q.id)"
+              [disabled]="isRetrying(q.id)"
+              title="Richiedi nuova stima AI">
+              {{ isRetrying(q.id) ? '⏳ ...' : '🔄 Retry' }}
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
 
     <p *ngIf="quotations.length === 0" class="info">Nessuna quotazione trovata.</p>
+
+    <!-- Pagination controls -->
+    <div class="pagination" *ngIf="totalPages > 1 && quotations.length > 0">
+      <button
+        class="pagination-btn"
+        [disabled]="currentPage === 1"
+        (click)="changePage(currentPage - 1)">
+        ← Precedente
+      </button>
+
+      <span class="pagination-info">
+        Pagina {{ currentPage }} di {{ totalPages }}
+      </span>
+
+      <div class="pagination-pages" *ngIf="totalPages <= 10">
+        <button
+          *ngFor="let page of pageNumbers"
+          class="pagination-btn"
+          [class.active]="page === currentPage"
+          (click)="changePage(page)">
+          {{ page }}
+        </button>
+      </div>
+
+      <button
+        class="pagination-btn"
+        [disabled]="currentPage === totalPages"
+        (click)="changePage(currentPage + 1)">
+        Successiva →
+      </button>
+    </div>
   </div>
 </section>

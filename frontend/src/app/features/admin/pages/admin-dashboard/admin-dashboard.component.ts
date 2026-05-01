@@ -10,6 +10,13 @@ export class AdminDashboardComponent implements OnInit {
   quotations: AdminQuotation[] = [];
   isLoading = false;
   errorMessage = '';
+  retryingQuotationId: string | null = null;
+  retrySuccessMessage = '';
+
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 10;
+  itemsPerPageOptions = [10, 20, 50, 0]; // 0 = tutte
 
   constructor(private readonly adminService: AdminService) {}
 
@@ -31,10 +38,33 @@ export class AdminDashboardComponent implements OnInit {
     return this.quotations.filter((q) => q.status === status).length;
   }
 
-  get recentQuotations(): AdminQuotation[] {
+  get sortedQuotations(): AdminQuotation[] {
     return [...this.quotations]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 10);
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  get paginatedQuotations(): AdminQuotation[] {
+    const sorted = this.sortedQuotations;
+
+    // Se itemsPerPage è 0, mostra tutte
+    if (this.itemsPerPage === 0) {
+      return sorted;
+    }
+
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return sorted.slice(startIndex, endIndex);
+  }
+
+  get totalPages(): number {
+    if (this.itemsPerPage === 0) {
+      return 1;
+    }
+    return Math.ceil(this.quotations.length / this.itemsPerPage);
+  }
+
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
   badgeClass(status: string): string {
@@ -45,5 +75,44 @@ export class AdminDashboardComponent implements OnInit {
       'RESPINTA': 'badge--respinta',
     };
     return map[status] ?? 'badge--default';
+  }
+
+  retryAiEstimation(quotationId: string): void {
+    this.retryingQuotationId = quotationId;
+    this.errorMessage = '';
+    this.retrySuccessMessage = '';
+
+    this.adminService.retryAiEstimation(quotationId).subscribe({
+      next: (response) => {
+        this.retrySuccessMessage = response.message;
+        this.retryingQuotationId = null;
+        setTimeout(() => {
+          this.retrySuccessMessage = '';
+        }, 5000);
+      },
+      error: (err: unknown) => {
+        this.errorMessage = this.adminService.extractApiError(err);
+        this.retryingQuotationId = null;
+      },
+    });
+  }
+
+  isRetrying(quotationId: string): boolean {
+    return this.retryingQuotationId === quotationId;
+  }
+
+  changePage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  changeItemsPerPage(value: number): void {
+    this.itemsPerPage = value;
+    this.currentPage = 1; // Reset alla prima pagina
+  }
+
+  get itemsPerPageLabel(): string {
+    return this.itemsPerPage === 0 ? 'Tutte' : this.itemsPerPage.toString();
   }
 }
