@@ -44,6 +44,11 @@ export class QuotationsController {
     return this.quotationsService.findCompletedByUser(user.id);
   }
 
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.quotationsService.findOne(id);
+  }
+
   @Patch(':id')
   async updateRejected(
     @Param('id') id: string,

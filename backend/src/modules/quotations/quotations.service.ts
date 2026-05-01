@@ -17,6 +17,7 @@ import {
   UpdateQuotationDto,
 } from './dto/quotations.dto';
 import { EmailService } from '../email/email.service';
+import { AiServiceClientService } from '../ai-estimation/ai-service-client.service';
 
 @Injectable()
 export class QuotationsService {
@@ -24,6 +25,7 @@ export class QuotationsService {
     @InjectRepository(Quotation)
     private readonly quotationRepo: Repository<Quotation>,
     private readonly emailService: EmailService,
+    private readonly aiServiceClient: AiServiceClientService,
   ) {}
 
   async create(user: User, dto: CreateQuotationDto): Promise<Quotation> {
@@ -50,6 +52,17 @@ export class QuotationsService {
     const savedQuotation = await this.quotationRepo.save(quotation);
 
     await this.emailService.sendNewQuotationEmail(savedQuotation, user);
+
+    // Request AI estimation workflow (async, non-blocking)
+    this.aiServiceClient.requestQuotationProcessing({
+      quotation_id: savedQuotation.id,
+      user_id: user.id,
+      project_code: savedQuotation.projectCode,
+      status: savedQuotation.status,
+    }).catch((error: Error) => {
+      // Log error but don't block quotation creation
+      console.error(`Failed to request AI processing: ${error.message}`);
+    });
 
     return savedQuotation;
   }
@@ -89,6 +102,19 @@ export class QuotationsService {
       })
       .orderBy('quotation.updatedAt', 'DESC')
       .getMany();
+  }
+
+  async findOne(id: string): Promise<Quotation> {
+    const quotation = await this.quotationRepo.findOne({
+      where: { id },
+      relations: ['createdBy'],
+    });
+
+    if (!quotation) {
+      throw new NotFoundException('Quotazione non trovata');
+    }
+
+    return quotation;
   }
 
   async updateRejected(
