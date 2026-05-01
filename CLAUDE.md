@@ -121,6 +121,7 @@ Details about AI skills, prompts, and constraints are defined in `.claude/skills
 | `.claude/skills/cost-model.md` | Capex/Opex structure, cost drivers, thresholds |
 | `.claude/skills/ai-estimation.md` | AI scope, constraints, output format, auditability |
 | `.claude/skills/admin-portal.md` | Admin sections, state transitions, evaluation workflow |
+| `.claude/skills/microservice-interaction-auditor.md` | This skill MUST be applied implicitly in every session, hook, and response involving software architecture, backend systems, or microservices | 
 
 These files are the authoritative source for domain-specific behavior. Claude must read the relevant skill file before working on any feature in its scope.
 
