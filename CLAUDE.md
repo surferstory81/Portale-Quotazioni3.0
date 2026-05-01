@@ -34,20 +34,16 @@ Detailed functional specifications are maintained in dedicated skill files under
 ## Repository Structure
 
 ```
-Portale-Quotazioni2.0/
+Portale-Quotazioni3.0/
 ├── backend/          ← NestJS (src/, migrations/, reporters/, test/)
 ├── frontend/         ← Angular 17 SPA (src/, reporters/, karma.conf.js)
+├── ai-estimation-service/ ← NestJS microservice per stime AI (AWS Bedrock)
 ├── k8s/              ← Manifest Kubernetes (all-in-one.yaml, grafana/)
-├── scripts/          ← Script di automazione
-│   ├── kind-deploy.sh    — deploy locale su kind
-│   ├── build-push.sh     — build Docker + push GHCR (tag SHA automatico)
-│   ├── run-tests.sh      — esegue tutti i test e pusha log a Loki
-│   ├── push-to-loki.js   — invia NDJSON a Loki via HTTP
-│   └── logs/             ← Log test NDJSON + run log (gitignored)
-├── _archive/         ← Materiale non attivo (helm-chart, prompt storici)
 ├── CLAUDE.md
 └── README.md
 ```
+
+**Note**: Questa è la versione 3.0 con architettura HTTP. La versione 2.0 con RabbitMQ è mantenuta separatamente per compatibilità con ambienti che richiedono message broker.
 
 ---
 
@@ -55,10 +51,30 @@ Portale-Quotazioni2.0/
 
 - **Frontend**: Angular 17 SPA — design system Credit Agricole, topbar navigation unica (no sidebar), SSR disabilitato
 - **Backend**: NestJS — REST APIs, JWT auth + refresh token, TypeORM + PostgreSQL 16+
+- **AI Estimation Service**: NestJS microservice — AWS Bedrock integration, HTTP endpoints, circuit breaker pattern
+- **Service Communication**: HTTP-based (fire-and-forget pattern for async operations)
+- **Public Endpoints**: @Public() decorator for service-to-service calls bypassing JWT auth
 - **Deployment locale**: kind con ingress-nginx, namespace `portale-quotazioni`
 - **Deployment produzione**: Kubernetes / OpenShift
 - **Images**: build con `docker build --no-cache`, push a GHCR taggato con git SHA + `latest`
 - **imagePullPolicy**: `Never` per i deployment kind (le immagini vanno caricate con `kind load`)
+
+### Microservices Communication
+
+**Backend → AI Service** (HTTP):
+1. Backend calls `POST /api/estimation/process` (fire-and-forget)
+2. AI Service fetches quotation data via `GET /quotations/:id` (public endpoint)
+3. AI Service processes estimation with AWS Bedrock
+4. Results stored in `ai_estimations` table
+
+**Public Endpoints**:
+- `GET /quotations/:id` - accessible without JWT for service-to-service calls
+- Uses `@Public()` decorator with Reflector pattern in JwtAuthGuard
+
+**Admin Features**:
+- Pagination (10/20/50/All quotations) in dashboard and quotations management
+- Retry AI estimation button for failed/incomplete estimations
+- View all quotations with flexible pagination controls
 
 ---
 
@@ -96,7 +112,21 @@ Label Loki per test: `{job="test-results", app="backend|frontend", status="passe
 - AI outputs are non-authoritative
 - AI behavior must be deterministic, constrained, and reproducible
 - All AI-generated data must be identifiable and reviewable
-- No external AI services are allowed
+- **AI Service**: AWS Bedrock with Claude Sonnet 4.5 model (`eu.anthropic.claude-sonnet-4-5-20250929-v1:0`)
+- **Region**: eu-central-1
+- **Timeout**: 120 seconds per request
+- **Circuit Breaker**: Opens after 5 consecutive failures, 60s recovery window
+- **IAM Requirements**: `bedrock:InvokeModel` permission required
+
+### AI Service Configuration
+
+Environment variables required in AI service:
+- `AWS_REGION=eu-central-1`
+- `AWS_ACCESS_KEY_ID=<your-key>`
+- `AWS_SECRET_ACCESS_KEY=<your-secret>`
+- `BEDROCK_MODEL_ID=eu.anthropic.claude-sonnet-4-5-20250929-v1:0`
+- `BEDROCK_TIMEOUT_MS=120000`
+- `BACKEND_URL=http://localhost:3000`
 
 Details about AI skills, prompts, and constraints are defined in `.claude/skills/ai-estimation.md`.
 

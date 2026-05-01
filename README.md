@@ -1,37 +1,43 @@
-# Portale Quotazioni Infrastrutturali 2.0
+# Portale Quotazioni Infrastrutturali 3.0
 
 Applicazione web interna per la gestione e valutazione delle richieste di costo per progetti IT e infrastrutturali. Permette alle Business Unit di sottomettere proposte di investimento al Comitato degli Investimenti tramite il processo di valutazione dell'area CTO.
+
+**Versione 3.0**: Architettura HTTP-based per comunicazione tra microservizi (senza RabbitMQ).
 
 ---
 
 ## Struttura repository
 
 ```
-Portale-Quotazioni2.0/
+Portale-Quotazioni3.0/
 ├── backend/              ← API NestJS + PostgreSQL
 │   ├── src/              ← sorgenti applicazione
 │   ├── test/             ← test E2E (Supertest)
-│   ├── reporters/        ← reporter Jest → Loki
 │   ├── Dockerfile
 │   └── package.json
 ├── frontend/             ← SPA Angular 17
 │   ├── src/              ← sorgenti applicazione
-│   ├── reporters/        ← reporter Karma → Loki
 │   ├── karma.conf.js
 │   ├── Dockerfile
 │   └── package.json
+├── ai-estimation-service/ ← Microservice NestJS per AI (AWS Bedrock)
+│   ├── src/              ← sorgenti applicazione
+│   ├── knowledge/        ← base di conoscenza per AI
+│   ├── Dockerfile
+│   └── package.json
 ├── k8s/
-│   ├── all-in-one.yaml   ← manifest Kubernetes (namespace, secrets, deployments, ingress)
-│   └── grafana/
-│       └── dashboard-test-results.json
-├── scripts/
-│   ├── kind-deploy.sh    ← deploy locale su kind
-│   ├── build-push.sh     ← build Docker + push GHCR (tag SHA)
-│   ├── run-tests.sh      ← esegue tutti i test e invia log a Loki
-│   ├── push-to-loki.js   ← invia NDJSON a Loki via HTTP
-│   └── logs/             ← log test e deploy (gitignored)
-└── _archive/             ← materiale non attivo
+│   └── all-in-one.yaml   ← manifest Kubernetes (namespace, secrets, deployments, ingress)
+├── CLAUDE.md             ← documentazione tecnica per Claude
+└── README.md
 ```
+
+**Differenze rispetto alla 2.0**:
+- ❌ Rimosso RabbitMQ e message broker
+- ✅ Comunicazione HTTP diretta Backend ↔ AI Service
+- ✅ Fire-and-forget pattern per operazioni asincrone
+- ✅ Endpoint pubblici con @Public() decorator per service-to-service calls
+- ✅ Admin pagination (10/20/50/All quotations)
+- ✅ Retry AI estimation button
 
 ---
 
@@ -103,6 +109,27 @@ cp .env.example .env   # configura DB e JWT
 npm install
 npm run start:dev      # avvia su http://localhost:3000
 ```
+
+### AI Estimation Service
+
+```bash
+cd ai-estimation-service
+cp .env.example .env   # configura AWS Bedrock
+npm install
+npm run start:dev      # avvia su http://localhost:3001
+```
+
+**Configurazione AWS Bedrock richiesta** in `.env`:
+```bash
+AWS_REGION=eu-central-1
+AWS_ACCESS_KEY_ID=<your-key>
+AWS_SECRET_ACCESS_KEY=<your-secret>
+BEDROCK_MODEL_ID=eu.anthropic.claude-sonnet-4-5-20250929-v1:0
+BEDROCK_TIMEOUT_MS=120000
+BACKEND_URL=http://localhost:3000
+```
+
+**IAM Policy richiesta**: L'utente/role AWS deve avere il permesso `bedrock:InvokeModel` per il modello specificato.
 
 ### Frontend
 
@@ -184,15 +211,41 @@ node scripts/push-to-loki.js --url http://localhost:13100
 
 ---
 
+## Architettura Microservizi
+
+### Comunicazione HTTP
+
+**Backend → AI Service**:
+1. Backend crea quotazione e chiama `POST http://localhost:3001/api/estimation/process` (fire-and-forget)
+2. AI Service riceve richiesta e fetcha dati via `GET http://localhost:3000/quotations/:id` (endpoint pubblico)
+3. AI Service elabora con AWS Bedrock Claude Sonnet 4.5
+4. Risultati salvati in tabella `ai_estimations`
+
+**Endpoint pubblici** (senza autenticazione JWT):
+- `GET /quotations/:id` - usato da AI Service per recuperare dati quotazione
+- Utilizza `@Public()` decorator e Reflector pattern in `JwtAuthGuard`
+
+**Circuit Breaker**: Dopo 5 fallimenti consecutivi AWS Bedrock, il circuito si apre per 60 secondi.
+
+### Admin Features
+
+- **Pagination**: Opzioni 10/20/50/Tutte quotazioni in dashboard e quotations management
+- **Retry AI**: Bottone per risottomettere quotazioni fallite al servizio AI
+- **Public endpoint**: Permette al servizio AI di accedere ai dati senza autenticazione
+
+---
+
 ## Documentazione tecnica
 
-Le specifiche funzionali e tecniche dettagliate si trovano in `.claude/skills/`:
+Le specifiche funzionali e tecniche dettagliate si trovano in `CLAUDE.md` e `.claude/skills/`:
 
 | File | Contenuto |
 |---|---|
-| `quotation-workflow.md` | Lifecycle, stati, form, attori |
-| `frontend.md` | Struttura Angular, UX, layout, test |
-| `backend.md` | API, database, sicurezza, test |
-| `cost-model.md` | Struttura Capex/Opex |
-| `ai-estimation.md` | Scope e vincoli AI |
-| `admin-portal.md` | Sezioni admin, transizioni stato |
+| `CLAUDE.md` | Architettura completa, microservizi, configurazione |
+| `.claude/skills/quotation-workflow.md` | Lifecycle, stati, form, attori |
+| `.claude/skills/frontend.md` | Struttura Angular, UX, layout, test |
+| `.claude/skills/backend.md` | API, database, sicurezza, test |
+| `.claude/skills/cost-model.md` | Struttura Capex/Opex |
+| `.claude/skills/ai-estimation.md` | Scope e vincoli AI |
+| `.claude/skills/admin-portal.md` | Sezioni admin, transizioni stato |
+| `.claude/skills/microservice-interaction-auditor.md` | Audit architettura microservizi |
