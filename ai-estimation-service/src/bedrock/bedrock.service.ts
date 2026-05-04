@@ -2,8 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   BedrockRuntimeClient,
-  InvokeModelCommand,
-  InvokeModelCommandInput,
+  ConverseCommand,
+  ConverseCommandInput,
+  ConverseCommandOutput,
+  Message,
+  ContentBlock,
+  SystemContentBlock,
 } from '@aws-sdk/client-bedrock-runtime';
 
 export interface BedrockMessage {
@@ -16,6 +20,7 @@ export interface BedrockRequest {
   system?: string;
   maxTokens?: number;
   temperature?: number;
+  topP?: number;
 }
 
 export interface BedrockResponse {
@@ -57,7 +62,7 @@ export class BedrockService {
   }
 
   /**
-   * Invoke Claude model on AWS Bedrock
+   * Invoke Claude model on AWS Bedrock using Converse API
    */
   async invoke(request: BedrockRequest): Promise<BedrockResponse> {
     // Check circuit breaker
@@ -76,47 +81,56 @@ export class BedrockService {
 
     const maxTokens = request.maxTokens || this.defaultMaxTokens;
     const temperature = request.temperature ?? 1.0;
+    const topP = request.topP ?? 0.999;
 
-    // Bedrock Messages API format
-    const body = {
-      anthropic_version: 'bedrock-2023-05-31',
-      max_tokens: maxTokens,
-      temperature,
-      messages: request.messages,
-      ...(request.system && { system: request.system }),
-    };
+    // Convert messages to Converse API format
+    const messages: Message[] = request.messages.map(msg => ({
+      role: msg.role,
+      content: [{ text: msg.content }],
+    }));
 
-    const input: InvokeModelCommandInput = {
+    // Prepare system prompt if provided
+    const system: SystemContentBlock[] | undefined = request.system
+      ? [{ text: request.system }]
+      : undefined;
+
+    const input: ConverseCommandInput = {
       modelId: this.modelId,
-      contentType: 'application/json',
-      accept: 'application/json',
-      body: JSON.stringify(body),
+      messages,
+      system,
+      inferenceConfig: {
+        maxTokens,
+        temperature,
+        topP,
+      },
     };
 
     const startTime = Date.now();
 
     try {
-      this.logger.debug(`Invoking Bedrock model ${this.modelId}`);
+      this.logger.debug(`Invoking Bedrock model ${this.modelId} via Converse API`);
 
-      const command = new InvokeModelCommand(input);
-      const response = await this.client.send(command);
-
-      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+      const command = new ConverseCommand(input);
+      const response: ConverseCommandOutput = await this.client.send(command);
 
       const latencyMs = Date.now() - startTime;
+
+      // Extract text content from response
+      const textContent = this.extractTextContent(response.output?.message?.content);
+
       this.logger.log(
-        `Bedrock request successful (${latencyMs}ms, input: ${responseBody.usage?.input_tokens}, output: ${responseBody.usage?.output_tokens})`,
+        `Bedrock Converse request successful (${latencyMs}ms, input: ${response.usage?.inputTokens}, output: ${response.usage?.outputTokens})`,
       );
 
       // Reset circuit breaker on success
       this.consecutiveFailures = 0;
 
       return {
-        content: responseBody.content[0].text,
-        stopReason: responseBody.stop_reason,
+        content: textContent,
+        stopReason: response.stopReason || 'end_turn',
         usage: {
-          inputTokens: responseBody.usage?.input_tokens || 0,
-          outputTokens: responseBody.usage?.output_tokens || 0,
+          inputTokens: response.usage?.inputTokens || 0,
+          outputTokens: response.usage?.outputTokens || 0,
         },
       };
     } catch (error) {
@@ -124,7 +138,7 @@ export class BedrockService {
       this.consecutiveFailures++;
 
       this.logger.error(
-        `Bedrock request failed (${latencyMs}ms, failures: ${this.consecutiveFailures}): ${error.message}`,
+        `Bedrock Converse request failed (${latencyMs}ms, failures: ${this.consecutiveFailures}): ${error.message}`,
       );
 
       // Open circuit breaker if threshold exceeded
@@ -140,6 +154,21 @@ export class BedrockService {
 
       throw error;
     }
+  }
+
+  /**
+   * Extract text content from Converse API response
+   */
+  private extractTextContent(content: ContentBlock[] | undefined): string {
+    if (!content || content.length === 0) {
+      return '';
+    }
+
+    // Concatenate all text blocks
+    return content
+      .filter(block => block.text !== undefined)
+      .map(block => block.text)
+      .join('\n');
   }
 
   /**

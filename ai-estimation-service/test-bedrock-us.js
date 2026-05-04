@@ -1,32 +1,32 @@
-const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
+const { BedrockRuntimeClient, ConverseCommand } = require('@aws-sdk/client-bedrock-runtime');
 
-// Try US region and standard model
+// Try US region and standard model with Converse API
 const client = new BedrockRuntimeClient({
   region: 'us-east-1',
 });
 
-const body = {
-  anthropic_version: 'bedrock-2023-05-31',
-  max_tokens: 100,
-  temperature: 1.0,
-  messages: [{ role: 'user', content: 'Say hello in one word' }],
-};
-
 const input = {
   modelId: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
-  contentType: 'application/json',
-  accept: 'application/json',
-  body: JSON.stringify(body),
+  messages: [
+    {
+      role: 'user',
+      content: [{ text: 'Say hello in one word' }],
+    },
+  ],
+  inferenceConfig: {
+    maxTokens: 100,
+    temperature: 1.0,
+  },
 };
 
-console.log('Testing AWS Bedrock with US region and standard model...');
-const command = new InvokeModelCommand(input);
+console.log('Testing AWS Bedrock Converse API with US region and standard model...');
+const command = new ConverseCommand(input);
 
 client.send(command)
   .then(response => {
-    const result = JSON.parse(new TextDecoder().decode(response.body));
-    console.log('SUCCESS:', result.content[0].text);
+    console.log('SUCCESS:', response.output.message.content[0].text);
     console.log('Model works! You can use:', input.modelId, 'in region us-east-1');
+    console.log('Usage:', response.usage);
     process.exit(0);
   })
   .catch(error => {

@@ -51,7 +51,7 @@ Portale-Quotazioni3.0/
 
 - **Frontend**: Angular 17 SPA — design system Credit Agricole, topbar navigation unica (no sidebar), SSR disabilitato
 - **Backend**: NestJS — REST APIs, JWT auth + refresh token, TypeORM + PostgreSQL 16+
-- **AI Estimation Service**: NestJS microservice — AWS Bedrock integration, HTTP endpoints, circuit breaker pattern
+- **AI Estimation Service**: NestJS microservice — AWS Bedrock Converse API, HTTP endpoints, circuit breaker pattern
 - **Service Communication**: HTTP-based (fire-and-forget pattern for async operations)
 - **Public Endpoints**: @Public() decorator for service-to-service calls bypassing JWT auth
 - **Deployment locale**: kind con ingress-nginx, namespace `portale-quotazioni`
@@ -113,6 +113,7 @@ Label Loki per test: `{job="test-results", app="backend|frontend", status="passe
 - AI behavior must be deterministic, constrained, and reproducible
 - All AI-generated data must be identifiable and reviewable
 - **AI Service**: AWS Bedrock with Claude Sonnet 4.5 model (`eu.anthropic.claude-sonnet-4-5-20250929-v1:0`)
+- **API**: Converse API (second generation, supports tool use and multi-turn)
 - **Region**: eu-central-1
 - **Timeout**: 120 seconds per request
 - **Circuit Breaker**: Opens after 5 consecutive failures, 60s recovery window

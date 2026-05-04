@@ -16,10 +16,11 @@ Il servizio:
 
 ## Dipendenze
 
-- **AWS Bedrock**: Claude Sonnet 4.5 per generazione stime
-- **RabbitMQ**: message broker per eventi asincroni
-- **Backend API**: per salvare estimation e validation
+- **AWS Bedrock**: Claude Sonnet 4.5 per generazione stime (Converse API)
+- **Backend API**: per salvare estimation e validation via HTTP
 - **Knowledge Base**: 5 file markdown con dati di costo
+
+**Note**: Usa Converse API (seconda generazione) invece di InvokeModel per supporto nativo di tool use e multi-turn conversations.
 
 ## Struttura
 
@@ -363,6 +364,7 @@ Se serve modificare il comportamento degli agenti:
 ## Roadmap
 
 ### v1.1
+- [x] ✅ Migrato a Converse API (supporto nativo tool use + multi-turn)
 - [ ] Implementare prompt caching (Bedrock feature)
 - [ ] Aggiungere retry logic con exponential backoff
 - [ ] Metrics export (Prometheus)
@@ -371,11 +373,13 @@ Se serve modificare il comportamento degli agenti:
 - [ ] Support per modelli alternativi (Haiku per stime veloci)
 - [ ] Batch processing per quotazioni multiple
 - [ ] Feedback loop per migliorare confidence scoring
+- [ ] Tool use: integrare API vendor per prezzi live (AWS, Azure pricing APIs)
 
 ### v2.0
-- [ ] Agent autonomo che richiede chiarimenti all'utente
+- [ ] Agent autonomo che richiede chiarimenti all'utente (multi-turn via Converse)
 - [ ] Integration con vendor APIs per prezzi live
 - [ ] ML model per cost prediction
+- [ ] Streaming responses (ConverseStream) per UX real-time
 
 ---
 
