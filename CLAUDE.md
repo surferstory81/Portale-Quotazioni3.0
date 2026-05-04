@@ -138,6 +138,8 @@ Details about AI skills, prompts, and constraints are defined in `.claude/skills
 - Financial logic must be explicit and testable
 - No hidden defaults or silent fallbacks
 - Every quotation must be traceable (who / when / why)
+- Maintain clean repository: no IDE files, build artifacts, or logs in version control
+- Verify `.gitignore` coverage before committing new services or directories
 
 ---
 
@@ -151,6 +153,7 @@ Details about AI skills, prompts, and constraints are defined in `.claude/skills
 | `.claude/skills/cost-model.md` | Capex/Opex structure, cost drivers, thresholds |
 | `.claude/skills/ai-estimation.md` | AI scope, constraints, output format, auditability |
 | `.claude/skills/admin-portal.md` | Admin sections, state transitions, evaluation workflow |
+| `.claude/skills/repository-management.md` | Git hygiene, .gitignore rules, cleanup procedures - applied before commits and when verifying repository state |
 | `.claude/skills/microservice-interaction-auditor.md` | This skill MUST be applied implicitly in every session, hook, and response involving software architecture, backend systems, or microservices | 
 
 These files are the authoritative source for domain-specific behavior. Claude must read the relevant skill file before working on any feature in its scope.
