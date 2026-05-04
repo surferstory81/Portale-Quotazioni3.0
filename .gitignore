@@ -6,6 +6,7 @@ dist/
 
 # Log files
 *.log
+*.ndjson
 
 # Visual Studio
 .vs/
