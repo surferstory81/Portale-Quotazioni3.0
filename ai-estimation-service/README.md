@@ -319,9 +319,12 @@ Metodo raccomandato per accesso Bedrock:
 - Model: Claude Sonnet 4.5
 - Input: ~10K tokens per estimation (knowledge base + quotation data)
 - Output: ~5K tokens per estimation + validation
-- Costo stimato: ~€0.05 per quotazione
+- **Prompt Caching**: Knowledge base (~10K tokens) cached at 90% discount
+- Costo stimato: 
+  - First quotation: ~€0.05
+  - Subsequent (within 5min): ~€0.016 (~68% savings)
 
-Con 100 quotazioni/mese: ~€5/mese di costi Bedrock.
+Con 100 quotazioni/mese in batch: ~€2/mese di costi Bedrock (vs €5 senza cache).
 
 ### Resource Requests
 
@@ -365,9 +368,10 @@ Se serve modificare il comportamento degli agenti:
 
 ### v1.1
 - [x] ✅ Migrato a Converse API (supporto nativo tool use + multi-turn)
-- [ ] Implementare prompt caching (Bedrock feature)
+- [x] ✅ Implementato prompt caching (riduce costi 90% su knowledge base)
 - [ ] Aggiungere retry logic con exponential backoff
 - [ ] Metrics export (Prometheus)
+- [ ] Cache hit rate tracking
 
 ### v1.2
 - [ ] Support per modelli alternativi (Haiku per stime veloci)

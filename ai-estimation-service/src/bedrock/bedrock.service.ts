@@ -18,6 +18,7 @@ export interface BedrockMessage {
 export interface BedrockRequest {
   messages: BedrockMessage[];
   system?: string;
+  systemCacheable?: boolean; // Enable prompt caching for system prompt
   maxTokens?: number;
   temperature?: number;
   topP?: number;
@@ -29,6 +30,8 @@ export interface BedrockResponse {
   usage: {
     inputTokens: number;
     outputTokens: number;
+    cacheCreationInputTokens?: number;
+    cacheReadInputTokens?: number;
   };
 }
 
@@ -89,9 +92,15 @@ export class BedrockService {
       content: [{ text: msg.content }],
     }));
 
-    // Prepare system prompt if provided
+    // Prepare system prompt with optional caching
     const system: SystemContentBlock[] | undefined = request.system
-      ? [{ text: request.system }]
+      ? [
+          {
+            text: request.system,
+            // Enable prompt caching if requested (reduces costs by 90%)
+            ...(request.systemCacheable && { cacheControl: { type: 'ephemeral' } }),
+          },
+        ]
       : undefined;
 
     const input: ConverseCommandInput = {
@@ -118,8 +127,13 @@ export class BedrockService {
       // Extract text content from response
       const textContent = this.extractTextContent(response.output?.message?.content);
 
+      // Log cache usage if present
+      const cacheCreated = (response.usage as any)?.cacheCreationInputTokens || 0;
+      const cacheRead = (response.usage as any)?.cacheReadInputTokens || 0;
+      const cacheInfo = cacheCreated > 0 ? ` cache-created: ${cacheCreated},` : cacheRead > 0 ? ` cache-hit: ${cacheRead},` : '';
+
       this.logger.log(
-        `Bedrock Converse request successful (${latencyMs}ms, input: ${response.usage?.inputTokens}, output: ${response.usage?.outputTokens})`,
+        `Bedrock Converse request successful (${latencyMs}ms,${cacheInfo} input: ${response.usage?.inputTokens}, output: ${response.usage?.outputTokens})`,
       );
 
       // Reset circuit breaker on success
@@ -131,6 +145,8 @@ export class BedrockService {
         usage: {
           inputTokens: response.usage?.inputTokens || 0,
           outputTokens: response.usage?.outputTokens || 0,
+          cacheCreationInputTokens: cacheCreated,
+          cacheReadInputTokens: cacheRead,
         },
       };
     } catch (error) {

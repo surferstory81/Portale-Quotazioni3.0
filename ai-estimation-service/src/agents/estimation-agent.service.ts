@@ -70,6 +70,7 @@ export class EstimationAgentService {
     try {
       const response = await this.bedrockService.invoke({
         system: systemPrompt,
+        systemCacheable: true, // Enable prompt caching for knowledge base (90% cost reduction)
         messages: [
           {
             role: 'user',
@@ -81,8 +82,14 @@ export class EstimationAgentService {
       });
 
       const latency = Date.now() - startTime;
+      const cacheInfo = response.usage.cacheReadInputTokens
+        ? ` [CACHE HIT: ${response.usage.cacheReadInputTokens} tokens, ~90% cost savings]`
+        : response.usage.cacheCreationInputTokens
+        ? ` [CACHE CREATED: ${response.usage.cacheCreationInputTokens} tokens]`
+        : '';
+
       this.logger.log(
-        `Estimation generated in ${latency}ms (input: ${response.usage.inputTokens}, output: ${response.usage.outputTokens})`,
+        `Estimation generated in ${latency}ms (input: ${response.usage.inputTokens}, output: ${response.usage.outputTokens})${cacheInfo}`,
       );
 
       // Parse JSON response
