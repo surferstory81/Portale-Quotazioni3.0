@@ -5,6 +5,7 @@ import { BedrockModule } from './bedrock/bedrock.module';
 import { KnowledgeLoaderModule } from './knowledge/knowledge-loader.module';
 import { AgentsModule } from './agents/agents.module';
 import { QueueModule } from './queue/queue.module';
+import { ToolsModule } from './tools/tools.module';
 import { HealthController } from './health.controller';
 import { EstimationController } from './api/estimation.controller';
 import { ServiceAuthGuard } from './guards/service-auth.guard';
@@ -21,6 +22,7 @@ import { HttpModule } from '@nestjs/axios';
     KnowledgeLoaderModule,
     AgentsModule,
     QueueModule,
+    ToolsModule,
   ],
   controllers: [HealthController, EstimationController],
   providers: [ServiceAuthGuard],

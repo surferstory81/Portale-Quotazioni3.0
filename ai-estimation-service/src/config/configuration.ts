@@ -35,4 +35,9 @@ export default () => ({
     threshold: parseInt(process.env.CIRCUIT_BREAKER_THRESHOLD, 10) || 5,
     timeoutMs: parseInt(process.env.CIRCUIT_BREAKER_TIMEOUT_MS, 10) || 60000,
   },
+
+  tools: {
+    awsPricing: process.env.ENABLE_AWS_PRICING_TOOL === 'true',
+    azurePricing: process.env.ENABLE_AZURE_PRICING_TOOL === 'true',
+  },
 });

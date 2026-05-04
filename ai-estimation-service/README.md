@@ -374,10 +374,13 @@ Se serve modificare il comportamento degli agenti:
 - [ ] Cache hit rate tracking
 
 ### v1.2
+- [x] ✅ Implementato tool use per API pricing (AWS EC2, Azure VM con mock data)
+- [x] ✅ Multi-turn conversation con tool execution loop
+- [ ] Integrazione API reali (AWS Price List, Azure Retail Prices)
+- [ ] Tool result caching per ridurre API calls
 - [ ] Support per modelli alternativi (Haiku per stime veloci)
 - [ ] Batch processing per quotazioni multiple
 - [ ] Feedback loop per migliorare confidence scoring
-- [ ] Tool use: integrare API vendor per prezzi live (AWS, Azure pricing APIs)
 
 ### v2.0
 - [ ] Agent autonomo che richiede chiarimenti all'utente (multi-turn via Converse)

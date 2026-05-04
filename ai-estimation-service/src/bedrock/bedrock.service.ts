@@ -8,6 +8,8 @@ import {
   Message,
   ContentBlock,
   SystemContentBlock,
+  Tool,
+  ToolResultBlock,
 } from '@aws-sdk/client-bedrock-runtime';
 
 export interface BedrockMessage {
@@ -15,18 +17,36 @@ export interface BedrockMessage {
   content: string;
 }
 
+export interface BedrockTool {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: 'object';
+    properties: Record<string, any>;
+    required?: string[];
+  };
+}
+
 export interface BedrockRequest {
   messages: BedrockMessage[];
   system?: string;
   systemCacheable?: boolean; // Enable prompt caching for system prompt
+  tools?: BedrockTool[]; // Available tools for function calling
   maxTokens?: number;
   temperature?: number;
   topP?: number;
 }
 
+export interface ToolUseBlock {
+  toolUseId: string;
+  name: string;
+  input: Record<string, any>;
+}
+
 export interface BedrockResponse {
   content: string;
   stopReason: string;
+  toolUse?: ToolUseBlock[]; // Tool calls requested by the model
   usage: {
     inputTokens: number;
     outputTokens: number;
@@ -103,10 +123,26 @@ export class BedrockService {
         ]
       : undefined;
 
+    // Prepare tools if provided
+    const toolConfig = request.tools
+      ? {
+          tools: request.tools.map(tool => ({
+            toolSpec: {
+              name: tool.name,
+              description: tool.description,
+              inputSchema: {
+                json: tool.inputSchema,
+              },
+            },
+          })),
+        }
+      : undefined;
+
     const input: ConverseCommandInput = {
       modelId: this.modelId,
       messages,
       system,
+      toolConfig,
       inferenceConfig: {
         maxTokens,
         temperature,
@@ -124,16 +160,18 @@ export class BedrockService {
 
       const latencyMs = Date.now() - startTime;
 
-      // Extract text content from response
+      // Extract text content and tool use from response
       const textContent = this.extractTextContent(response.output?.message?.content);
+      const toolUse = this.extractToolUse(response.output?.message?.content);
 
       // Log cache usage if present
       const cacheCreated = (response.usage as any)?.cacheCreationInputTokens || 0;
       const cacheRead = (response.usage as any)?.cacheReadInputTokens || 0;
       const cacheInfo = cacheCreated > 0 ? ` cache-created: ${cacheCreated},` : cacheRead > 0 ? ` cache-hit: ${cacheRead},` : '';
+      const toolInfo = toolUse && toolUse.length > 0 ? ` tools-called: ${toolUse.length},` : '';
 
       this.logger.log(
-        `Bedrock Converse request successful (${latencyMs}ms,${cacheInfo} input: ${response.usage?.inputTokens}, output: ${response.usage?.outputTokens})`,
+        `Bedrock Converse request successful (${latencyMs}ms,${cacheInfo}${toolInfo} input: ${response.usage?.inputTokens}, output: ${response.usage?.outputTokens})`,
       );
 
       // Reset circuit breaker on success
@@ -142,6 +180,7 @@ export class BedrockService {
       return {
         content: textContent,
         stopReason: response.stopReason || 'end_turn',
+        toolUse: toolUse.length > 0 ? toolUse : undefined,
         usage: {
           inputTokens: response.usage?.inputTokens || 0,
           outputTokens: response.usage?.outputTokens || 0,
@@ -185,6 +224,27 @@ export class BedrockService {
       .filter(block => block.text !== undefined)
       .map(block => block.text)
       .join('\n');
+  }
+
+  /**
+   * Extract tool use requests from Converse API response
+   */
+  private extractToolUse(content: ContentBlock[] | undefined): ToolUseBlock[] {
+    if (!content || content.length === 0) {
+      return [];
+    }
+
+    // Extract all tool use blocks
+    return content
+      .filter(block => (block as any).toolUse !== undefined)
+      .map(block => {
+        const toolUse = (block as any).toolUse;
+        return {
+          toolUseId: toolUse.toolUseId,
+          name: toolUse.name,
+          input: toolUse.input,
+        };
+      });
   }
 
   /**

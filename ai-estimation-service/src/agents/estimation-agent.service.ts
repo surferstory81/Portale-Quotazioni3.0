@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BedrockService } from '../bedrock/bedrock.service';
 import { KnowledgeLoaderService } from '../knowledge/knowledge-loader.service';
+import { PricingToolsService } from '../tools/pricing-tools.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -39,6 +40,7 @@ export class EstimationAgentService {
   constructor(
     private readonly bedrockService: BedrockService,
     private readonly knowledgeLoader: KnowledgeLoaderService,
+    private readonly pricingTools: PricingToolsService,
   ) {
     // Load agent skill prompt from file
     const skillPath = path.join(__dirname, '../../prompts/estimation-agent-prompt.md');
@@ -53,52 +55,90 @@ export class EstimationAgentService {
 
   /**
    * Generate cost estimation for a quotation
+   * Supports multi-turn tool use for fetching live pricing
    */
   async generateEstimation(quotationData: QuotationData): Promise<EstimationResult> {
     this.logger.log(`Generating estimation for quotation ${quotationData.quotation_id}`);
 
     const knowledgeBase = this.knowledgeLoader.getKnowledgeBase();
-
-    // Build system prompt with knowledge base
     const systemPrompt = this.buildSystemPrompt(knowledgeBase);
-
-    // Build user message with quotation data
     const userMessage = this.buildUserMessage(quotationData);
+    const availableTools = this.pricingTools.getAvailableTools();
 
     const startTime = Date.now();
+    const messages: any[] = [{ role: 'user', content: userMessage }];
+    let totalTokensUsed = { input: 0, output: 0 };
+    let turnCount = 0;
+    const maxTurns = 5; // Prevent infinite loops
 
     try {
-      const response = await this.bedrockService.invoke({
-        system: systemPrompt,
-        systemCacheable: true, // Enable prompt caching for knowledge base (90% cost reduction)
-        messages: [
-          {
+      // Multi-turn conversation loop for tool use
+      while (turnCount < maxTurns) {
+        turnCount++;
+        this.logger.log(`Turn ${turnCount}: Invoking AI model`);
+
+        const response = await this.bedrockService.invoke({
+          system: systemPrompt,
+          systemCacheable: true,
+          tools: availableTools.length > 0 ? availableTools : undefined,
+          messages,
+          maxTokens: 16000,
+          temperature: 1.0,
+        });
+
+        totalTokensUsed.input += response.usage.inputTokens;
+        totalTokensUsed.output += response.usage.outputTokens;
+
+        // Add assistant response to conversation
+        messages.push({
+          role: 'assistant',
+          content: response.content,
+        });
+
+        // Check if AI wants to use tools
+        if (response.stopReason === 'tool_use' && response.toolUse) {
+          this.logger.log(`AI requested ${response.toolUse.length} tool(s)`);
+
+          // Execute all requested tools
+          const toolResults = await Promise.all(
+            response.toolUse.map(async (tool) => {
+              this.logger.log(`Executing tool: ${tool.name}`);
+              const result = await this.pricingTools.executeTool(tool.name, tool.input);
+              return {
+                toolUseId: tool.toolUseId,
+                content: result,
+              };
+            }),
+          );
+
+          // Add tool results to conversation
+          messages.push({
             role: 'user',
-            content: userMessage,
-          },
-        ],
-        maxTokens: 16000,
-        temperature: 1.0,
-      });
+            content: JSON.stringify({ tool_results: toolResults }),
+          });
+
+          // Continue to next turn
+          continue;
+        }
+
+        // No more tools requested, we have final answer
+        this.logger.log(`Final answer received after ${turnCount} turn(s)`);
+        break;
+      }
 
       const latency = Date.now() - startTime;
-      const cacheInfo = response.usage.cacheReadInputTokens
-        ? ` [CACHE HIT: ${response.usage.cacheReadInputTokens} tokens, ~90% cost savings]`
-        : response.usage.cacheCreationInputTokens
-        ? ` [CACHE CREATED: ${response.usage.cacheCreationInputTokens} tokens]`
-        : '';
-
       this.logger.log(
-        `Estimation generated in ${latency}ms (input: ${response.usage.inputTokens}, output: ${response.usage.outputTokens})${cacheInfo}`,
+        `Estimation generated in ${latency}ms, ${turnCount} turns (input: ${totalTokensUsed.input}, output: ${totalTokensUsed.output})`,
       );
 
-      // Parse JSON response
-      const estimationData = this.parseEstimationResponse(response.content);
+      // Get final response content
+      const finalResponse = messages[messages.length - 1];
+      const estimationData = this.parseEstimationResponse(finalResponse.content);
 
       return {
         quotation_id: quotationData.quotation_id,
         estimation_data: estimationData,
-        generated_by: 'estimation-agent-v1',
+        generated_by: `estimation-agent-v1-tools (${turnCount} turns)`,
         generated_at: new Date().toISOString(),
       };
     } catch (error) {
