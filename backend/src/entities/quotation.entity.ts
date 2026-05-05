@@ -47,6 +47,12 @@ export class Quotation {
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   totalAmount: number;
 
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true, name: 'manual_capex' })
+  manualCapex: number | null;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true, name: 'manual_opex' })
+  manualOpex: number | null;
+
   @ManyToOne(() => User, (user) => user.quotations)
   @JoinColumn({ name: 'created_by' })
   createdBy: User;

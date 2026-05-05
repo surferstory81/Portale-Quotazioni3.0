@@ -8,6 +8,8 @@ export interface AdminQuotation {
   projectName: string;
   status: string;
   totalAmount: number;
+  manualCapex: number | null;
+  manualOpex: number | null;
   createdAt: string;
   updatedAt: string;
   takenInChargeAt: string | null;
@@ -64,6 +66,21 @@ export class AdminService {
       `/admin/quotations/${id}/economic-quotation`,
       { totalAmount },
     );
+  }
+
+  setManualCapexOpex(
+    id: string,
+    manualCapex: number,
+    manualOpex: number,
+  ): Observable<AdminQuotation> {
+    return this.apiService.patch<AdminQuotation>(
+      `/admin/quotations/${id}/manual-capex-opex`,
+      { manualCapex, manualOpex },
+    );
+  }
+
+  deleteQuotation(id: string): Observable<{ message: string }> {
+    return this.apiService.delete<{ message: string }>(`/admin/quotations/${id}`);
   }
 
   retryAiEstimation(quotationId: string): Observable<{ message: string; quotationId: string }> {

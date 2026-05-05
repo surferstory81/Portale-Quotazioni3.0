@@ -127,6 +127,30 @@ export class AdminService {
     return this.quotationRepo.save(quotation);
   }
 
+  async setManualCapexOpex(
+    quotationId: string,
+    manualCapex: number,
+    manualOpex: number,
+  ): Promise<Quotation> {
+    const quotation = await this.findQuotationOrFail(quotationId);
+
+    if (quotation.status !== QuotationStatus.IN_VALUTAZIONE) {
+      throw new BadRequestException(
+        'I valori CAPEX/OPEX possono essere modificati solo in stato IN VALUTAZIONE',
+      );
+    }
+
+    quotation.manualCapex = manualCapex;
+    quotation.manualOpex = manualOpex;
+    return this.quotationRepo.save(quotation);
+  }
+
+  async deleteQuotation(quotationId: string): Promise<{ message: string }> {
+    const quotation = await this.findQuotationOrFail(quotationId);
+    await this.quotationRepo.remove(quotation);
+    return { message: `Quotazione ${quotation.projectCode} eliminata con successo` };
+  }
+
   private async hasValidAIEstimation(quotationId: string): Promise<boolean> {
     const estimation = await this.aiEstimationRepo.findOne({
       where: { quotation: { id: quotationId } },

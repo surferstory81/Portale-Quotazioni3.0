@@ -28,6 +28,16 @@ export class SetEconomicQuotationDto {
   totalAmount: number;
 }
 
+export class SetManualCapexOpexDto {
+  @IsNumber({}, { message: 'Il CAPEX deve essere un numero.' })
+  @Min(0, { message: 'Il CAPEX non puo essere negativo.' })
+  manualCapex: number;
+
+  @IsNumber({}, { message: 'Il OPEX deve essere un numero.' })
+  @Min(0, { message: 'Il OPEX non puo essere negativo.' })
+  manualOpex: number;
+}
+
 export class AssignAdminRoleDto {
   @IsBoolean({ message: 'Il valore assignAdmin deve essere booleano.' })
   assignAdmin: boolean;

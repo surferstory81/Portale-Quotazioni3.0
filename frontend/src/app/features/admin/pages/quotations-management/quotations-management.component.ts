@@ -23,8 +23,13 @@ export class QuotationsManagementComponent implements OnInit {
   economicLoading: Record<string, boolean> = {};
   economicMessages: Record<string, string> = {};
 
+  capexOpexForms: Record<string, FormGroup> = {};
+  capexOpexLoading: Record<string, boolean> = {};
+  capexOpexMessages: Record<string, string> = {};
+
   statusLoading: Record<string, boolean> = {};
   retryingQuotationId: string | null = null;
+  deletingQuotationId: string | null = null;
 
   readonly statusOptions: AllowedStatus[] = ['IN VALUTAZIONE', 'COMPLETATA', 'RESPINTA'];
 
@@ -125,6 +130,74 @@ export class QuotationsManagementComponent implements OnInit {
 
   canSetEconomic(q: AdminQuotation): boolean {
     return q.status === 'IN VALUTAZIONE';
+  }
+
+  getCapexOpexForm(id: string): FormGroup {
+    if (!this.capexOpexForms[id]) {
+      this.capexOpexForms[id] = new FormGroup({
+        manualCapex: new FormControl<number | null>(null, [
+          Validators.required,
+          Validators.min(0),
+        ]),
+        manualOpex: new FormControl<number | null>(null, [
+          Validators.required,
+          Validators.min(0),
+        ]),
+      });
+    }
+    return this.capexOpexForms[id];
+  }
+
+  submitCapexOpex(quotation: AdminQuotation): void {
+    const form = this.getCapexOpexForm(quotation.id);
+    if (form.invalid) {
+      form.markAllAsTouched();
+      return;
+    }
+
+    const { manualCapex, manualOpex } = form.value;
+    this.capexOpexLoading[quotation.id] = true;
+    this.capexOpexMessages[quotation.id] = '';
+
+    this.adminService
+      .setManualCapexOpex(quotation.id, manualCapex!, manualOpex!)
+      .pipe(finalize(() => (this.capexOpexLoading[quotation.id] = false)))
+      .subscribe({
+        next: (updated) => {
+          this.applyQuotationUpdate(updated);
+          this.capexOpexMessages[quotation.id] = `CAPEX/OPEX salvati: € ${manualCapex!.toFixed(2)} / € ${manualOpex!.toFixed(2)}`;
+          form.reset();
+        },
+        error: (err: unknown) => {
+          this.capexOpexMessages[quotation.id] = this.adminService.extractApiError(err);
+        },
+      });
+  }
+
+  deleteQuotation(quotation: AdminQuotation): void {
+    if (!confirm(`Eliminare la quotazione ${quotation.projectCode}? Questa azione è irreversibile.`)) {
+      return;
+    }
+
+    this.clearMessages();
+    this.deletingQuotationId = quotation.id;
+
+    this.adminService
+      .deleteQuotation(quotation.id)
+      .pipe(finalize(() => (this.deletingQuotationId = null)))
+      .subscribe({
+        next: (response) => {
+          this.quotations = this.quotations.filter(q => q.id !== quotation.id);
+          this.successMessage = response.message;
+        },
+        error: (err: unknown) => {
+          this.errorMessage = this.adminService.extractApiError(err);
+        },
+      });
+  }
+
+  isDeleting(id: string): boolean {
+    return this.deletingQuotationId === id;
   }
 
   badgeClass(status: string): string {

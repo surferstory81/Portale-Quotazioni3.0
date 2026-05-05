@@ -36,7 +36,9 @@
           <th>Creata</th>
           <th>Azioni stato</th>
           <th>Quotazione economica</th>
+          <th>CAPEX/OPEX manuali</th>
           <th>AI Azioni</th>
+          <th>Elimina</th>
         </tr>
       </thead>
       <tbody>
@@ -97,8 +99,10 @@
               </select>
               <button
                 type="button"
-                class="btn-sm btn-secondary"
-                [disabled]="statusLoading[q.id]"
+                class="btn-sm"
+                [class.btn-primary]="statusSelect.value"
+                [class.btn-disabled]="!statusSelect.value"
+                [disabled]="statusLoading[q.id] || !statusSelect.value"
                 (click)="updateStatus(q, $any(statusSelect.value))"
               >
                 {{ statusLoading[q.id] ? '...' : 'Applica' }}
@@ -124,7 +128,7 @@
               />
               <button
                 type="submit"
-                class="btn-sm"
+                class="btn-sm btn-success"
                 [disabled]="economicLoading[q.id]"
               >
                 {{ economicLoading[q.id] ? '...' : 'Salva' }}
@@ -137,6 +141,42 @@
               {{ q.totalAmount > 0 ? ('€ ' + (q.totalAmount | number: '1.2-2')) : '—' }}
             </span>
           </td>
+          <td>
+            <form
+              *ngIf="canSetEconomic(q)"
+              [formGroup]="getCapexOpexForm(q.id)"
+              (ngSubmit)="submitCapexOpex(q)"
+              class="economic-form"
+            >
+              <input
+                type="number"
+                formControlName="manualCapex"
+                placeholder="CAPEX €"
+                class="input-sm"
+                min="0"
+                step="0.01"
+              />
+              <input
+                type="number"
+                formControlName="manualOpex"
+                placeholder="OPEX €"
+                class="input-sm"
+                min="0"
+                step="0.01"
+              />
+              <button
+                type="submit"
+                class="btn-sm btn-success"
+                [disabled]="capexOpexLoading[q.id]"
+              >
+                {{ capexOpexLoading[q.id] ? '...' : 'Salva' }}
+              </button>
+              <span *ngIf="capexOpexMessages[q.id]" class="inline-msg-small">
+                {{ capexOpexMessages[q.id] }}
+              </span>
+            </form>
+            <span *ngIf="!canSetEconomic(q)" class="muted">—</span>
+          </td>
           <td class="actions-cell">
             <button
               type="button"
@@ -145,6 +185,16 @@
               [disabled]="isRetrying(q.id)"
               title="Richiedi nuova stima AI">
               {{ isRetrying(q.id) ? '⏳ ...' : '🔄 Retry' }}
+            </button>
+          </td>
+          <td class="actions-cell">
+            <button
+              type="button"
+              class="btn-sm btn-danger"
+              (click)="deleteQuotation(q)"
+              [disabled]="isDeleting(q.id)"
+              title="Elimina quotazione">
+              {{ isDeleting(q.id) ? '...' : '🗑️' }}
             </button>
           </td>
         </tr>

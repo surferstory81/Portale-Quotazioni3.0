@@ -72,10 +72,34 @@ table {
   font-size: 0.8rem;
   cursor: pointer;
   white-space: nowrap;
+  transition: all 0.2s;
 
   &:disabled { opacity: 0.5; cursor: not-allowed; }
-  &.btn-secondary { background: #6b7280; }
-  &:hover:not(:disabled) { opacity: 0.88; }
+
+  &.btn-primary {
+    background: #0f4c81;
+    &:hover:not(:disabled) { background: #0d3d66; }
+  }
+
+  &.btn-secondary {
+    background: #6b7280;
+    &:hover:not(:disabled) { background: #4b5563; }
+  }
+
+  &.btn-success {
+    background: #059669;
+    &:hover:not(:disabled) { background: #047857; }
+  }
+
+  &.btn-danger {
+    background: #dc2626;
+    &:hover:not(:disabled) { background: #b91c1c; }
+  }
+
+  &.btn-disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
 }
 
 .select-sm {
@@ -101,6 +125,7 @@ table {
 }
 
 .inline-msg { font-size: 0.75rem; color: #059669; }
+.inline-msg-small { font-size: 0.65rem; color: #059669; display: block; margin-top: 0.2rem; }
 .muted { color: #9ca3af; font-size: 0.85rem; }
 
 .badge {

@@ -22,6 +22,7 @@ import {
   AssignAdminRoleDto,
   BlockUserDto,
   SetEconomicQuotationDto,
+  SetManualCapexOpexDto,
   UpdateQuotationStatusDto,
   UpdateSystemSettingDto,
 } from './dto/admin.dto';
@@ -60,6 +61,20 @@ export class AdminController {
     @Body() dto: SetEconomicQuotationDto,
   ) {
     return this.adminService.setEconomicQuotation(id, dto.totalAmount);
+  }
+
+  @Patch('quotations/:id/manual-capex-opex')
+  async setManualCapexOpex(
+    @Param('id') id: string,
+    @Body() dto: SetManualCapexOpexDto,
+  ) {
+    return this.adminService.setManualCapexOpex(id, dto.manualCapex, dto.manualOpex);
+  }
+
+  @Delete('quotations/:id')
+  @HttpCode(HttpStatus.OK)
+  async deleteQuotation(@Param('id') id: string) {
+    return this.adminService.deleteQuotation(id);
   }
 
   // ─── Utenti ───────────────────────────────────────────────
