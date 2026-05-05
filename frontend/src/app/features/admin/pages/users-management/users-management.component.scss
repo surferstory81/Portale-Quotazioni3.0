@@ -8,10 +8,17 @@ table {
   tr:hover td { background: #f9fafb; }
 }
 
-.actions-cell { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  min-width: 280px;
+  padding: 0.75rem 0.5rem !important;
+}
 
 .btn-sm {
-  padding: 0.3rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 6px;
   border: none;
   background: #0f4c81;
@@ -19,12 +26,24 @@ table {
   font-size: 0.8rem;
   cursor: pointer;
   white-space: nowrap;
+  transition: all 0.2s;
+  min-width: 100px;
+  text-align: center;
 
   &:disabled { opacity: 0.5; cursor: not-allowed; }
-  &.btn-secondary { background: #6b7280; }
-  &.btn-success   { background: #059669; }
-  &.btn-danger    { background: #dc2626; }
-  &:hover:not(:disabled) { opacity: 0.88; }
+  &.btn-secondary {
+    background: #6b7280;
+    &:hover:not(:disabled) { background: #4b5563; }
+  }
+  &.btn-success {
+    background: #059669;
+    &:hover:not(:disabled) { background: #047857; }
+  }
+  &.btn-danger {
+    background: #dc2626;
+    &:hover:not(:disabled) { background: #b91c1c; }
+  }
+  &:hover:not(:disabled) { background: #0d3d66; }
 }
 
 .reset-form {
