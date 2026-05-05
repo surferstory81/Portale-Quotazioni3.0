@@ -12,6 +12,7 @@ import { User } from '../../entities/user.entity';
 import { RefreshToken } from '../../entities/refresh-token.entity';
 import { AppSetting } from '../../entities/app-setting.entity';
 import { EmailVerificationToken } from '../../entities/email-verification-token.entity';
+import { AIEstimation, AIStatus } from '../../entities/ai-estimation.entity';
 import { EmailService } from '../email/email.service';
 
 export interface SystemSettings {
@@ -34,6 +35,8 @@ export class AdminService {
     private readonly settingRepo: Repository<AppSetting>,
     @InjectRepository(EmailVerificationToken)
     private readonly emailTokenRepo: Repository<EmailVerificationToken>,
+    @InjectRepository(AIEstimation)
+    private readonly aiEstimationRepo: Repository<AIEstimation>,
     private readonly emailService: EmailService,
   ) {}
 
@@ -81,13 +84,16 @@ export class AdminService {
       );
     }
 
-    if (
-      nextStatus === QuotationStatus.COMPLETATA &&
-      Number(quotation.totalAmount) <= 0
-    ) {
-      throw new BadRequestException(
-        'Inserire prima la quotazione economica per completare la richiesta',
-      );
+    // Verifica che ci sia una quotazione valida (manuale o AI)
+    if (nextStatus === QuotationStatus.COMPLETATA) {
+      const hasManualQuotation = Number(quotation.totalAmount) > 0;
+      const hasAIEstimation = await this.hasValidAIEstimation(quotationId);
+
+      if (!hasManualQuotation && !hasAIEstimation) {
+        throw new BadRequestException(
+          'Inserire prima una quotazione economica manuale o attendere la stima AI',
+        );
+      }
     }
 
     quotation.status = nextStatus;
@@ -119,6 +125,23 @@ export class AdminService {
 
     quotation.totalAmount = totalAmount;
     return this.quotationRepo.save(quotation);
+  }
+
+  private async hasValidAIEstimation(quotationId: string): Promise<boolean> {
+    const estimation = await this.aiEstimationRepo.findOne({
+      where: { quotation: { id: quotationId } },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (!estimation) {
+      return false;
+    }
+
+    // Stima valida se completata con successo e ha dati
+    return (
+      estimation.aiStatus === AIStatus.AI_GENERATED &&
+      estimation.estimationData?.summary?.total_first_year > 0
+    );
   }
 
   async listUsers(): Promise<Partial<User>[]> {

@@ -8,10 +8,11 @@ import { Role } from '../../entities/role.entity';
 import { RefreshToken } from '../../entities/refresh-token.entity';
 import { AppSetting } from '../../entities/app-setting.entity';
 import { EmailVerificationToken } from '../../entities/email-verification-token.entity';
+import { AIEstimation } from '../../entities/ai-estimation.entity';
 import { EmailModule } from '../email/email.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Quotation, User, Role, RefreshToken, AppSetting, EmailVerificationToken]), EmailModule],
+  imports: [TypeOrmModule.forFeature([Quotation, User, Role, RefreshToken, AppSetting, EmailVerificationToken, AIEstimation]), EmailModule],
   controllers: [AdminController],
   providers: [AdminService],
   exports: [AdminService],
