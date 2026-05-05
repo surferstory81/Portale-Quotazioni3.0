@@ -6,7 +6,10 @@ import {
   Patch,
   Post,
   UseGuards,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AIEstimationService } from './ai-estimation.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -169,5 +172,37 @@ export class AIEstimationController {
     @CurrentUser() admin: User,
   ) {
     return this.aiEstimationService.retryEstimation(quotationId, admin.id);
+  }
+
+  /**
+   * Export AI estimation as PDF
+   */
+  @Get('export/pdf/:quotationId')
+  @ApiOperation({
+    summary: 'Esporta stima AI in formato PDF',
+    description: 'Scarica il report della stima AI in formato PDF',
+  })
+  async exportPDF(@Param('quotationId') quotationId: string, @Res() res: Response) {
+    const pdfBuffer = await this.aiEstimationService.exportPDF(quotationId);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=stima-ai-${quotationId}.pdf`);
+    res.send(pdfBuffer);
+  }
+
+  /**
+   * Export AI estimation as Excel
+   */
+  @Get('export/excel/:quotationId')
+  @ApiOperation({
+    summary: 'Esporta stima AI in formato Excel',
+    description: 'Scarica il report della stima AI in formato Excel',
+  })
+  async exportExcel(@Param('quotationId') quotationId: string, @Res() res: Response) {
+    const excelBuffer = await this.aiEstimationService.exportExcel(quotationId);
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=stima-ai-${quotationId}.xlsx`);
+    res.send(excelBuffer);
   }
 }

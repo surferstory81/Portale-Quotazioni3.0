@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AIEstimation, AIStatus, LineItem } from '../../../../core/models/ai-estimation.model';
+import { AIEstimationService } from '../../../../core/services/ai-estimation.service';
 
 @Component({
   selector: 'app-ai-estimation-viewer',
@@ -16,6 +17,8 @@ export class AIEstimationViewerComponent implements OnInit {
   capexItems: LineItem[] = [];
   opexItems: LineItem[] = [];
   activeTab: 'summary' | 'breakdown' | 'items' | 'validation' = 'summary';
+
+  constructor(private aiEstimationService: AIEstimationService) {}
 
   ngOnInit(): void {
     if (this.estimation?.estimationData?.line_items) {
@@ -93,5 +96,17 @@ export class AIEstimationViewerComponent implements OnInit {
     return key
       .replace(/_/g, ' ')
       .replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  exportPDF(): void {
+    if (this.estimation?.quotationId) {
+      this.aiEstimationService.exportPDF(this.estimation.quotationId);
+    }
+  }
+
+  exportExcel(): void {
+    if (this.estimation?.quotationId) {
+      this.aiEstimationService.exportExcel(this.estimation.quotationId);
+    }
   }
 }

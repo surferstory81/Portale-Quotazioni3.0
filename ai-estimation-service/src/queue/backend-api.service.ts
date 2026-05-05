@@ -86,4 +86,17 @@ export class BackendApiService {
       throw error;
     }
   }
+
+  /**
+   * Get AI estimation by quotation ID
+   */
+  async getEstimationByQuotationId(quotationId: string): Promise<any> {
+    try {
+      const response = await this.client.get(`/ai-estimation/quotation/${quotationId}`);
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Failed to fetch estimation for quotation ${quotationId}: ${error.message}`);
+      throw error;
+    }
+  }
 }

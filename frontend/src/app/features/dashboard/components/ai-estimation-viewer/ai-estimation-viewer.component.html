@@ -8,6 +8,14 @@
       </span>
     </div>
     <div class="header-right">
+      <div class="export-actions">
+        <button class="btn-export btn-pdf" (click)="exportPDF()" title="Scarica PDF">
+          📄 PDF
+        </button>
+        <button class="btn-export btn-excel" (click)="exportExcel()" title="Scarica Excel">
+          📊 Excel
+        </button>
+      </div>
       <div class="confidence-indicator">
         <span class="confidence-label">Confidenza:</span>
         <span class="confidence-value" [ngClass]="getConfidenceClass(estimation.confidence)">

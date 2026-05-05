@@ -54,4 +54,20 @@ export class AIEstimationService {
   retryEstimation(quotationId: string): Observable<any> {
     return this.apiService.post(`/ai-estimation/retry/${quotationId}`, {});
   }
+
+  /**
+   * Export estimation as PDF
+   */
+  exportPDF(quotationId: string): void {
+    const url = `${this.apiService['baseUrl']}/ai-estimation/export/pdf/${quotationId}`;
+    window.open(url, '_blank');
+  }
+
+  /**
+   * Export estimation as Excel
+   */
+  exportExcel(quotationId: string): void {
+    const url = `${this.apiService['baseUrl']}/ai-estimation/export/excel/${quotationId}`;
+    window.open(url, '_blank');
+  }
 }

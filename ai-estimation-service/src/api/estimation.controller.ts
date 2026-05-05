@@ -1,7 +1,9 @@
-import { Controller, Post, Body, UseGuards, Logger } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Logger, Get, Param, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { EstimationAgentService } from '../agents/estimation-agent.service';
 import { ValidationAgentService } from '../agents/validation-agent.service';
 import { BackendApiService } from '../queue/backend-api.service';
+import { ExportService } from './export.service';
 import { ServiceAuthGuard } from '../guards/service-auth.guard';
 import { transformQuotationForAI } from './quotation-data-transformer';
 
@@ -21,6 +23,7 @@ export class EstimationController {
     private readonly estimationAgent: EstimationAgentService,
     private readonly validationAgent: ValidationAgentService,
     private readonly backendApi: BackendApiService,
+    private readonly exportService: ExportService,
   ) {}
 
   @Post('process')
@@ -67,6 +70,38 @@ export class EstimationController {
       };
     } catch (error) {
       this.logger.error(`Failed to process quotation ${quotation_id}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  @Get('export/pdf/:quotationId')
+  async exportPDF(@Param('quotationId') quotationId: string, @Res() res: Response) {
+    this.logger.log(`Exporting PDF for quotation ${quotationId}`);
+
+    try {
+      const pdfBuffer = await this.exportService.generatePDF(quotationId);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=stima-ai-${quotationId}.pdf`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      this.logger.error(`Failed to export PDF for quotation ${quotationId}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  @Get('export/excel/:quotationId')
+  async exportExcel(@Param('quotationId') quotationId: string, @Res() res: Response) {
+    this.logger.log(`Exporting Excel for quotation ${quotationId}`);
+
+    try {
+      const excelBuffer = await this.exportService.generateExcel(quotationId);
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=stima-ai-${quotationId}.xlsx`);
+      res.send(excelBuffer);
+    } catch (error) {
+      this.logger.error(`Failed to export Excel for quotation ${quotationId}: ${error.message}`);
       throw error;
     }
   }

@@ -8,6 +8,7 @@ import { QueueModule } from './queue/queue.module';
 import { ToolsModule } from './tools/tools.module';
 import { HealthController } from './health.controller';
 import { EstimationController } from './api/estimation.controller';
+import { ExportService } from './api/export.service';
 import { ServiceAuthGuard } from './guards/service-auth.guard';
 import { HttpModule } from '@nestjs/axios';
 
@@ -25,6 +26,6 @@ import { HttpModule } from '@nestjs/axios';
     ToolsModule,
   ],
   controllers: [HealthController, EstimationController],
-  providers: [ServiceAuthGuard],
+  providers: [ServiceAuthGuard, ExportService],
 })
 export class AppModule {}
