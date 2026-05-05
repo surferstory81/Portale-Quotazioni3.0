@@ -97,60 +97,15 @@ export class ExportService {
 
       // CAPEX Line Items
       if (estimation.line_items) {
-        const capexItems = estimation.line_items.filter(
-          (item) => item.category === 'CAPEX',
-        );
-
-        if (capexItems.length > 0) {
-          doc.fontSize(12).font('Helvetica-Bold').text('Voci CAPEX');
-          doc.moveDown(0.5);
-          doc.fontSize(9).font('Helvetica');
-
-          capexItems.forEach((item, index) => {
-            if (doc.y > 700) {
-              doc.addPage();
-            }
-            doc.text(
-              `${index + 1}. ${item.description} - €${this.formatNumber(item.total)}`,
-            );
-            if (item.justification) {
-              doc.fontSize(8).fillColor('#666666').text(`   ${item.justification}`);
-              doc.fontSize(9).fillColor('#000000');
-            }
-          });
-          doc.moveDown();
-        }
+        this.renderLineItems(doc, estimation.line_items, 'CAPEX', 'Voci CAPEX');
       }
 
       // OPEX Line Items
       if (estimation.line_items) {
-        const opexItems = estimation.line_items.filter(
-          (item) => item.category === 'OPEX',
-        );
-
-        if (opexItems.length > 0) {
-          if (doc.y > 600) {
-            doc.addPage();
-          }
-
-          doc.fontSize(12).font('Helvetica-Bold').text('Voci OPEX');
-          doc.moveDown(0.5);
-          doc.fontSize(9).font('Helvetica');
-
-          opexItems.forEach((item, index) => {
-            if (doc.y > 700) {
-              doc.addPage();
-            }
-            doc.text(
-              `${index + 1}. ${item.description} - €${this.formatNumber(item.total)}`,
-            );
-            if (item.justification) {
-              doc.fontSize(8).fillColor('#666666').text(`   ${item.justification}`);
-              doc.fontSize(9).fillColor('#000000');
-            }
-          });
-          doc.moveDown();
+        if (doc.y > 600) {
+          doc.addPage();
         }
+        this.renderLineItems(doc, estimation.line_items, 'OPEX', 'Voci OPEX');
       }
 
       // Assumptions
@@ -383,21 +338,48 @@ export class ExportService {
       recSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
     }
 
-    return (await workbook.xlsx.writeBuffer()) as Buffer;
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
   }
 
   /**
    * Fetch estimation data from backend
    */
   private async fetchEstimationData(quotationId: string): Promise<AIEstimationData> {
-    try {
-      const response = await this.backendApiService.getEstimationByQuotationId(quotationId);
-      if (!response || !response.estimationData) {
-        throw new NotFoundException(`No AI estimation found for quotation ${quotationId}`);
-      }
-      return response.estimationData;
-    } catch (error) {
-      throw new NotFoundException(`Failed to fetch estimation data: ${error.message}`);
+    const response = await this.backendApiService.getEstimationByQuotationId(quotationId);
+    if (!response || !response.estimationData) {
+      throw new NotFoundException(`No AI estimation found for quotation ${quotationId}`);
+    }
+    return response.estimationData;
+  }
+
+  /**
+   * Render line items section in PDF
+   */
+  private renderLineItems(
+    doc: PDFKit.PDFDocument,
+    allItems: AIEstimationData['line_items'],
+    category: 'CAPEX' | 'OPEX',
+    title: string,
+  ): void {
+    const items = allItems.filter((item) => item.category === category);
+
+    if (items.length > 0) {
+      doc.fontSize(12).font('Helvetica-Bold').text(title);
+      doc.moveDown(0.5);
+      doc.fontSize(9).font('Helvetica');
+
+      items.forEach((item, index) => {
+        if (doc.y > 700) {
+          doc.addPage();
+        }
+        doc.text(`${index + 1}. ${item.description} - €${this.formatNumber(item.total)}`);
+        if (item.justification) {
+          doc.fontSize(8).fillColor('#666666').text(`   ${item.justification}`);
+          doc.fontSize(9).fillColor('#000000');
+        }
+      });
+      doc.moveDown();
     }
   }
 
