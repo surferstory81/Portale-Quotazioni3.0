@@ -1,8 +1,51 @@
 {
+  "hooks": {
+    "pre_commit": {
+      "enabled": true,
+      "command": "node .claude/hooks/validate-architecture.js && node .claude/hooks/code-quality-check.js",
+      "description": "Validates architecture principles and code quality before commit"
+    },
+    "pre_push": {
+      "enabled": true,
+      "command": "node .claude/hooks/check-service-coupling.js",
+      "description": "Analyzes service coupling and dependency graph (warning only)"
+    }
+  },
+  "validation": {
+    "architecture": {
+      "enforce_timeout": true,
+      "enforce_retry": false,
+      "enforce_idempotency": false,
+      "enforce_service_auth": true,
+      "max_function_lines": 50,
+      "block_hardcoded_secrets": true,
+      "block_sql_injection": true
+    },
+    "quality": {
+      "block_console_logs": false,
+      "warn_magic_numbers": true,
+      "warn_long_functions": true,
+      "enforce_naming_conventions": true
+    },
+    "coupling": {
+      "warn_circular_deps": true,
+      "warn_shared_entities": true,
+      "warn_high_fanout": true,
+      "max_service_fanout": 3
+    }
+  },
   "permissions": {
     "allow": [
-      "Bash(kubectl get *)",
-      "Bash(python3 -c ' *)"
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(node *)",
+      "Bash(kubectl *)"
     ]
+  },
+  "metadata": {
+    "project": "Portale-Quotazioni-3.0",
+    "version": "3.0.0",
+    "architecture": "microservices-http",
+    "last_updated": "2026-05-05"
   }
 }
