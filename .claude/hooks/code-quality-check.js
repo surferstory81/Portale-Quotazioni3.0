@@ -329,6 +329,248 @@ const qualityChecks = [
       return issues;
     },
   },
+
+  {
+    name: 'TypeScript Any Type',
+    check: (content, file) => {
+      const issues = [];
+      const anyRegex = /:\s*any\b(?!\[\])/g;
+      const matches = content.matchAll(anyRegex);
+
+      for (const match of matches) {
+        const line = content.substring(0, match.index).split('\n').length;
+        const context = content.substring(Math.max(0, match.index - 50), match.index + 50);
+
+        // Skip se è in commento o è any[] (array di any può essere accettabile temporaneamente)
+        if (context.includes('//') || context.includes('/*')) {
+          continue;
+        }
+
+        issues.push({
+          file,
+          severity: 'warning',
+          message: 'Type "any" found - reduces type safety',
+          suggestion: 'Use explicit type, unknown, or generic <T>',
+          line,
+        });
+      }
+      return issues;
+    },
+  },
+
+  {
+    name: 'N+1 Query Pattern',
+    check: (content, file) => {
+      const issues = [];
+      // Cerca pattern: for/forEach con await query inside
+      const n1Pattern = /(?:for|forEach)\s*\([^)]*\)\s*\{[^}]*await\s+(?:this\.)?\w+\.(?:find|findOne|get|query)/gs;
+      const matches = content.matchAll(n1Pattern);
+
+      for (const match of matches) {
+        const line = content.substring(0, match.index).split('\n').length;
+        issues.push({
+          file,
+          severity: 'error',
+          message: 'Possible N+1 query pattern detected',
+          suggestion: 'Use single query with WHERE IN or JOIN instead of loop with individual queries',
+          line,
+        });
+      }
+      return issues;
+    },
+  },
+
+  {
+    name: 'Missing Async Pipe',
+    check: (content, file) => {
+      const issues = [];
+      // Solo per file Angular template
+      if (!file.includes('.component.ts')) return issues;
+
+      const subscribePattern = /\.subscribe\s*\(/g;
+      const matches = content.matchAll(subscribePattern);
+
+      for (const match of matches) {
+        const line = content.substring(0, match.index).split('\n').length;
+        const context = content.substring(match.index, match.index + 200);
+
+        // Se non c'è unsubscribe visibile nel context
+        if (!context.includes('unsubscribe') && !context.includes('takeUntil') && !context.includes('takeWhile')) {
+          issues.push({
+            file,
+            severity: 'warning',
+            message: 'Manual subscription without unsubscribe - memory leak risk',
+            suggestion: 'Use async pipe in template or add takeUntil/unsubscribe in ngOnDestroy',
+            line,
+          });
+        }
+      }
+      return issues;
+    },
+  },
+
+  {
+    name: 'Large Bundle Imports',
+    check: (content, file) => {
+      const issues = [];
+      // Import di librerie intere
+      const largeImportPattern = /import\s+\*\s+as\s+\w+\s+from\s+['"](?:lodash|moment|rxjs)['"]/g;
+      const matches = content.matchAll(largeImportPattern);
+
+      for (const match of matches) {
+        const line = content.substring(0, match.index).split('\n').length;
+        const library = match[0].match(/from\s+['"](.*)['"]/)[1];
+
+        issues.push({
+          file,
+          severity: 'warning',
+          message: `Importing entire ${library} library increases bundle size`,
+          suggestion: `Import only needed functions: import debounce from '${library}/debounce'`,
+          line,
+        });
+      }
+      return issues;
+    },
+  },
+
+  {
+    name: 'Missing TrackBy in NgFor',
+    check: (content, file) => {
+      const issues = [];
+      // Solo per file Angular HTML
+      if (!file.endsWith('.component.html') && !file.endsWith('.component.ts')) return issues;
+
+      const ngForPattern = /\*ngFor="[^"]*"(?!.*trackBy)/g;
+      const matches = content.matchAll(ngForPattern);
+
+      for (const match of matches) {
+        const line = content.substring(0, match.index).split('\n').length;
+        issues.push({
+          file,
+          severity: 'warning',
+          message: '*ngFor without trackBy function - performance issue for large lists',
+          suggestion: 'Add trackBy: "let item of items; trackBy: trackById"',
+          line,
+        });
+      }
+      return issues;
+    },
+  },
+
+  {
+    name: 'No Tests for New Code',
+    check: (content, file) => {
+      const issues = [];
+      // Skip test files themselves
+      if (file.includes('.spec.') || file.includes('.test.')) return issues;
+
+      // Se è un service/component senza test corrispondente
+      if (file.includes('.service.ts') || file.includes('.component.ts')) {
+        const fs = require('fs');
+        const testFile = file.replace(/\.ts$/, '.spec.ts');
+
+        if (!fs.existsSync(testFile)) {
+          issues.push({
+            file,
+            severity: 'warning',
+            message: 'No corresponding test file found',
+            suggestion: `Create ${testFile} with unit tests`,
+            line: 1,
+          });
+        }
+      }
+      return issues;
+    },
+  },
+
+  {
+    name: 'Injectable Without Scope',
+    check: (content, file) => {
+      const issues = [];
+      // Solo per file service NestJS/Angular
+      if (!file.includes('.service.ts')) return issues;
+
+      const injectablePattern = /@Injectable\(\s*\)/g;
+      const matches = content.matchAll(injectablePattern);
+
+      for (const match of matches) {
+        const line = content.substring(0, match.index).split('\n').length;
+        const nextChars = content.substring(match.index, match.index + 100);
+
+        // Se non specifica providedIn (Angular) o scope (NestJS)
+        if (!nextChars.includes('providedIn') && !nextChars.includes('scope')) {
+          issues.push({
+            file,
+            severity: 'info',
+            message: '@Injectable() without scope specification',
+            suggestion: "Add providedIn: 'root' for tree-shakeable provider",
+            line,
+          });
+        }
+      }
+      return issues;
+    },
+  },
+
+  {
+    name: 'DTO Missing Validation',
+    check: (content, file) => {
+      const issues = [];
+      // Solo per DTO files
+      if (!file.includes('.dto.ts')) return issues;
+
+      const classPattern = /export\s+class\s+\w+/g;
+      const matches = content.matchAll(classPattern);
+
+      for (const match of matches) {
+        const classStart = match.index;
+        // Check se ci sono decorator class-validator nei prossimi 500 caratteri
+        const classBody = content.substring(classStart, classStart + 500);
+
+        const hasValidation = /(@IsString|@IsNumber|@IsEnum|@IsOptional|@IsNotEmpty)/g.test(classBody);
+
+        if (!hasValidation) {
+          const line = content.substring(0, match.index).split('\n').length;
+          issues.push({
+            file,
+            severity: 'error',
+            message: 'DTO class without validation decorators',
+            suggestion: 'Add class-validator decorators (@IsString, @IsNotEmpty, etc)',
+            line,
+          });
+        }
+      }
+      return issues;
+    },
+  },
+
+  {
+    name: 'Hardcoded URLs',
+    check: (content, file) => {
+      const issues = [];
+      const urlPattern = /(https?:\/\/(?!example\.com|localhost)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+      const matches = content.matchAll(urlPattern);
+
+      for (const match of matches) {
+        const line = content.substring(0, match.index).split('\n').length;
+        const context = content.substring(Math.max(0, match.index - 50), match.index);
+
+        // Skip se è in commento o è process.env
+        if (context.includes('//') || context.includes('process.env') || context.includes('config')) {
+          continue;
+        }
+
+        issues.push({
+          file,
+          severity: 'warning',
+          message: `Hardcoded URL found: ${match[1]}`,
+          suggestion: 'Move to environment variables or config service',
+          line,
+        });
+      }
+      return issues;
+    },
+  },
 ];
 
 function main() {

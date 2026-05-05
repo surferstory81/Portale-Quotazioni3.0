@@ -54,19 +54,28 @@ git commit --no-verify
 
 ### 2. `code-quality-check.js` (Pre-Commit) ⛔ BLOCKING
 
-**Verifica qualità generale**:
+**Verifica qualità generale e best practices**:
 
-| Check | Severity | Blocca? |
-|-------|----------|---------|
-| Function > 50 righe | WARNING | ❌ No |
-| Magic numbers | WARNING | ❌ No |
-| console.log() | WARNING | ❌ No |
-| TODO senza issue link | INFO | ❌ No |
-| Commented code (3+ lines) | WARNING | ❌ No |
-| Useless comments | INFO | ❌ No |
-| Class name non PascalCase | ERROR | ✅ Sì |
-| Callback hell (nested 3+) | WARNING | ❌ No |
-| Unused imports | INFO | ❌ No |
+| Check | Severity | Blocca? | Skill Reference |
+|-------|----------|---------|-----------------|
+| Function > 50 righe | WARNING | ❌ No | code-quality-best-practices.md |
+| Magic numbers | WARNING | ❌ No | code-quality-best-practices.md |
+| console.log() | WARNING | ❌ No | Use Logger |
+| TODO senza issue link | INFO | ❌ No | - |
+| Commented code (3+ lines) | WARNING | ❌ No | Use git history |
+| Useless comments | INFO | ❌ No | - |
+| Class name non PascalCase | ERROR | ✅ Sì | TypeScript conventions |
+| Callback hell (nested 3+) | WARNING | ❌ No | Use async/await |
+| Unused imports | INFO | ❌ No | Bundle size |
+| **TypeScript `any` type** | WARNING | ❌ No | Type safety |
+| **N+1 query pattern** | ERROR | ✅ Sì | Database optimization |
+| **Missing async pipe** | WARNING | ❌ No | Angular memory leaks |
+| **Large bundle imports** | WARNING | ❌ No | Performance |
+| **Missing trackBy in ngFor** | WARNING | ❌ No | Angular performance |
+| **No tests for new code** | WARNING | ❌ No | Testing requirements |
+| **Injectable without scope** | INFO | ❌ No | Tree-shakeable |
+| **DTO missing validation** | ERROR | ✅ Sì | NestJS security |
+| **Hardcoded URLs** | WARNING | ❌ No | Configuration |
 
 **Esempio output**:
 ```
