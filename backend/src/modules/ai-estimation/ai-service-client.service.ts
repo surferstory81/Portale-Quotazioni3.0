@@ -94,4 +94,58 @@ export class AiServiceClientService {
       throw new Error(`AI service unavailable: ${error.message}`);
     }
   }
+
+  /**
+   * Proxy PDF export request to AI service
+   */
+  async exportPDF(quotationId: string): Promise<Buffer> {
+    try {
+      this.logger.log(`Proxying PDF export request for quotation ${quotationId}`);
+
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.aiServiceUrl}/api/estimation/export/pdf/${quotationId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${this.serviceToken}`,
+            },
+            responseType: 'arraybuffer',
+            timeout: 30000,
+          },
+        ),
+      );
+
+      return Buffer.from(response.data);
+    } catch (error) {
+      this.logger.error(`Failed to export PDF for quotation ${quotationId}: ${error.message}`);
+      throw new Error(`PDF export failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Proxy Excel export request to AI service
+   */
+  async exportExcel(quotationId: string): Promise<Buffer> {
+    try {
+      this.logger.log(`Proxying Excel export request for quotation ${quotationId}`);
+
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.aiServiceUrl}/api/estimation/export/excel/${quotationId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${this.serviceToken}`,
+            },
+            responseType: 'arraybuffer',
+            timeout: 30000,
+          },
+        ),
+      );
+
+      return Buffer.from(response.data);
+    } catch (error) {
+      this.logger.error(`Failed to export Excel for quotation ${quotationId}: ${error.message}`);
+      throw new Error(`Excel export failed: ${error.message}`);
+    }
+  }
 }

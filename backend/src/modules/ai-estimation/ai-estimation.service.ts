@@ -29,6 +29,20 @@ export class AIEstimationService {
   ) {}
 
   /**
+   * Export estimation as PDF (proxied to AI service)
+   */
+  async exportPDF(quotationId: string): Promise<Buffer> {
+    return this.aiServiceClient.exportPDF(quotationId);
+  }
+
+  /**
+   * Export estimation as Excel (proxied to AI service)
+   */
+  async exportExcel(quotationId: string): Promise<Buffer> {
+    return this.aiServiceClient.exportExcel(quotationId);
+  }
+
+  /**
    * Generate estimation for a quotation using the Estimation Agent.
    * This method should be called by the AI agent orchestration layer.
    */

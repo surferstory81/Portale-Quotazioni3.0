@@ -27,6 +27,15 @@
 
   .header-right {
     text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .export-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
 
     .generation-info {
       display: flex;
@@ -72,6 +81,40 @@
   &.status-approved {
     background: #c8e6c9;
     color: #2e7d32;
+  }
+}
+
+.btn-export {
+  padding: 6px 12px;
+  border: 1px solid #0f4c81;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #0f4c81;
+    color: white;
+  }
+
+  &.btn-pdf {
+    border-color: #d32f2f;
+    color: #d32f2f;
+
+    &:hover {
+      background: #d32f2f;
+    }
+  }
+
+  &.btn-excel {
+    border-color: #217346;
+    color: #217346;
+
+    &:hover {
+      background: #217346;
+    }
   }
 }
 
