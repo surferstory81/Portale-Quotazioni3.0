@@ -1,0 +1,13 @@
+{
+  "name": "connectivity-tests",
+  "version": "1.0.0",
+  "description": "Connectivity test suite for production architecture decision",
+  "scripts": {
+    "test:aws": "node test-aws-bedrock.js",
+    "test:vdi-machine": "node test-vdi-to-machine.js",
+    "server": "node simple-http-server.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.709.0"
+  }
+}
