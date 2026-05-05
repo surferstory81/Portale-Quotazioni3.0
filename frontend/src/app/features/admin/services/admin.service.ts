@@ -66,6 +66,13 @@ export class AdminService {
     );
   }
 
+  retryAiEstimation(quotationId: string): Observable<{ message: string; quotationId: string }> {
+    return this.apiService.post<{ message: string; quotationId: string }>(
+      `/ai-estimation/retry/${quotationId}`,
+      {},
+    );
+  }
+
   // ─── Utenti ────────────────────────────────────────────────
 
   getUsers(): Observable<AdminUser[]> {
