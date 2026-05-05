@@ -60,9 +60,9 @@ export class AIEstimationService {
       quotationId,
       estimationData,
       aiStatus: AIStatus.AI_GENERATED,
-      generatedBy: estimationData.generated_by,
-      generatedAt: new Date(estimationData.generated_at),
-      confidence: estimationData.confidence_score,
+      generatedBy: 'ai-estimation-service',
+      generatedAt: new Date(),
+      confidence: estimationData.confidence_score || 0,
     });
 
     return this.aiEstimationRepo.save(estimation);
@@ -111,9 +111,9 @@ export class AIEstimationService {
 
     estimation.validationData = validationData;
     estimation.aiStatus = newStatus;
-    estimation.validatedBy = validationData.validated_by;
-    estimation.validatedAt = new Date(validationData.validated_at);
-    estimation.confidence = validationData.confidence;
+    estimation.validatedBy = 'ai-validation-service';
+    estimation.validatedAt = new Date();
+    estimation.confidence = validationData.confidence || estimation.confidence;
 
     return this.aiEstimationRepo.save(estimation);
   }

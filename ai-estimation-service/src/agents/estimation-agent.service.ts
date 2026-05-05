@@ -9,7 +9,7 @@ export interface QuotationData {
   quotation_id: string;
   project_name: string;
   project_code: string;
-  form_data: any;
+  form_data: any; // Structured form data from transformer
   submitted_at: string;
   submitted_by: string;
 }

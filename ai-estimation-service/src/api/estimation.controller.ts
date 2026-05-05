@@ -3,6 +3,7 @@ import { EstimationAgentService } from '../agents/estimation-agent.service';
 import { ValidationAgentService } from '../agents/validation-agent.service';
 import { BackendApiService } from '../queue/backend-api.service';
 import { ServiceAuthGuard } from '../guards/service-auth.guard';
+import { transformQuotationForAI } from './quotation-data-transformer';
 
 interface ProcessQuotationRequest {
   quotation_id: string;
@@ -31,9 +32,13 @@ export class EstimationController {
     try {
       // Step 1: Fetch full quotation data from backend
       this.logger.log(`Fetching quotation data for ${quotation_id}`);
-      const quotationData = await this.backendApi.getQuotation(quotation_id);
+      const backendQuotation = await this.backendApi.getQuotation(quotation_id);
 
-      // Step 2: Generate estimation
+      // Step 2: Transform to AI-optimized format
+      const quotationData = transformQuotationForAI(backendQuotation);
+      this.logger.log(`Transformed quotation data for AI processing`);
+
+      // Step 3: Generate estimation
       this.logger.log(`Generating estimation for ${quotation_id}`);
       const estimation = await this.estimationAgent.generateEstimation(quotationData);
 

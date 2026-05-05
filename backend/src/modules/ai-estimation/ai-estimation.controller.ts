@@ -13,6 +13,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { User } from '../../entities/user.entity';
 import {
   ApproveEstimationDto,
@@ -32,6 +33,7 @@ export class AIEstimationController {
    * Internal endpoint: Generate estimation for a quotation.
    * Called by AI agent orchestration layer, not directly by frontend.
    */
+  @Public()
   @Post('generate')
   @ApiOperation({
     summary: 'Genera stima AI (uso interno)',
@@ -49,6 +51,7 @@ export class AIEstimationController {
    * Internal endpoint: Validate an existing estimation.
    * Called by AI agent orchestration layer after Validation Agent runs.
    */
+  @Public()
   @Post('validate')
   @ApiOperation({
     summary: 'Valida stima AI (uso interno)',

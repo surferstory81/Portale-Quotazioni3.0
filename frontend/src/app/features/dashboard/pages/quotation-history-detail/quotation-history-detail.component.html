@@ -25,4 +25,11 @@
       </dl>
     </div>
   </article>
+
+  <!-- AI Estimation Section -->
+  <div class="ai-estimation-section" *ngIf="quotation">
+    <h3 class="section-title">Stima AI</h3>
+    <p *ngIf="isLoadingAI" class="info">Caricamento stima AI...</p>
+    <app-ai-estimation-viewer [estimation]="aiEstimation"></app-ai-estimation-viewer>
+  </div>
 </section>

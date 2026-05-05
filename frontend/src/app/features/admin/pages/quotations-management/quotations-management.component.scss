@@ -116,6 +116,40 @@ table {
   &--respinta       { background: #fee2e2; color: #991b1b; }
 }
 
+.ai-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+
+  &--none       { background: #f3f4f6; color: #6b7280; }
+  &--generated  { background: #e0e7ff; color: #3730a3; }
+  &--validated  { background: #d1fae5; color: #065f46; }
+  &--review     { background: #fef3c7; color: #92400e; }
+  &--rejected   { background: #fee2e2; color: #991b1b; }
+  &--approved   { background: #d1fae5; color: #065f46; }
+}
+
+.confidence-mini {
+  display: block;
+  font-size: 0.65rem;
+  color: #6b7280;
+  margin-top: 0.15rem;
+}
+
+.ai-value {
+  font-size: 0.8rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.ai-value-total {
+  font-size: 0.85rem;
+  color: #0f4c81;
+  font-weight: 600;
+}
+
 .pagination {
   display: flex;
   justify-content: center;

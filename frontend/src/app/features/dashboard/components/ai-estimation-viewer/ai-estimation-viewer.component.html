@@ -1,0 +1,294 @@
+<div class="ai-estimation-viewer" *ngIf="estimation">
+  <!-- Header -->
+  <div class="estimation-header">
+    <div class="header-left">
+      <h3>Stima AI Generata</h3>
+      <span class="status-badge" [ngClass]="getStatusClass(estimation.aiStatus)">
+        {{ getStatusLabel(estimation.aiStatus) }}
+      </span>
+    </div>
+    <div class="header-right">
+      <div class="confidence-indicator">
+        <span class="confidence-label">Confidenza:</span>
+        <span class="confidence-value" [ngClass]="getConfidenceClass(estimation.confidence)">
+          {{ estimation.confidence }}%
+        </span>
+      </div>
+      <div class="generation-info">
+        <small>Generata: {{ formatDate(estimation.generatedAt) }}</small>
+        <small *ngIf="estimation.validatedAt">Validata: {{ formatDate(estimation.validatedAt) }}</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="estimation-tabs">
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'summary'"
+      (click)="setActiveTab('summary')">
+      Riepilogo
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'breakdown'"
+      (click)="setActiveTab('breakdown')">
+      Breakdown
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'items'"
+      (click)="setActiveTab('items')">
+      Voci di Costo
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'validation'"
+      (click)="setActiveTab('validation')">
+      Validazione
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+
+    <!-- Summary Tab -->
+    <div class="summary-tab" *ngIf="activeTab === 'summary'">
+      <div class="cost-summary-cards">
+        <div class="cost-card capex-card">
+          <div class="card-label">CAPEX Totale</div>
+          <div class="card-value">{{ formatCurrency(estimation.estimationData.summary.total_capex) }}</div>
+          <div class="card-description">Costi una tantum</div>
+        </div>
+
+        <div class="cost-card opex-card">
+          <div class="card-label">OPEX Anno 1</div>
+          <div class="card-value">{{ formatCurrency(estimation.estimationData.summary.total_opex_year_1) }}</div>
+          <div class="card-description">Costi operativi primo anno</div>
+        </div>
+
+        <div class="cost-card total-card">
+          <div class="card-label">Totale Primo Anno</div>
+          <div class="card-value">{{ formatCurrency(estimation.estimationData.summary.total_first_year) }}</div>
+          <div class="card-description">CAPEX + OPEX Anno 1</div>
+        </div>
+
+        <div class="cost-card projection-card">
+          <div class="card-label">Proiezione 5 Anni</div>
+          <div class="card-value">{{ formatCurrency(estimation.estimationData.summary.total_5_years) }}</div>
+          <div class="card-description">CAPEX + OPEX 5 anni</div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="recommendations-section" *ngIf="estimation.estimationData.recommendations?.length">
+        <h4>Raccomandazioni</h4>
+        <div class="recommendation-list">
+          <div
+            class="recommendation-item"
+            *ngFor="let rec of estimation.estimationData.recommendations"
+            [class.priority-high]="rec.priority === 'HIGH'"
+            [class.priority-medium]="rec.priority === 'MEDIUM'"
+            [class.priority-low]="rec.priority === 'LOW'">
+            <div class="rec-header">
+              <span class="rec-category">{{ rec.category }}</span>
+              <span class="rec-priority">{{ rec.priority }}</span>
+            </div>
+            <p class="rec-text">{{ rec.recommendation }}</p>
+            <small class="rec-impact" *ngIf="rec.impact">{{ rec.impact }}</small>
+            <small class="rec-savings" *ngIf="rec.potential_savings">Risparmio potenziale: {{ rec.potential_savings }}</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assumptions -->
+      <div class="assumptions-section" *ngIf="estimation.estimationData.assumptions?.length">
+        <h4>Assunzioni</h4>
+        <ul class="assumptions-list">
+          <li *ngFor="let assumption of estimation.estimationData.assumptions">{{ assumption }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Breakdown Tab -->
+    <div class="breakdown-tab" *ngIf="activeTab === 'breakdown'">
+      <div class="breakdown-sections">
+        <!-- CAPEX Breakdown -->
+        <div class="breakdown-section">
+          <h4>CAPEX - Dettaglio</h4>
+          <div class="breakdown-table">
+            <div class="breakdown-row" *ngFor="let key of objectKeys(estimation.estimationData.breakdown.capex)">
+              <ng-container *ngIf="key !== 'total_capex'">
+                <div class="breakdown-label">{{ formatLabel(key) }}</div>
+                <div class="breakdown-value">
+                  <ng-container *ngIf="isObject($any(estimation.estimationData.breakdown.capex)[key])">
+                    <div class="nested-breakdown">
+                      <div class="nested-row" *ngFor="let subkey of objectKeys($any(estimation.estimationData.breakdown.capex)[key])">
+                        <span class="nested-label">{{ formatLabel(subkey) }}</span>
+                        <span class="nested-value">{{ formatCurrency($any($any(estimation.estimationData.breakdown.capex)[key])[subkey]) }}</span>
+                      </div>
+                    </div>
+                  </ng-container>
+                  <ng-container *ngIf="!isObject($any(estimation.estimationData.breakdown.capex)[key])">
+                    {{ formatCurrency($any(estimation.estimationData.breakdown.capex)[key]) }}
+                  </ng-container>
+                </div>
+              </ng-container>
+            </div>
+            <div class="breakdown-row total-row">
+              <div class="breakdown-label"><strong>Totale CAPEX</strong></div>
+              <div class="breakdown-value"><strong>{{ formatCurrency(estimation.estimationData.breakdown.capex.total_capex) }}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPEX Breakdown -->
+        <div class="breakdown-section">
+          <h4>OPEX - Dettaglio</h4>
+          <div class="breakdown-table">
+            <div class="breakdown-row" *ngFor="let key of objectKeys(estimation.estimationData.breakdown.opex)">
+              <ng-container *ngIf="key !== 'total_opex_year_1' && key !== 'total_opex_5_years'">
+                <div class="breakdown-label">{{ formatLabel(key) }}</div>
+                <div class="breakdown-value">
+                  <ng-container *ngIf="isObject($any(estimation.estimationData.breakdown.opex)[key])">
+                    <div class="nested-breakdown">
+                      <div class="nested-row" *ngFor="let subkey of objectKeys($any(estimation.estimationData.breakdown.opex)[key])">
+                        <span class="nested-label">{{ formatLabel(subkey) }}</span>
+                        <span class="nested-value">{{ formatCurrency($any($any(estimation.estimationData.breakdown.opex)[key])[subkey]) }}</span>
+                      </div>
+                    </div>
+                  </ng-container>
+                  <ng-container *ngIf="!isObject($any(estimation.estimationData.breakdown.opex)[key])">
+                    {{ formatCurrency($any(estimation.estimationData.breakdown.opex)[key]) }}
+                  </ng-container>
+                </div>
+              </ng-container>
+            </div>
+            <div class="breakdown-row total-row">
+              <div class="breakdown-label"><strong>Totale OPEX Anno 1</strong></div>
+              <div class="breakdown-value"><strong>{{ formatCurrency(estimation.estimationData.breakdown.opex.total_opex_year_1) }}</strong></div>
+            </div>
+            <div class="breakdown-row">
+              <div class="breakdown-label">Totale OPEX 5 Anni</div>
+              <div class="breakdown-value">{{ formatCurrency(estimation.estimationData.breakdown.opex.total_opex_5_years) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line Items Tab -->
+    <div class="items-tab" *ngIf="activeTab === 'items'">
+      <!-- CAPEX Items -->
+      <div class="items-section">
+        <h4>Voci CAPEX ({{ capexItems.length }})</h4>
+        <div class="items-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th>Descrizione</th>
+                <th>Quantità</th>
+                <th>Prezzo Unitario</th>
+                <th class="text-right">Totale</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of capexItems">
+                <td><small>{{ item.subcategory }}</small></td>
+                <td>
+                  {{ item.description }}
+                  <small class="item-justification" *ngIf="item.justification">{{ item.justification }}</small>
+                </td>
+                <td>{{ item.quantity }} {{ item.unit }}</td>
+                <td>{{ item.unit_price ? formatCurrency(item.unit_price) : '-' }}</td>
+                <td class="text-right"><strong>{{ formatCurrency(item.total) }}</strong></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="4"><strong>Totale CAPEX</strong></td>
+                <td class="text-right"><strong>{{ formatCurrency(estimation.estimationData.summary.total_capex) }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- OPEX Items -->
+      <div class="items-section">
+        <h4>Voci OPEX ({{ opexItems.length }})</h4>
+        <div class="items-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th>Descrizione</th>
+                <th>Quantità</th>
+                <th>Costo Mensile</th>
+                <th class="text-right">Totale</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of opexItems">
+                <td><small>{{ item.subcategory }}</small></td>
+                <td>
+                  {{ item.description }}
+                  <small class="item-justification" *ngIf="item.justification">{{ item.justification }}</small>
+                </td>
+                <td>{{ item.quantity }} {{ item.unit }}</td>
+                <td>{{ item.monthly_cost ? formatCurrency(item.monthly_cost) : '-' }}</td>
+                <td class="text-right"><strong>{{ formatCurrency(item.total) }}</strong></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="4"><strong>Totale OPEX Anno 1</strong></td>
+                <td class="text-right"><strong>{{ formatCurrency(estimation.estimationData.summary.total_opex_year_1) }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation Tab -->
+    <div class="validation-tab" *ngIf="activeTab === 'validation' && estimation.validationData">
+      <div class="validation-summary">
+        <h4>Risultati Validazione</h4>
+        <div class="validation-stats">
+          <div class="stat-card passed">
+            <div class="stat-value">{{ estimation.validationData.summary.passed }}</div>
+            <div class="stat-label">Controlli Superati</div>
+          </div>
+          <div class="stat-card warnings">
+            <div class="stat-value">{{ estimation.validationData.summary.warnings }}</div>
+            <div class="stat-label">Avvisi</div>
+          </div>
+          <div class="stat-card errors">
+            <div class="stat-value">{{ estimation.validationData.summary.errors }}</div>
+            <div class="stat-label">Errori</div>
+          </div>
+          <div class="stat-card total">
+            <div class="stat-value">{{ estimation.validationData.summary.total_checks }}</div>
+            <div class="stat-label">Controlli Totali</div>
+          </div>
+        </div>
+
+        <div class="validation-decision">
+          <strong>Decisione:</strong> {{ estimation.validationData.decision }}
+        </div>
+        <div class="validation-recommendation">
+          <strong>Raccomandazione:</strong> {{ estimation.validationData.recommendation }}
+        </div>
+        <div class="validation-score">
+          <strong>Score:</strong> {{ estimation.validationData.validation_score }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="no-estimation" *ngIf="!estimation">
+  <p>Nessuna stima AI disponibile per questa quotazione.</p>
+</div>

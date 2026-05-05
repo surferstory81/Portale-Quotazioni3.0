@@ -11,6 +11,9 @@ import {
   Tool,
   ToolResultBlock,
 } from '@aws-sdk/client-bedrock-runtime';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
+// Note: using require() for https-proxy-agent due to moduleResolution issue
+const { HttpsProxyAgent } = require('https-proxy-agent');
 
 export interface BedrockMessage {
   role: 'user' | 'assistant';
@@ -74,14 +77,29 @@ export class BedrockService {
     this.defaultMaxTokens = this.configService.get<number>('aws.maxTokens');
     this.timeoutMs = this.configService.get<number>('aws.timeoutMs');
 
+    // Configure proxy if environment variables are set
+    const proxyUrl = process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+    const requestHandler = proxyUrl
+      ? new NodeHttpHandler({
+          httpsAgent: new HttpsProxyAgent(proxyUrl),
+          httpAgent: new HttpsProxyAgent(proxyUrl),
+          connectionTimeout: 10000,
+          requestTimeout: this.timeoutMs,
+        })
+      : {
+          requestTimeout: this.timeoutMs,
+        };
+
     this.client = new BedrockRuntimeClient({
       region,
-      requestHandler: {
-        requestTimeout: this.timeoutMs,
-      },
+      requestHandler,
     });
 
-    this.logger.log(`Bedrock client initialized (region: ${region}, model: ${this.modelId})`);
+    if (proxyUrl) {
+      this.logger.log(`Bedrock client initialized with proxy ${proxyUrl} (region: ${region}, model: ${this.modelId})`);
+    } else {
+      this.logger.log(`Bedrock client initialized (region: ${region}, model: ${this.modelId})`);
+    }
   }
 
   /**
@@ -104,7 +122,7 @@ export class BedrockService {
 
     const maxTokens = request.maxTokens || this.defaultMaxTokens;
     const temperature = request.temperature ?? 1.0;
-    const topP = request.topP ?? 0.999;
+    // Note: topP removed - Claude Sonnet 4.5 doesn't accept both temperature and topP
 
     // Convert messages to Converse API format
     const messages: Message[] = request.messages.map(msg => ({
@@ -146,7 +164,7 @@ export class BedrockService {
       inferenceConfig: {
         maxTokens,
         temperature,
-        topP,
+        // topP not included - model doesn't support both parameters
       },
     };
 

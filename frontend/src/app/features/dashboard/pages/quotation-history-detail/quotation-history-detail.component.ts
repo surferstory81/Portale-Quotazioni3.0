@@ -3,6 +3,8 @@ import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Quotation } from '../../models/quotation.models';
 import { QuotationsService } from '../../services/quotations.service';
+import { AIEstimationService } from '../../../../core/services/ai-estimation.service';
+import { AIEstimation } from '../../../../core/models/ai-estimation.model';
 
 @Component({
   selector: 'app-quotation-history-detail',
@@ -11,12 +13,15 @@ import { QuotationsService } from '../../services/quotations.service';
 })
 export class QuotationHistoryDetailComponent implements OnInit {
   quotation: Quotation | null = null;
+  aiEstimation: AIEstimation | null = null;
   isLoading = false;
+  isLoadingAI = false;
   errorMessage = '';
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly quotationsService: QuotationsService,
+    private readonly aiEstimationService: AIEstimationService,
   ) {}
 
   ngOnInit(): void {
@@ -40,9 +45,27 @@ export class QuotationHistoryDetailComponent implements OnInit {
       .subscribe({
         next: (quotation) => {
           this.quotation = quotation;
+          this.loadAIEstimation(quotationId);
         },
         error: (error: unknown) => {
           this.errorMessage = this.quotationsService.extractApiError(error);
+        },
+      });
+  }
+
+  private loadAIEstimation(quotationId: string): void {
+    this.isLoadingAI = true;
+
+    this.aiEstimationService
+      .getEstimationByQuotationId(quotationId)
+      .pipe(finalize(() => (this.isLoadingAI = false)))
+      .subscribe({
+        next: (estimation) => {
+          this.aiEstimation = estimation;
+        },
+        error: () => {
+          // Silently fail if no AI estimation exists
+          this.aiEstimation = null;
         },
       });
   }

@@ -49,7 +49,6 @@ export class BackendApiService {
       const response = await this.client.post('/ai-estimation/generate', {
         quotationId: estimation.quotation_id,
         estimationData: estimation.estimation_data,
-        generatedBy: estimation.generated_by,
       });
 
       this.logger.log(`Estimation saved (id: ${response.data.id})`);
@@ -58,6 +57,9 @@ export class BackendApiService {
       this.logger.error(
         `Failed to save estimation for quotation ${estimation.quotation_id}: ${error.message}`,
       );
+      if (error.response?.data) {
+        this.logger.error(`Backend response: ${JSON.stringify(error.response.data)}`);
+      }
       throw error;
     }
   }
@@ -70,7 +72,6 @@ export class BackendApiService {
       const response = await this.client.post('/ai-estimation/validate', {
         estimationId: validation.estimation_id,
         validationData: validation.validation_data,
-        validatedBy: validation.validated_by,
       });
 
       this.logger.log(`Validation saved (estimation: ${validation.estimation_id})`);
@@ -79,6 +80,9 @@ export class BackendApiService {
       this.logger.error(
         `Failed to save validation for estimation ${validation.estimation_id}: ${error.message}`,
       );
+      if (error.response?.data) {
+        this.logger.error(`Backend response: ${JSON.stringify(error.response.data)}`);
+      }
       throw error;
     }
   }

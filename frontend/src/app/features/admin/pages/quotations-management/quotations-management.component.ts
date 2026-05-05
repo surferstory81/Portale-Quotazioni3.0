@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { AdminQuotation, AdminService } from '../../services/admin.service';
+import { AIEstimationService } from '../../../../core/services/ai-estimation.service';
+import { AIEstimation } from '../../../../core/models/ai-estimation.model';
 
 type AllowedStatus = 'IN VALUTAZIONE' | 'COMPLETATA' | 'RESPINTA';
 
@@ -12,6 +14,7 @@ type AllowedStatus = 'IN VALUTAZIONE' | 'COMPLETATA' | 'RESPINTA';
 })
 export class QuotationsManagementComponent implements OnInit {
   quotations: AdminQuotation[] = [];
+  aiEstimations: Record<string, AIEstimation | null> = {};
   isLoading = false;
   errorMessage = '';
   successMessage = '';
@@ -30,7 +33,10 @@ export class QuotationsManagementComponent implements OnInit {
   itemsPerPage = 20;
   itemsPerPageOptions = [10, 20, 50, 0]; // 0 = tutte
 
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly aiEstimationService: AIEstimationService
+  ) {}
 
   ngOnInit(): void {
     this.loadQuotations();
@@ -197,9 +203,69 @@ export class QuotationsManagementComponent implements OnInit {
       .getQuotations()
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
-        next: (data) => (this.quotations = data),
+        next: (data) => {
+          this.quotations = data;
+          this.loadAIEstimations(data);
+        },
         error: (err: unknown) => (this.errorMessage = this.adminService.extractApiError(err)),
       });
+  }
+
+  private loadAIEstimations(quotations: AdminQuotation[]): void {
+    // Load AI estimations for all quotations
+    quotations.forEach(q => {
+      this.aiEstimationService.getEstimationByQuotationId(q.id).subscribe({
+        next: (estimation) => {
+          this.aiEstimations[q.id] = estimation;
+        },
+        error: () => {
+          this.aiEstimations[q.id] = null;
+        }
+      });
+    });
+  }
+
+  getAIEstimation(quotationId: string): AIEstimation | null {
+    return this.aiEstimations[quotationId] || null;
+  }
+
+  getAIStatusBadgeClass(quotationId: string): string {
+    const estimation = this.getAIEstimation(quotationId);
+    if (!estimation) return 'ai-badge--none';
+
+    const statusMap: Record<string, string> = {
+      'AI_GENERATED': 'ai-badge--generated',
+      'AI_VALIDATED': 'ai-badge--validated',
+      'AI_NEEDS_REVIEW': 'ai-badge--review',
+      'AI_REJECTED': 'ai-badge--rejected',
+      'HUMAN_APPROVED': 'ai-badge--approved',
+      'HUMAN_REJECTED': 'ai-badge--rejected'
+    };
+    return statusMap[estimation.aiStatus] || 'ai-badge--default';
+  }
+
+  getAIStatusLabel(quotationId: string): string {
+    const estimation = this.getAIEstimation(quotationId);
+    if (!estimation) return 'Nessuna stima';
+
+    const labelMap: Record<string, string> = {
+      'AI_GENERATED': 'Generata',
+      'AI_VALIDATED': 'Validata',
+      'AI_NEEDS_REVIEW': 'Da Revisionare',
+      'AI_REJECTED': 'Respinta',
+      'HUMAN_APPROVED': 'Approvata',
+      'HUMAN_REJECTED': 'Respinta'
+    };
+    return labelMap[estimation.aiStatus] || estimation.aiStatus;
+  }
+
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
   }
 
   private applyQuotationUpdate(updated: AdminQuotation): void {

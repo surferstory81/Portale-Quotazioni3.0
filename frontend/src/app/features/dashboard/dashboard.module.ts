@@ -8,6 +8,7 @@ import { LayoutModule } from '../../layout/layout.module';
 import { NewQuotationComponent } from './pages/new-quotation/new-quotation.component';
 import { QuotationStatusComponent } from './pages/quotation-status/quotation-status.component';
 import { QuotationHistoryDetailComponent } from './pages/quotation-history-detail/quotation-history-detail.component';
+import { AIEstimationViewerComponent } from './components/ai-estimation-viewer/ai-estimation-viewer.component';
 
 
 @NgModule({
@@ -21,7 +22,8 @@ import { QuotationHistoryDetailComponent } from './pages/quotation-history-detai
     CommonModule,
     LayoutModule,
     ReactiveFormsModule,
-    DashboardRoutingModule
+    DashboardRoutingModule,
+    AIEstimationViewerComponent
   ]
 })
 export class DashboardModule { }
