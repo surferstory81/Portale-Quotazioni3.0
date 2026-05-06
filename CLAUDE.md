@@ -21,10 +21,13 @@ Initial cost estimations may be generated with the support of internal AI agents
 
 - Public landing page with Credit Agricole branding, login via modal overlay
 - Submission of IT project cost requests by internal users
-- Tracking of quotation status: **Inviata**, **In valutazione**, **Respinta**, **Completata**
+- **Draft system**: Save incomplete quotations with auto-save functionality
+- Tracking of quotation status: **Bozza**, **Inviata**, **In valutazione**, **Respinta**, **Completata**
 - Modification and resubmission of rejected quotations
-- Manual and AI-assisted cost estimation
-- Administrator validation and approval
+- **AI-assisted cost estimation** with token tracking and validation insights
+- **Token consumption monitoring**: Track input/output tokens and cost in USD
+- **Validation issue visualization**: Display AI validation problems with severity levels
+- Administrator validation and approval (can override AI decisions)
 - Auditability and traceability of all actions
 
 Detailed functional specifications are maintained in dedicated skill files under `.claude/skills/`.
@@ -72,9 +75,34 @@ Portale-Quotazioni3.0/
 - Uses `@Public()` decorator with Reflector pattern in JwtAuthGuard
 
 **Admin Features**:
-- Pagination (10/20/50/All quotations) in dashboard and quotations management
-- Retry AI estimation button for failed/incomplete estimations
-- View all quotations with flexible pagination controls
+- **Pagination**: 10/20/50/All quotations in dashboard and quotations management
+- **Retry AI estimation**: Button for failed/incomplete estimations
+- **Token tracking**: Dashboard showing total tokens consumed, cost in USD, averages
+- **Validation insights**: View AI validation issues with severity badges (HIGH/MEDIUM/LOW)
+- **Manual override**: Approve/reject AI estimations in any state (AI_VALIDATED, AI_NEEDS_REVIEW, AI_REJECTED)
+- **Manual CAPEX/OPEX**: Override AI estimations with custom values
+- **Auto-refresh**: Real-time updates every 10s for quotations in evaluation
+- **Delete quotations**: Soft delete with confirmation
+
+**User Features**:
+- **Draft system**: Save incomplete quotations without submitting
+- **Auto-save**: Automatic draft save every 5 seconds after first manual save
+- **Draft management**: Edit, delete, and submit drafts from dashboard
+- **Login options**: Authenticate with email or matricola
+- **Auto-refresh**: Dashboard updates every 15s
+
+**Token Tracking**:
+- Input tokens tracked (Claude Sonnet 4.5: $3/MTok)
+- Output tokens tracked ($15/MTok)
+- Cost accumulation across retry attempts
+- Statistics dashboard for admin visibility
+
+**AI Validation**:
+- Comprehensive validation rules in `ai-estimation-service/prompts/validation-agent-prompt.md`
+- CAPEX=0 detection as HIGH severity error
+- QA budget ≥10% enforcement
+- Threshold compliance checks (cost/vCPU, cost/TB, OPEX/CAPEX ratio)
+- Validation issues displayed in admin UI with actionable recommendations
 
 ---
 
@@ -128,6 +156,23 @@ Environment variables required in AI service:
 - `BEDROCK_MODEL_ID=eu.anthropic.claude-sonnet-4-5-20250929-v1:0`
 - `BEDROCK_TIMEOUT_MS=120000`
 - `BACKEND_URL=http://localhost:3000`
+- `BACKEND_SERVICE_TOKEN=dev-service-token-change-in-production`
+
+**Validation Prompt**:
+- File: `ai-estimation-service/prompts/validation-agent-prompt.md`
+- Auto-loaded if present; falls back to embedded default prompt
+- Contains comprehensive validation rules:
+  - CAPEX=0 detection (HIGH severity → auto-reject)
+  - QA budget ≥10% enforcement
+  - Mathematical accuracy checks
+  - Threshold compliance (cost/vCPU, cost/TB)
+  - Completeness validation
+
+**Token Tracking**:
+- AI service reports token usage to backend after each estimation
+- Backend stores in `ai_estimations` table: `input_tokens`, `output_tokens`, `estimated_cost_usd`
+- Tokens accumulate across retries (sum, not replace)
+- Cost calculation: (input/1M × $3) + (output/1M × $15)
 
 Details about AI skills, prompts, and constraints are defined in `.claude/skills/ai-estimation.md`.
 
