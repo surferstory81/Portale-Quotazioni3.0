@@ -31,10 +31,11 @@ export class AiServiceClientService {
    */
   async requestQuotationProcessing(request: QuotationProcessRequest): Promise<void> {
     try {
-      this.logger.log(`Requesting AI processing for quotation ${request.quotation_id}`);
+      this.logger.log(`[AI-CLIENT] Requesting AI processing for quotation ${request.quotation_id}`);
+      this.logger.log(`[AI-CLIENT] Target URL: ${this.aiServiceUrl}/api/estimation/process`);
 
       // Fire-and-forget: send request but don't await response
-      firstValueFrom(
+      const promise = firstValueFrom(
         this.httpService.post(
           `${this.aiServiceUrl}/api/estimation/process`,
           request,
@@ -46,16 +47,26 @@ export class AiServiceClientService {
             timeout: 60000, // 1 minute timeout
           },
         ),
-      ).catch((error) => {
-        this.logger.error(
-          `Failed to request AI processing for quotation ${request.quotation_id}: ${error.message}`,
-        );
-      });
+      );
 
-      this.logger.log(`AI processing request sent for quotation ${request.quotation_id}`);
+      promise
+        .then(() => {
+          this.logger.log(`[AI-CLIENT] AI processing request successful for quotation ${request.quotation_id}`);
+        })
+        .catch((error) => {
+          this.logger.error(
+            `[AI-CLIENT] Failed to request AI processing for quotation ${request.quotation_id}: ${error.message}`,
+          );
+          if (error.response) {
+            this.logger.error(`[AI-CLIENT] Response status: ${error.response.status}`);
+            this.logger.error(`[AI-CLIENT] Response data: ${JSON.stringify(error.response.data)}`);
+          }
+        });
+
+      this.logger.log(`[AI-CLIENT] AI processing request initiated for quotation ${request.quotation_id}`);
     } catch (error) {
       this.logger.error(
-        `Error sending AI processing request for quotation ${request.quotation_id}: ${error.message}`,
+        `[AI-CLIENT] Error sending AI processing request for quotation ${request.quotation_id}: ${error.message}`,
       );
     }
   }

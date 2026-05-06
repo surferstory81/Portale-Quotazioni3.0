@@ -229,6 +229,198 @@ export class CreateQuotationDto {
 
 export class UpdateQuotationDto extends CreateQuotationDto {}
 
+export class SaveDraftDto {
+  @IsOptional()
+  @IsString({ message: 'Il codice progetto deve essere una stringa.' })
+  @MinLength(10, { message: 'Il codice progetto deve avere almeno 10 caratteri.' })
+  @MaxLength(11, { message: 'Il codice progetto non puo superare 11 caratteri.' })
+  projectCode?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Il nome progetto deve essere una stringa.' })
+  @MaxLength(240, { message: 'Il nome progetto non puo superare 120 caratteri.' })
+  projectName?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'La data inizio progetto non e valida.' })
+  projectStartDate?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'La data fine progetto non e valida.' })
+  projectEndDate?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(PROJECT_DURATION_OPTIONS)
+  projectDuration?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(PROJECT_BUDGET_OPTIONS)
+  projectBudget?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(YES_NO_OPTIONS)
+  architecturalImpact?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  cloudSaas?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  cloudIaasPaasLandingZoneCa?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hostMainframe?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  onPremiseDipartimentale?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  needNewInfrastructure?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  infraOnVm?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  infraMicroservices?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(IMPACT_ENTITY_OPTIONS)
+  impactEntity?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  serviceConsumer?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  serviceVolumesPerDay?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(TECHNOLOGICAL_IMPACT_OPTIONS)
+  technologicalImpact?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  developedInternally?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  developedByExternalVendors?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasCaIntellectualProperty?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  serviceExposure?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  marketProduct?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  dependenciesWithExternalServices?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  integrationsWithInternalSystems?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  saasProduct?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  monitoringOrSecurityTool?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  expectedReleases?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(PROJECT_TYPE_OPTIONS)
+  projectType?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(SERVICE_RISK_OPTIONS)
+  serviceRisk?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(PIPELINE_OPTIONS)
+  pipeline?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  microservicesCount?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  hasDatabaseImpactDip?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasSqlDbType?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasDatabaseImpactHostDb2?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  storageGb?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  computeCores?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  scheduledBatches?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(MONITORING_OPTIONS)
+  monitoringSystems?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(MONITORING_OPTIONS)
+  observability?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(TEST_MAGNITUDE_OPTIONS)
+  testMagnitude?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(QA_OPTIONS)
+  qa?: string;
+}
+
 export class ListQuotationsQueryDto {
   @IsOptional()
   @IsString({ message: 'Filtro codice progetto non valido.' })

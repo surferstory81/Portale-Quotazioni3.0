@@ -1,0 +1,30 @@
+<div class="admin-layout">
+  <app-navbar></app-navbar>
+
+  <div class="admin-container">
+    <aside class="admin-sidebar">
+      <nav class="admin-sidebar__nav">
+        <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="admin-sidebar__link">
+          <span class="admin-sidebar__icon">📊</span>
+          <span class="admin-sidebar__text">Dashboard</span>
+        </a>
+        <a routerLink="/admin/quotations" routerLinkActive="active" class="admin-sidebar__link">
+          <span class="admin-sidebar__icon">📋</span>
+          <span class="admin-sidebar__text">Gestione Quotazioni</span>
+        </a>
+        <a routerLink="/admin/users" routerLinkActive="active" class="admin-sidebar__link">
+          <span class="admin-sidebar__icon">👥</span>
+          <span class="admin-sidebar__text">Utenti</span>
+        </a>
+        <a routerLink="/admin/settings" routerLinkActive="active" class="admin-sidebar__link">
+          <span class="admin-sidebar__icon">⚙️</span>
+          <span class="admin-sidebar__text">Impostazioni</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="admin-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

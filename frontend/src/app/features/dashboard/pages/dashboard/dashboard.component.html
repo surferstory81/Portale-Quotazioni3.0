@@ -15,9 +15,14 @@
 	<!-- Loading / Error -->
 	<p *ngIf="isLoading" class="info">Caricamento...</p>
 	<p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
+	<p *ngIf="successMessage" class="message success">{{ successMessage }}</p>
 
 	<!-- KPI cards -->
 	<div class="cards" *ngIf="!isLoading">
+		<article class="card card--bozza">
+			<span class="card__label">Bozze</span>
+			<strong class="card__value">{{ countBozza }}</strong>
+		</article>
 		<article class="card">
 			<span class="card__label">Inviate</span>
 			<strong class="card__value">{{ countInviata }}</strong>
@@ -36,9 +41,51 @@
 		</article>
 	</div>
 
+	<!-- Drafts section -->
+	<section class="drafts" *ngIf="!isLoading && drafts.length > 0">
+		<h3 class="section-title">Le Mie Bozze</h3>
+		<p class="section-subtitle">Quotazioni salvate come bozze che puoi completare e inviare</p>
+		<div class="table-wrapper">
+			<table>
+				<thead>
+					<tr>
+						<th>Codice</th>
+						<th>Nome progetto</th>
+						<th>Ultima modifica</th>
+						<th>Azioni</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let draft of drafts">
+						<td class="td-code">{{ draft.projectCode }}</td>
+						<td>{{ draft.projectName || 'Bozza senza titolo' }}</td>
+						<td class="td-date">{{ draft.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+						<td class="td-actions">
+							<button
+								type="button"
+								class="btn-sm btn-primary"
+								(click)="editDraft(draft.id)"
+								title="Modifica e completa bozza">
+								✏️ Modifica
+							</button>
+							<button
+								type="button"
+								class="btn-sm btn-danger"
+								(click)="deleteDraft(draft)"
+								[disabled]="isDeletingDraft(draft.id)"
+								title="Elimina bozza">
+								{{ isDeletingDraft(draft.id) ? '...' : '🗑️ Elimina' }}
+							</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
 	<!-- Recent quotations -->
 	<section class="recent" *ngIf="!isLoading && recentQuotations.length > 0">
-		<h3 class="recent__title">Ultime quotazioni</h3>
+		<h3 class="section-title">Ultime quotazioni</h3>
 		<div class="table-wrapper">
 			<table>
 				<thead>

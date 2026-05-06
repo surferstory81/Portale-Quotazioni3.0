@@ -10,9 +10,10 @@ import { AppSetting } from '../../entities/app-setting.entity';
 import { EmailVerificationToken } from '../../entities/email-verification-token.entity';
 import { AIEstimation } from '../../entities/ai-estimation.entity';
 import { EmailModule } from '../email/email.module';
+import { AIEstimationModule } from '../ai-estimation/ai-estimation.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Quotation, User, Role, RefreshToken, AppSetting, EmailVerificationToken, AIEstimation]), EmailModule],
+  imports: [TypeOrmModule.forFeature([Quotation, User, Role, RefreshToken, AppSetting, EmailVerificationToken, AIEstimation]), EmailModule, AIEstimationModule],
   controllers: [AdminController],
   providers: [AdminService],
   exports: [AdminService],

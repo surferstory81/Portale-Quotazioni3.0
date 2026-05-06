@@ -15,6 +15,7 @@ import {
   CreateQuotationDto,
   ListQuotationsQueryDto,
   UpdateQuotationDto,
+  SaveDraftDto,
 } from './dto/quotations.dto';
 import { EmailService } from '../email/email.service';
 import { AiServiceClientService } from '../ai-estimation/ai-service-client.service';
@@ -53,18 +54,248 @@ export class QuotationsService {
 
     await this.emailService.sendNewQuotationEmail(savedQuotation, user);
 
-    // Request AI estimation workflow (async, non-blocking)
-    this.aiServiceClient.requestQuotationProcessing({
-      quotation_id: savedQuotation.id,
-      user_id: user.id,
-      project_code: savedQuotation.projectCode,
-      status: savedQuotation.status,
-    }).catch((error: Error) => {
-      // Log error but don't block quotation creation
-      console.error(`Failed to request AI processing: ${error.message}`);
-    });
+    // AI estimation will be triggered when admin takes the quotation in charge
 
     return savedQuotation;
+  }
+
+  async saveDraft(user: User, dto: SaveDraftDto): Promise<Quotation> {
+    // Validazione opzionale per le date se presenti entrambe
+    if (dto.projectStartDate && dto.projectEndDate) {
+      const startDate = new Date(dto.projectStartDate);
+      const endDate = new Date(dto.projectEndDate);
+
+      if (endDate < startDate) {
+        throw new BadRequestException(
+          'La data fine progetto deve essere successiva o uguale alla data inizio progetto.',
+        );
+      }
+    }
+
+    const quotation = this.quotationRepo.create({
+      projectCode: dto.projectCode || `DRAFT-${Date.now()}`,
+      projectName: dto.projectName || 'Bozza senza titolo',
+      title: dto.projectName || 'Bozza senza titolo',
+      description: dto.projectCode
+        ? `Bozza quotazione progetto ${dto.projectCode}`
+        : 'Bozza di quotazione',
+      status: QuotationStatus.BOZZA,
+      totalAmount: 0,
+      formData: this.buildFormData(dto as any),
+      createdBy: user,
+    });
+
+    return this.quotationRepo.save(quotation);
+  }
+
+  async updateDraft(
+    id: string,
+    userId: string,
+    dto: SaveDraftDto,
+  ): Promise<Quotation> {
+    const quotation = await this.quotationRepo.findOne({
+      where: { id },
+      relations: ['createdBy'],
+    });
+
+    if (!quotation) {
+      throw new NotFoundException('Bozza non trovata');
+    }
+
+    if (quotation.createdBy?.id !== userId) {
+      throw new ForbiddenException(
+        'Non sei autorizzato a modificare questa bozza',
+      );
+    }
+
+    if (quotation.status !== QuotationStatus.BOZZA) {
+      throw new BadRequestException(
+        'La modifica e consentita solo per le bozze',
+      );
+    }
+
+    // Validazione opzionale per le date se presenti entrambe
+    if (dto.projectStartDate && dto.projectEndDate) {
+      const startDate = new Date(dto.projectStartDate);
+      const endDate = new Date(dto.projectEndDate);
+
+      if (endDate < startDate) {
+        throw new BadRequestException(
+          'La data fine progetto deve essere successiva o uguale alla data inizio progetto.',
+        );
+      }
+    }
+
+    // Aggiorna solo i campi forniti
+    if (dto.projectCode) quotation.projectCode = dto.projectCode;
+    if (dto.projectName) {
+      quotation.projectName = dto.projectName;
+      quotation.title = dto.projectName;
+    }
+
+    quotation.description = dto.projectCode
+      ? `Bozza quotazione progetto ${dto.projectCode}`
+      : 'Bozza di quotazione';
+
+    quotation.formData = this.buildFormData(dto as any);
+
+    return this.quotationRepo.save(quotation);
+  }
+
+  async submitDraft(id: string, userId: string): Promise<Quotation> {
+    const quotation = await this.quotationRepo.findOne({
+      where: { id },
+      relations: ['createdBy'],
+    });
+
+    if (!quotation) {
+      throw new NotFoundException('Bozza non trovata');
+    }
+
+    if (quotation.createdBy?.id !== userId) {
+      throw new ForbiddenException(
+        'Non sei autorizzato a inviare questa bozza',
+      );
+    }
+
+    if (quotation.status !== QuotationStatus.BOZZA) {
+      throw new BadRequestException(
+        'Solo le bozze possono essere inviate',
+      );
+    }
+
+    // Validazione completa prima dell'invio
+    const formData = quotation.formData as any;
+
+    const errors: string[] = [];
+
+    if (!quotation.projectCode || quotation.projectCode.startsWith('DRAFT-')) {
+      errors.push('Codice progetto');
+    }
+    if (!quotation.projectName || quotation.projectName === 'Bozza senza titolo') {
+      errors.push('Nome progetto');
+    }
+    if (!formData.projectStartDate) {
+      errors.push('Data inizio progetto');
+    }
+    if (!formData.projectEndDate) {
+      errors.push('Data fine progetto');
+    }
+    if (!formData.projectDuration) {
+      errors.push('Durata progetto');
+    }
+    if (!formData.projectBudget) {
+      errors.push('Budget progetto');
+    }
+    if (!formData.architecturalImpact) {
+      errors.push('Impatto architetturale');
+    }
+    if (!formData.impactEntity) {
+      errors.push('Entità impatto');
+    }
+    if (!formData.serviceConsumer) {
+      errors.push('Consumatore servizio');
+    }
+    if (formData.serviceVolumesPerDay === undefined || formData.serviceVolumesPerDay === null) {
+      errors.push('Volumi servizio giornalieri');
+    }
+    if (!formData.technologicalImpact) {
+      errors.push('Impatto tecnologico');
+    }
+    if (formData.expectedReleases === undefined || formData.expectedReleases === null) {
+      errors.push('Release previste');
+    }
+    if (!formData.projectType) {
+      errors.push('Tipo progetto');
+    }
+    if (!formData.serviceRisk) {
+      errors.push('Rischio servizio');
+    }
+    if (!formData.pipeline) {
+      errors.push('Pipeline');
+    }
+    if (formData.microservicesCount === undefined || formData.microservicesCount === null) {
+      errors.push('Numero microservizi');
+    }
+    if (formData.storageGb === undefined || formData.storageGb === null) {
+      errors.push('Storage GB');
+    }
+    if (formData.computeCores === undefined || formData.computeCores === null) {
+      errors.push('Core di calcolo');
+    }
+    if (formData.scheduledBatches === undefined || formData.scheduledBatches === null) {
+      errors.push('Batch schedulati');
+    }
+    if (!formData.monitoringSystems) {
+      errors.push('Sistemi di monitoraggio');
+    }
+    if (!formData.observability) {
+      errors.push('Observability');
+    }
+    if (!formData.testMagnitude) {
+      errors.push('Magnitudo test');
+    }
+    if (!formData.qa) {
+      errors.push('QA');
+    }
+
+    if (errors.length > 0) {
+      throw new BadRequestException(
+        `La bozza non puo essere inviata. Campi mancanti: ${errors.join(', ')}`,
+      );
+    }
+
+    quotation.status = QuotationStatus.INVIATA;
+    quotation.description = `Quotazione progetto ${quotation.projectCode}`;
+
+    const savedQuotation = await this.quotationRepo.save(quotation);
+
+    await this.emailService.sendNewQuotationEmail(
+      savedQuotation,
+      quotation.createdBy,
+    );
+
+    return savedQuotation;
+  }
+
+  async findDraftsByUser(userId: string): Promise<Quotation[]> {
+    return this.quotationRepo
+      .createQueryBuilder('quotation')
+      .leftJoinAndSelect('quotation.createdBy', 'createdBy')
+      .where('createdBy.id = :userId', { userId })
+      .andWhere('quotation.status = :status', {
+        status: QuotationStatus.BOZZA,
+      })
+      .orderBy('quotation.updatedAt', 'DESC')
+      .getMany();
+  }
+
+  async deleteDraft(id: string, userId: string): Promise<{ message: string }> {
+    const quotation = await this.quotationRepo.findOne({
+      where: { id },
+      relations: ['createdBy'],
+    });
+
+    if (!quotation) {
+      throw new NotFoundException('Bozza non trovata');
+    }
+
+    if (quotation.createdBy?.id !== userId) {
+      throw new ForbiddenException(
+        'Non sei autorizzato a eliminare questa bozza',
+      );
+    }
+
+    if (quotation.status !== QuotationStatus.BOZZA) {
+      throw new BadRequestException(
+        'Solo le bozze possono essere eliminate',
+      );
+    }
+
+    await this.quotationRepo.remove(quotation);
+    return {
+      message: `Bozza "${quotation.projectName}" eliminata con successo`,
+    };
   }
 
   async findUserQuotations(

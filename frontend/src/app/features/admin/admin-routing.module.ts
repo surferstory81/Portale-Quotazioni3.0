@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { MainLayoutComponent } from '../../layout/components/main-layout/main-layout.component';
+import { AdminLayoutComponent } from '../../layout/components/admin-layout/admin-layout.component';
 import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard.component';
 import { UsersManagementComponent } from './pages/users-management/users-management.component';
 import { QuotationsManagementComponent } from './pages/quotations-management/quotations-management.component';
@@ -10,7 +10,7 @@ import { AdminGuard } from './services/admin.guard';
 const routes: Routes = [
   {
     path: '',
-    component: MainLayoutComponent,
+    component: AdminLayoutComponent,
     canActivate: [AdminGuard],
     children: [
       { path: '', component: AdminDashboardComponent },

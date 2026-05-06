@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Quotation, QuotationStatus } from '../../entities/quotation.entity';
 import { Role } from '../../entities/role.entity';
@@ -14,6 +14,7 @@ import { AppSetting } from '../../entities/app-setting.entity';
 import { EmailVerificationToken } from '../../entities/email-verification-token.entity';
 import { AIEstimation, AIStatus } from '../../entities/ai-estimation.entity';
 import { EmailService } from '../email/email.service';
+import { AiServiceClientService } from '../ai-estimation/ai-service-client.service';
 
 export interface SystemSettings {
   email_enabled: boolean;
@@ -38,16 +39,22 @@ export class AdminService {
     @InjectRepository(AIEstimation)
     private readonly aiEstimationRepo: Repository<AIEstimation>,
     private readonly emailService: EmailService,
+    private readonly aiServiceClient: AiServiceClientService,
   ) {}
 
   async findAllQuotations(): Promise<Quotation[]> {
     return this.quotationRepo.find({
+      where: {
+        // Escludi le bozze dalla vista admin
+        status: Not(QuotationStatus.BOZZA) as any,
+      },
       relations: ['createdBy', 'createdBy.role', 'assignedAdmin', 'assignedAdmin.role'],
       order: { createdAt: 'DESC' },
     });
   }
 
   async takeInCharge(quotationId: string, adminUser: User): Promise<Quotation> {
+    console.log(`[ADMIN-SERVICE] takeInCharge called for quotation ${quotationId} by admin ${adminUser.id}`);
     const quotation = await this.findQuotationOrFail(quotationId);
     const previousStatus = quotation.status;
 
@@ -62,10 +69,25 @@ export class AdminService {
     quotation.status = QuotationStatus.IN_VALUTAZIONE;
 
     const savedQuotation = await this.quotationRepo.save(quotation);
+    console.log(`[ADMIN-SERVICE] Quotation saved with status ${savedQuotation.status}`);
+
     await this.emailService.sendQuotationStatusChangedEmail(
       savedQuotation,
       previousStatus,
     );
+    console.log(`[ADMIN-SERVICE] Email sent`);
+
+    // Launch AI estimation when admin takes quotation in charge
+    console.log(`[ADMIN-SERVICE] Calling AI service for quotation ${savedQuotation.id}`);
+    this.aiServiceClient.requestQuotationProcessing({
+      quotation_id: savedQuotation.id,
+      user_id: adminUser.id,
+      project_code: savedQuotation.projectCode,
+      status: savedQuotation.status,
+    }).catch((error: Error) => {
+      console.error(`[ADMIN-SERVICE] Failed to request AI processing: ${error.message}`);
+    });
+    console.log(`[ADMIN-SERVICE] AI service call initiated`);
 
     return savedQuotation;
   }

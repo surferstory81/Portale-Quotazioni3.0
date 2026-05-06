@@ -24,180 +24,224 @@
     <table>
       <thead>
         <tr>
+          <th style="width: 40px;"></th>
           <th>Codice</th>
           <th>Nome progetto</th>
           <th>Richiedente</th>
+          <th>Admin</th>
           <th>Stato</th>
-          <th>Stima AI</th>
-          <th>CAPEX</th>
-          <th>OPEX Y1</th>
-          <th>Totale 1° Anno</th>
-          <th>Importo (€)</th>
-          <th>Creata</th>
-          <th>Azioni stato</th>
-          <th>Quotazione economica</th>
-          <th>CAPEX/OPEX manuali</th>
-          <th>AI Azioni</th>
-          <th>Elimina</th>
+          <th>Azioni</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let q of paginatedQuotations; trackBy: trackById">
-          <td>{{ q.projectCode }}</td>
-          <td>{{ q.projectName }}</td>
-          <td>{{ q.createdBy.email }}</td>
-          <td>
-            <span class="badge" [ngClass]="badgeClass(q.status)">{{ q.status }}</span>
-          </td>
-          <td>
-            <span class="ai-badge" [ngClass]="getAIStatusBadgeClass(q.id)">
-              {{ getAIStatusLabel(q.id) }}
-            </span>
-            <small *ngIf="getAIEstimation(q.id)" class="confidence-mini">
-              {{ getAIEstimation(q.id)!.confidence }}%
-            </small>
-          </td>
-          <td>
-            <span *ngIf="getAIEstimation(q.id)" class="ai-value">
-              {{ formatCurrency(getAIEstimation(q.id)!.estimationData.summary.total_capex) }}
-            </span>
-            <span *ngIf="!getAIEstimation(q.id)" class="muted">—</span>
-          </td>
-          <td>
-            <span *ngIf="getAIEstimation(q.id)" class="ai-value">
-              {{ formatCurrency(getAIEstimation(q.id)!.estimationData.summary.total_opex_year_1) }}
-            </span>
-            <span *ngIf="!getAIEstimation(q.id)" class="muted">—</span>
-          </td>
-          <td>
-            <span *ngIf="getAIEstimation(q.id)" class="ai-value-total">
-              {{ formatCurrency(getAIEstimation(q.id)!.estimationData.summary.total_first_year) }}
-            </span>
-            <span *ngIf="!getAIEstimation(q.id)" class="muted">—</span>
-          </td>
-          <td>{{ q.totalAmount > 0 ? (q.totalAmount | number: '1.2-2') : '—' }}</td>
-          <td>{{ q.createdAt | date: 'dd/MM/yyyy' }}</td>
-          <td class="actions-cell">
-            <button
-              *ngIf="canTakeInCharge(q)"
-              type="button"
-              class="btn-sm"
-              [disabled]="statusLoading[q.id]"
-              (click)="takeInCharge(q)"
-            >
-              Prendi in carico
-            </button>
-
-            <ng-container *ngIf="canChangeStatus(q)">
-              <select
-                class="select-sm"
-                #statusSelect
-                [disabled]="statusLoading[q.id]"
-              >
-                <option value="">-- Cambia stato --</option>
-                <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
-              </select>
+        <ng-container *ngFor="let q of paginatedQuotations; trackBy: trackById">
+          <!-- Main row -->
+          <tr class="main-row" [class.expanded]="isRowExpanded(q.id)">
+            <td class="expand-cell">
               <button
                 type="button"
+                class="expand-btn"
+                (click)="toggleRow(q.id)"
+                [attr.aria-expanded]="isRowExpanded(q.id)"
+                title="Mostra/nascondi dettagli">
+                {{ isRowExpanded(q.id) ? '▼' : '▶' }}
+              </button>
+            </td>
+            <td><strong>{{ q.projectCode }}</strong></td>
+            <td>{{ q.projectName }}</td>
+            <td>{{ q.createdBy.email }}</td>
+            <td>
+              <span *ngIf="q.assignedAdmin" class="admin-badge">{{ q.assignedAdmin.email }}</span>
+              <span *ngIf="!q.assignedAdmin" class="muted">—</span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="badgeClass(q.status)">{{ q.status }}</span>
+            </td>
+            <td class="actions-cell-compact">
+              <button
+                *ngIf="canTakeInCharge(q)"
+                type="button"
                 class="btn-sm"
-                [class.btn-primary]="statusSelect.value"
-                [class.btn-disabled]="!statusSelect.value"
-                [disabled]="statusLoading[q.id] || !statusSelect.value"
-                (click)="updateStatus(q, $any(statusSelect.value))"
-              >
-                {{ statusLoading[q.id] ? '...' : 'Applica' }}
+                [disabled]="statusLoading[q.id]"
+                (click)="takeInCharge(q)">
+                Prendi in carico
               </button>
-            </ng-container>
 
-            <span *ngIf="!canTakeInCharge(q) && !canChangeStatus(q)" class="muted">—</span>
-          </td>
-          <td>
-            <form
-              *ngIf="canSetEconomic(q)"
-              [formGroup]="getEconomicForm(q.id)"
-              (ngSubmit)="submitEconomic(q)"
-              class="economic-form"
-            >
-              <input
-                type="number"
-                formControlName="totalAmount"
-                placeholder="Importo €"
-                class="input-sm"
-                min="0"
-                step="0.01"
-              />
-              <button
-                type="submit"
-                class="btn-sm btn-success"
-                [disabled]="economicLoading[q.id]"
-              >
-                {{ economicLoading[q.id] ? '...' : 'Salva' }}
-              </button>
-              <span *ngIf="economicMessages[q.id]" class="inline-msg">
-                {{ economicMessages[q.id] }}
-              </span>
-            </form>
-            <span *ngIf="!canSetEconomic(q)" class="muted">
-              {{ q.totalAmount > 0 ? ('€ ' + (q.totalAmount | number: '1.2-2')) : '—' }}
-            </span>
-          </td>
-          <td>
-            <form
-              *ngIf="canSetEconomic(q)"
-              [formGroup]="getCapexOpexForm(q.id)"
-              (ngSubmit)="submitCapexOpex(q)"
-              class="economic-form"
-            >
-              <input
-                type="number"
-                formControlName="manualCapex"
-                placeholder="CAPEX €"
-                class="input-sm"
-                min="0"
-                step="0.01"
-              />
-              <input
-                type="number"
-                formControlName="manualOpex"
-                placeholder="OPEX €"
-                class="input-sm"
-                min="0"
-                step="0.01"
-              />
-              <button
-                type="submit"
-                class="btn-sm btn-success"
-                [disabled]="capexOpexLoading[q.id]"
-              >
-                {{ capexOpexLoading[q.id] ? '...' : 'Salva' }}
-              </button>
-              <span *ngIf="capexOpexMessages[q.id]" class="inline-msg-small">
-                {{ capexOpexMessages[q.id] }}
-              </span>
-            </form>
-            <span *ngIf="!canSetEconomic(q)" class="muted">—</span>
-          </td>
-          <td class="actions-cell">
-            <button
-              type="button"
-              class="btn-sm btn-secondary"
-              (click)="retryAiEstimation(q.id)"
-              [disabled]="isRetrying(q.id)"
-              title="Richiedi nuova stima AI">
-              {{ isRetrying(q.id) ? '⏳ ...' : '🔄 Retry' }}
-            </button>
-          </td>
-          <td class="actions-cell">
-            <button
-              type="button"
-              class="btn-sm btn-danger"
-              (click)="deleteQuotation(q)"
-              [disabled]="isDeleting(q.id)"
-              title="Elimina quotazione">
-              {{ isDeleting(q.id) ? '...' : '🗑️' }}
-            </button>
-          </td>
-        </tr>
+              <ng-container *ngIf="canChangeStatus(q)">
+                <select
+                  class="select-sm"
+                  #statusSelect
+                  [disabled]="statusLoading[q.id]">
+                  <option value="">-- Cambia stato --</option>
+                  <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+                </select>
+                <button
+                  type="button"
+                  class="btn-sm"
+                  [class.btn-primary]="statusSelect.value"
+                  [class.btn-disabled]="!statusSelect.value"
+                  [disabled]="statusLoading[q.id] || !statusSelect.value"
+                  (click)="updateStatus(q, $any(statusSelect.value))">
+                  {{ statusLoading[q.id] ? '...' : 'Applica' }}
+                </button>
+              </ng-container>
+
+              <span *ngIf="!canTakeInCharge(q) && !canChangeStatus(q)" class="muted">—</span>
+            </td>
+          </tr>
+
+          <!-- Expanded details row -->
+          <tr *ngIf="isRowExpanded(q.id)" class="details-row">
+            <td colspan="7">
+              <div class="details-container">
+
+                <!-- AI Estimation Section -->
+                <div class="details-section">
+                  <h4 class="details-section-title">Stima AI</h4>
+                  <div class="details-grid">
+                    <div class="detail-item">
+                      <span class="detail-label">Stato AI:</span>
+                      <span class="ai-badge" [ngClass]="getAIStatusBadgeClass(q.id)">
+                        {{ getAIStatusLabel(q.id) }}
+                      </span>
+                      <small *ngIf="getAIEstimation(q.id)" class="confidence-mini">
+                        Confidenza: {{ getAIEstimation(q.id)!.confidence }}%
+                      </small>
+                    </div>
+                    <div class="detail-item" *ngIf="getAIEstimation(q.id)">
+                      <span class="detail-label">CAPEX:</span>
+                      <span class="ai-value">{{ formatCurrency(getAIEstimation(q.id)!.estimationData.summary.total_capex) }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="getAIEstimation(q.id)">
+                      <span class="detail-label">OPEX Y1:</span>
+                      <span class="ai-value">{{ formatCurrency(getAIEstimation(q.id)!.estimationData.summary.total_opex_year_1) }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="getAIEstimation(q.id)">
+                      <span class="detail-label">Totale 1° Anno:</span>
+                      <span class="ai-value-total">{{ formatCurrency(getAIEstimation(q.id)!.estimationData.summary.total_first_year) }}</span>
+                    </div>
+                  </div>
+                  <div class="detail-actions">
+                    <button
+                      type="button"
+                      class="btn-sm btn-secondary"
+                      (click)="retryAiEstimation(q.id)"
+                      [disabled]="isRetrying(q.id)"
+                      title="Richiedi nuova stima AI">
+                      {{ isRetrying(q.id) ? '⏳ Elaborazione...' : '🔄 Ricalcola stima AI' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Economic Quotation Section -->
+                <div class="details-section" *ngIf="canSetEconomic(q)">
+                  <h4 class="details-section-title">Quotazione Economica Manuale</h4>
+                  <form
+                    [formGroup]="getEconomicForm(q.id)"
+                    (ngSubmit)="submitEconomic(q)"
+                    class="economic-form">
+                    <div class="form-row">
+                      <label for="totalAmount-{{q.id}}">Importo totale (€)</label>
+                      <input
+                        id="totalAmount-{{q.id}}"
+                        type="number"
+                        formControlName="totalAmount"
+                        placeholder="0.00"
+                        class="input-form"
+                        min="0"
+                        step="0.01" />
+                      <button
+                        type="submit"
+                        class="btn-sm btn-success"
+                        [disabled]="economicLoading[q.id]">
+                        {{ economicLoading[q.id] ? 'Salvataggio...' : 'Salva importo' }}
+                      </button>
+                    </div>
+                    <span *ngIf="economicMessages[q.id]" class="inline-msg success">
+                      {{ economicMessages[q.id] }}
+                    </span>
+                  </form>
+                </div>
+                <div class="details-section" *ngIf="!canSetEconomic(q) && q.totalAmount > 0">
+                  <h4 class="details-section-title">Quotazione Economica</h4>
+                  <p class="detail-value">{{ formatCurrency(q.totalAmount) }}</p>
+                </div>
+
+                <!-- Manual CAPEX/OPEX Section -->
+                <div class="details-section" *ngIf="canSetEconomic(q)">
+                  <h4 class="details-section-title">CAPEX/OPEX Manuali (Override AI)</h4>
+                  <form
+                    [formGroup]="getCapexOpexForm(q.id)"
+                    (ngSubmit)="submitCapexOpex(q)"
+                    class="economic-form">
+                    <div class="form-row-double">
+                      <div class="form-field">
+                        <label for="manualCapex-{{q.id}}">CAPEX (€)</label>
+                        <input
+                          id="manualCapex-{{q.id}}"
+                          type="number"
+                          formControlName="manualCapex"
+                          placeholder="0.00"
+                          class="input-form"
+                          min="0"
+                          step="0.01" />
+                      </div>
+                      <div class="form-field">
+                        <label for="manualOpex-{{q.id}}">OPEX (€)</label>
+                        <input
+                          id="manualOpex-{{q.id}}"
+                          type="number"
+                          formControlName="manualOpex"
+                          placeholder="0.00"
+                          class="input-form"
+                          min="0"
+                          step="0.01" />
+                      </div>
+                      <button
+                        type="submit"
+                        class="btn-sm btn-success"
+                        [disabled]="capexOpexLoading[q.id]">
+                        {{ capexOpexLoading[q.id] ? 'Salvataggio...' : 'Salva CAPEX/OPEX' }}
+                      </button>
+                    </div>
+                    <span *ngIf="capexOpexMessages[q.id]" class="inline-msg success">
+                      {{ capexOpexMessages[q.id] }}
+                    </span>
+                  </form>
+                </div>
+
+                <!-- Info Section -->
+                <div class="details-section">
+                  <h4 class="details-section-title">Informazioni</h4>
+                  <div class="details-grid">
+                    <div class="detail-item">
+                      <span class="detail-label">Data creazione:</span>
+                      <span>{{ q.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="q.takenInChargeAt">
+                      <span class="detail-label">Presa in carico:</span>
+                      <span>{{ q.takenInChargeAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="details-section danger-zone">
+                  <h4 class="details-section-title">Zona Pericolosa</h4>
+                  <button
+                    type="button"
+                    class="btn-sm btn-danger"
+                    (click)="deleteQuotation(q)"
+                    [disabled]="isDeleting(q.id)"
+                    title="Elimina quotazione">
+                    {{ isDeleting(q.id) ? 'Eliminazione...' : '🗑️ Elimina quotazione' }}
+                  </button>
+                </div>
+
+              </div>
+            </td>
+          </tr>
+        </ng-container>
       </tbody>
     </table>
 

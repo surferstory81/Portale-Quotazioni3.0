@@ -11,6 +11,7 @@ import {
 import { User } from './user.entity';
 
 export enum QuotationStatus {
+  BOZZA = 'BOZZA',
   INVIATA = 'INVIATA',
   IN_VALUTAZIONE = 'IN VALUTAZIONE',
   RESPINTA = 'RESPINTA',

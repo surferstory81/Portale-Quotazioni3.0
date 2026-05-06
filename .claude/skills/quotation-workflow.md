@@ -42,12 +42,12 @@ Each quotation request follows a defined lifecycle.
 
 ### Supported States
 
-| State           | Description |
-|-----------------|-------------|
-| **Inviata**     | Request submitted by user, awaiting evaluation |
-| **In valutazione** | Request taken in charge by an administrator |
-| **Respinta**    | Request rejected and returned to the user |
-| **Completata**  | Economic quotation completed and delivered |
+| State              | Description                                    |
+|--------------------|------------------------------------------------|
+| **Inviata**        | Request submitted by user, awaiting evaluation |
+| **In valutazione** | Request taken in charge by an administrator    |
+| **Respinta**       | Request rejected and returned to the user      |
+| **Completata**     | Economic quotation completed and delivered     |
 
 State transitions must be explicit, logged, and authorized.
 

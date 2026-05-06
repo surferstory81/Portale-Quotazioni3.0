@@ -1,15 +1,21 @@
 {
-  "hooks": {
-    "pre_commit": {
-      "enabled": true,
-      "command": "node .claude/hooks/validate-architecture.js && node .claude/hooks/code-quality-check.js",
-      "description": "Validates architecture principles and code quality before commit"
-    },
-    "pre_push": {
-      "enabled": true,
-      "command": "node .claude/hooks/check-service-coupling.js",
-      "description": "Analyzes service coupling and dependency graph (warning only)"
-    }
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(node *)",
+      "Bash(kubectl *)",
+      "Bash(netstat -ano)",
+      "Bash(curl -s http://localhost:3001/health)",
+      "Bash(curl -s -I http://localhost:4200)",
+      "Bash(taskkill *)",
+      "Bash(curl -s http://localhost:3000/health)",
+      "Bash(curl -s http://localhost:4200/chunk-OGFZDUZY.js)",
+      "Bash(findstr \":3001\")",
+      "Bash(findstr \"LISTENING\")",
+      "Bash(findstr \":3000\")",
+      "Bash(curl -X POST http://localhost:3001/api/estimation/process -H 'Content-Type: application/json' -H 'Authorization: Bearer change-me-backend-service-token' -d '{\"quotation_id\":\"test-123\",\"user_id\":\"test-user\",\"project_code\":\"TEST001\",\"status\":\"IN VALUTAZIONE\"}' -v)"
+    ]
   },
   "validation": {
     "architecture": {
@@ -33,14 +39,6 @@
       "warn_high_fanout": true,
       "max_service_fanout": 3
     }
-  },
-  "permissions": {
-    "allow": [
-      "Bash(git *)",
-      "Bash(npm *)",
-      "Bash(node *)",
-      "Bash(kubectl *)"
-    ]
   },
   "metadata": {
     "project": "Portale-Quotazioni-3.0",

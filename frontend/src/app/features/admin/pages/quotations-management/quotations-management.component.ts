@@ -31,6 +31,9 @@ export class QuotationsManagementComponent implements OnInit {
   retryingQuotationId: string | null = null;
   deletingQuotationId: string | null = null;
 
+  // Expandable rows
+  expandedRows: Set<string> = new Set();
+
   readonly statusOptions: AllowedStatus[] = ['IN VALUTAZIONE', 'COMPLETATA', 'RESPINTA'];
 
   // Pagination
@@ -349,5 +352,17 @@ export class QuotationsManagementComponent implements OnInit {
   private clearMessages(): void {
     this.errorMessage = '';
     this.successMessage = '';
+  }
+
+  toggleRow(quotationId: string): void {
+    if (this.expandedRows.has(quotationId)) {
+      this.expandedRows.delete(quotationId);
+    } else {
+      this.expandedRows.add(quotationId);
+    }
+  }
+
+  isRowExpanded(quotationId: string): boolean {
+    return this.expandedRows.has(quotationId);
   }
 }

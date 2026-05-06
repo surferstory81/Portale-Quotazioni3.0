@@ -5,6 +5,7 @@ import {
   CreateQuotationPayload,
   ListQuotationsFilters,
   Quotation,
+  SaveDraftPayload,
 } from '../models/quotation.models';
 
 @Injectable({
@@ -46,6 +47,28 @@ export class QuotationsService {
 
   updateRejected(id: string, payload: CreateQuotationPayload): Observable<Quotation> {
     return this.apiService.patch<Quotation>(`/quotations/${id}`, payload);
+  }
+
+  // ─── DRAFT METHODS ─────────────────────────────────────
+
+  saveDraft(payload: SaveDraftPayload): Observable<Quotation> {
+    return this.apiService.post<Quotation>('/quotations/drafts', payload);
+  }
+
+  listDrafts(): Observable<Quotation[]> {
+    return this.apiService.get<Quotation[]>('/quotations/drafts/list');
+  }
+
+  updateDraft(id: string, payload: SaveDraftPayload): Observable<Quotation> {
+    return this.apiService.patch<Quotation>(`/quotations/drafts/${id}`, payload);
+  }
+
+  submitDraft(id: string): Observable<Quotation> {
+    return this.apiService.post<Quotation>(`/quotations/drafts/${id}/submit`, {});
+  }
+
+  deleteDraft(id: string): Observable<{ message: string }> {
+    return this.apiService.delete<{ message: string }>(`/quotations/drafts/${id}`);
   }
 
   extractApiError(error: unknown): string {

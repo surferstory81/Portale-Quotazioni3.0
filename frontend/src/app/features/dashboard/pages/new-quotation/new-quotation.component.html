@@ -1,7 +1,8 @@
 <section class="page-shell">
   <header class="page-header">
-    <h2>Nuova Quotazione</h2>
+    <h2>{{ isDraftMode ? 'Modifica Bozza' : 'Nuova Quotazione' }}</h2>
     <p>Compila il questionario per inviare una nuova richiesta di quotazione infrastrutturale.</p>
+    <p *ngIf="autoSaveMessage" class="auto-save-message">✓ {{ autoSaveMessage }}</p>
   </header>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="quotation-form">
@@ -133,8 +134,18 @@
     </article>
 
     <div class="submit-bar">
-      <button type="submit" [disabled]="isSubmitting">
-        {{ isSubmitting ? 'Invio in corso...' : 'Invia Quotazione' }}
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="onSaveDraft()"
+        [disabled]="isSavingDraft || isSubmitting">
+        {{ isSavingDraft ? 'Salvataggio...' : 'Salva Bozza' }}
+      </button>
+      <button
+        type="submit"
+        class="btn-primary"
+        [disabled]="isSubmitting || isSavingDraft">
+        {{ isSubmitting ? 'Invio in corso...' : (isDraftMode ? 'Invia Quotazione' : 'Invia Quotazione') }}
       </button>
     </div>
 

@@ -61,6 +61,8 @@ export interface CreateQuotationPayload {
   qa: string;
 }
 
+export type SaveDraftPayload = Partial<CreateQuotationPayload>;
+
 export type FieldType = 'text' | 'date' | 'select' | 'multiselect' | 'number' | 'checkbox';
 
 export interface FormOption {

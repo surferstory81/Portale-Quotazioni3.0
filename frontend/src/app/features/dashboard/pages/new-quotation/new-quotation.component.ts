@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   UntypedFormControl,
@@ -7,8 +7,9 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { finalize, Subject, takeUntil } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import {
   CreateQuotationPayload,
   QuotationFormField,
@@ -22,7 +23,7 @@ import { QuotationsService } from '../../services/quotations.service';
   templateUrl: './new-quotation.component.html',
   styleUrl: './new-quotation.component.scss',
 })
-export class NewQuotationComponent {
+export class NewQuotationComponent implements OnInit, OnDestroy {
   readonly sections: QuotationFormSection[] = this.formConfigService.getSections();
   readonly form: UntypedFormGroup = this.buildForm();
 
@@ -32,8 +33,16 @@ export class NewQuotationComponent {
   }
 
   isSubmitting = false;
+  isSavingDraft = false;
   successMessage = '';
   errorMessage = '';
+  autoSaveMessage = '';
+
+  // Draft management
+  draftId: string | null = null;
+  isDraftMode = false;
+  private autoSaveEnabled = false;
+  private destroy$ = new Subject<void>();
 
   private readonly numberFields = new Set<string>([
     'serviceVolumesPerDay',
@@ -48,14 +57,34 @@ export class NewQuotationComponent {
     private readonly formConfigService: QuotationFormConfigService,
     private readonly quotationsService: QuotationsService,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
   ) {}
+
+  ngOnInit(): void {
+    // Check if editing an existing draft
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const draftId = params['draftId'] as string | undefined;
+      if (draftId) {
+        this.loadDraft(draftId);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   onSubmit(): void {
     this.successMessage = '';
     this.errorMessage = '';
 
+    // Re-enable validators for submission
+    this.enableAllValidators();
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.errorMessage = 'Compila tutti i campi obbligatori prima di inviare la quotazione.';
       return;
     }
 
@@ -65,8 +94,12 @@ export class NewQuotationComponent {
       this.form.getRawValue() as Record<string, unknown>,
     );
 
-    this.quotationsService
-      .create(payload)
+    // If editing a draft, submit it; otherwise create new quotation
+    const request = this.draftId
+      ? this.quotationsService.submitDraft(this.draftId)
+      : this.quotationsService.create(payload);
+
+    request
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
         next: () => {
@@ -78,6 +111,134 @@ export class NewQuotationComponent {
           this.errorMessage = this.quotationsService.extractApiError(error);
         },
       });
+  }
+
+  onSaveDraft(): void {
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    // Temporarily disable validators for draft save
+    this.disableAllValidators();
+
+    this.isSavingDraft = true;
+
+    const payload = this.normalizePayload(
+      this.form.getRawValue() as Record<string, unknown>,
+    );
+
+    const request = this.draftId
+      ? this.quotationsService.updateDraft(this.draftId, payload)
+      : this.quotationsService.saveDraft(payload);
+
+    request
+      .pipe(finalize(() => (this.isSavingDraft = false)))
+      .subscribe({
+        next: (draft) => {
+          if (!this.draftId) {
+            this.draftId = draft.id;
+            this.isDraftMode = true;
+            this.enableAutoSave();
+          }
+          this.successMessage = 'Bozza salvata con successo';
+          setTimeout(() => (this.successMessage = ''), 3000);
+        },
+        error: (error: unknown) => {
+          this.errorMessage = this.quotationsService.extractApiError(error);
+        },
+      });
+  }
+
+  private loadDraft(draftId: string): void {
+    this.quotationsService.list().subscribe({
+      next: (quotations) => {
+        const draft = quotations.find(q => q.id === draftId && q.status === 'BOZZA');
+        if (draft && draft.formData) {
+          this.draftId = draft.id;
+          this.isDraftMode = true;
+          this.populateFormFromDraft(draft.formData);
+          this.enableAutoSave();
+        }
+      },
+      error: () => {
+        this.errorMessage = 'Impossibile caricare la bozza';
+      }
+    });
+  }
+
+  private populateFormFromDraft(formData: Record<string, unknown>): void {
+    Object.entries(formData).forEach(([key, value]) => {
+      const control = this.form.get(key);
+      if (control) {
+        control.setValue(value);
+      }
+    });
+  }
+
+  private enableAutoSave(): void {
+    if (this.autoSaveEnabled) return;
+
+    this.autoSaveEnabled = true;
+
+    this.form.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(5000), // Auto-save after 5 seconds of inactivity
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+      )
+      .subscribe(() => {
+        if (this.draftId && !this.isSubmitting && !this.isSavingDraft) {
+          this.autoSave();
+        }
+      });
+  }
+
+  private autoSave(): void {
+    // Temporarily disable validators for auto-save
+    this.disableAllValidators();
+
+    const payload = this.normalizePayload(
+      this.form.getRawValue() as Record<string, unknown>,
+    );
+
+    this.quotationsService.updateDraft(this.draftId!, payload).subscribe({
+      next: () => {
+        this.autoSaveMessage = 'Salvato automaticamente';
+        setTimeout(() => (this.autoSaveMessage = ''), 2000);
+      },
+      error: () => {
+        // Silently fail auto-save
+      }
+    });
+  }
+
+  private disableAllValidators(): void {
+    Object.keys(this.form.controls).forEach(key => {
+      const control = this.form.get(key);
+      if (control) {
+        control.clearValidators();
+        control.updateValueAndValidity({ emitEvent: false });
+      }
+    });
+    // Clear form-level validators temporarily
+    this.form.clearValidators();
+    this.form.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private enableAllValidators(): void {
+    // Re-apply validators to each field
+    this.sections.forEach((section) => {
+      section.fields.forEach((field) => {
+        const control = this.form.get(String(field.key));
+        if (control) {
+          const validators = this.buildValidators(field);
+          control.setValidators(validators);
+          control.updateValueAndValidity({ emitEvent: false });
+        }
+      });
+    });
+    // Re-apply form-level validators
+    this.form.setValidators(this.dateRangeValidator());
+    this.form.updateValueAndValidity({ emitEvent: false });
   }
 
   getFieldError(field: QuotationFormField): string {

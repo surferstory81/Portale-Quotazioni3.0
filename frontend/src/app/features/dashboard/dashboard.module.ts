@@ -9,6 +9,7 @@ import { NewQuotationComponent } from './pages/new-quotation/new-quotation.compo
 import { QuotationStatusComponent } from './pages/quotation-status/quotation-status.component';
 import { QuotationHistoryDetailComponent } from './pages/quotation-history-detail/quotation-history-detail.component';
 import { AIEstimationViewerComponent } from './components/ai-estimation-viewer/ai-estimation-viewer.component';
+import { MyDraftsComponent } from './pages/my-drafts/my-drafts.component';
 
 
 @NgModule({
@@ -16,7 +17,8 @@ import { AIEstimationViewerComponent } from './components/ai-estimation-viewer/a
     DashboardComponent,
     NewQuotationComponent,
     QuotationStatusComponent,
-    QuotationHistoryDetailComponent
+    QuotationHistoryDetailComponent,
+    MyDraftsComponent
   ],
   imports: [
     CommonModule,

@@ -8,6 +8,13 @@
 .page-header {
   h2 { margin: 0 0 4px; font-size: 1.6rem; font-weight: 800; color: #0f2033; }
   p  { margin: 0; color: #64748b; font-size: 0.9rem; }
+
+  .auto-save-message {
+    margin-top: 8px;
+    color: #059669;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
 }
 
 // ── form ──────────────────────────────────────────────────────────────────────
@@ -213,22 +220,35 @@ select {
 .submit-bar {
   display: flex;
   justify-content: flex-end;
+  gap: 12px;
   padding-top: 4px;
 }
 
 .submit-bar button {
-  background-color: #4df3c1;
-  color: #033540;
   border: none;
   border-radius: 10px;
   padding: 13px 36px;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
-  transition: filter 0.15s;
+  transition: all 0.15s;
 
   &:hover:not(:disabled) { filter: brightness(0.92); }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  &.btn-primary {
+    background-color: #4df3c1;
+    color: #033540;
+  }
+
+  &.btn-secondary {
+    background-color: #e2eaf4;
+    color: #0f4c81;
+
+    &:hover:not(:disabled) {
+      background-color: #cbd5e1;
+    }
+  }
 }
 
 // ── messages ──────────────────────────────────────────────────────────────────
