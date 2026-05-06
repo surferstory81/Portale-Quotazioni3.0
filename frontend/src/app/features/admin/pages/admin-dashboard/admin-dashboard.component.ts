@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { AdminQuotation, AdminService } from '../../services/admin.service';
+import { forkJoin } from 'rxjs';
+import { AdminQuotation, AdminService, TokenStats } from '../../services/admin.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -8,6 +9,7 @@ import { AdminQuotation, AdminService } from '../../services/admin.service';
 })
 export class AdminDashboardComponent implements OnInit {
   quotations: AdminQuotation[] = [];
+  tokenStats: TokenStats | null = null;
   isLoading = false;
   errorMessage = '';
   retryingQuotationId: string | null = null;
@@ -22,9 +24,13 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.isLoading = true;
-    this.adminService.getQuotations().subscribe({
-      next: (data) => {
-        this.quotations = data;
+    forkJoin({
+      quotations: this.adminService.getQuotations(),
+      tokenStats: this.adminService.getTokenStats(),
+    }).subscribe({
+      next: ({ quotations, tokenStats }) => {
+        this.quotations = quotations;
+        this.tokenStats = tokenStats;
         this.isLoading = false;
       },
       error: (err: unknown) => {
@@ -114,5 +120,18 @@ export class AdminDashboardComponent implements OnInit {
 
   get itemsPerPageLabel(): string {
     return this.itemsPerPage === 0 ? 'Tutte' : this.itemsPerPage.toString();
+  }
+
+  formatNumber(num: number): string {
+    return new Intl.NumberFormat('it-IT').format(Math.round(num));
+  }
+
+  formatCurrency(num: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 6,
+    }).format(num);
   }
 }

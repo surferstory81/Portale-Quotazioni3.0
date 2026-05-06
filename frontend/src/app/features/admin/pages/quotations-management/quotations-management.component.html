@@ -70,7 +70,7 @@
               <ng-container *ngIf="canChangeStatus(q)">
                 <select
                   class="select-sm"
-                  #statusSelect
+                  [formControl]="getStatusControl(q.id)"
                   [disabled]="statusLoading[q.id]">
                   <option value="">-- Cambia stato --</option>
                   <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
@@ -78,10 +78,10 @@
                 <button
                   type="button"
                   class="btn-sm"
-                  [class.btn-primary]="statusSelect.value"
-                  [class.btn-disabled]="!statusSelect.value"
-                  [disabled]="statusLoading[q.id] || !statusSelect.value"
-                  (click)="updateStatus(q, $any(statusSelect.value))">
+                  [class.btn-primary]="getStatusControl(q.id).value"
+                  [class.btn-disabled]="!getStatusControl(q.id).value"
+                  [disabled]="statusLoading[q.id] || !getStatusControl(q.id).value"
+                  (click)="updateStatus(q)">
                   {{ statusLoading[q.id] ? '...' : 'Applica' }}
                 </button>
               </ng-container>
@@ -121,6 +121,34 @@
                       <span class="ai-value-total">{{ formatCurrency(getAIEstimation(q.id)!.estimationData.summary.total_first_year) }}</span>
                     </div>
                   </div>
+
+                  <!-- Validation Issues -->
+                  <div class="validation-issues" *ngIf="getValidationIssues(q.id).length > 0">
+                    <h5 class="validation-title">⚠️ Problemi Rilevati dalla Validazione AI</h5>
+                    <div class="issue-list">
+                      <div *ngFor="let issue of getValidationIssues(q.id)"
+                           class="issue-item"
+                           [ngClass]="'issue--' + issue.severity.toLowerCase()">
+                        <span class="issue-severity">{{ issue.severity }}</span>
+                        <div class="issue-content">
+                          <strong>{{ issue.category }}:</strong> {{ issue.message }}
+                          <p *ngIf="issue.recommendation" class="issue-recommendation">
+                            💡 {{ issue.recommendation }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Validation Summary -->
+                  <div class="validation-summary" *ngIf="getValidationSummary(q.id) as summary">
+                    <small class="validation-stats">
+                      Checks: {{ summary.passed }}/{{ summary.total_checks }} passed
+                      <span *ngIf="summary.warnings > 0" class="stat-warnings"> • {{ summary.warnings }} warnings</span>
+                      <span *ngIf="summary.errors > 0" class="stat-errors"> • {{ summary.errors }} errors</span>
+                    </small>
+                  </div>
+
                   <div class="detail-actions">
                     <button
                       type="button"
@@ -130,6 +158,26 @@
                       title="Richiedi nuova stima AI">
                       {{ isRetrying(q.id) ? '⏳ Elaborazione...' : '🔄 Ricalcola stima AI' }}
                     </button>
+
+                    <!-- Approve/Reject AI Estimation -->
+                    <ng-container *ngIf="canApproveAIEstimation(q.id)">
+                      <button
+                        type="button"
+                        class="btn-sm btn-success"
+                        (click)="approveAIEstimation(q.id)"
+                        [disabled]="isApprovingAI(q.id)"
+                        title="Approva stima AI e usa come quotazione economica">
+                        {{ isApprovingAI(q.id) ? '⏳ Approvazione...' : '✅ Approva Stima AI' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-sm btn-danger"
+                        (click)="rejectAIEstimation(q.id)"
+                        [disabled]="isRejectingAI(q.id)"
+                        title="Rifiuta stima AI">
+                        {{ isRejectingAI(q.id) ? '⏳ Rifiuto...' : '❌ Rifiuta Stima AI' }}
+                      </button>
+                    </ng-container>
                   </div>
                 </div>
 
@@ -279,3 +327,9 @@
     </div>
   </div>
 </section>
+
+<!-- Progress Dialog -->
+<app-estimation-progress
+  *ngIf="showProgressDialog"
+  [quotationId]="progressQuotationId">
+</app-estimation-progress>

@@ -69,4 +69,62 @@ export class QuotationHistoryDetailComponent implements OnInit {
         },
       });
   }
+
+  getFieldLabel(key: string): string {
+    const labels: Record<string, string> = {
+      projectCode: 'Codice Progetto',
+      projectName: 'Nome Progetto',
+      projectStartDate: 'Data Inizio Progetto',
+      projectEndDate: 'Data Fine Progetto',
+      projectDuration: 'Durata Progetto',
+      projectBudget: 'Budget Progetto',
+      architecturalImpact: 'Impatto Architetturale',
+      cloudSaas: 'Cloud SaaS',
+      cloudIaasPaasLandingZoneCa: 'Cloud IaaS/PaaS Landing Zone CA',
+      hostMainframe: 'Host Mainframe',
+      onPremiseDipartimentale: 'On-Premise Dipartimentale',
+      needNewInfrastructure: 'Necessita Nuova Infrastruttura',
+      infraOnVm: 'Infrastruttura su VM',
+      infraMicroservices: 'Infrastruttura Microservizi',
+      impactEntity: 'Entità Impatto',
+      serviceConsumer: 'Consumatore Servizio',
+      serviceVolumesPerDay: 'Volumi Servizio al Giorno',
+      technologicalImpact: 'Impatto Tecnologico',
+      developedInternally: 'Sviluppato Internamente',
+      developedByExternalVendors: 'Sviluppato da Fornitori Esterni',
+      hasCaIntellectualProperty: 'Ha Proprietà Intellettuale CA',
+      serviceExposure: 'Esposizione Servizio',
+      marketProduct: 'Prodotto di Mercato',
+      dependenciesWithExternalServices: 'Dipendenze con Servizi Esterni',
+      integrationsWithInternalSystems: 'Integrazioni con Sistemi Interni',
+      saasProduct: 'Prodotto SaaS',
+      monitoringOrSecurityTool: 'Tool Monitoraggio/Sicurezza',
+      expectedReleases: 'Release Previste',
+      projectType: 'Tipo Progetto',
+      serviceRisk: 'Rischio Servizio',
+      pipeline: 'Pipeline',
+      microservicesCount: 'Numero Microservizi',
+      hasDatabaseImpactDip: 'Impatto Database DIP',
+      hasSqlDbType: 'Tipo Database SQL',
+      hasDatabaseImpactHostDb2: 'Impatto Database Host DB2',
+      storageGb: 'Storage (GB)',
+      computeCores: 'Core Computazionali',
+      scheduledBatches: 'Batch Schedulati',
+      monitoringSystems: 'Sistemi di Monitoraggio',
+      observability: 'Osservabilità',
+      testMagnitude: 'Magnitudo Test',
+      qa: 'QA',
+    };
+    return labels[key] || key;
+  }
+
+  formatFieldValue(value: any): string {
+    if (typeof value === 'boolean') {
+      return value ? 'Sì' : 'No';
+    }
+    if (value === null || value === undefined || value === '') {
+      return '—';
+    }
+    return String(value);
+  }
 }

@@ -16,6 +16,62 @@
   }
 }
 
+.token-stats {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  h3 {
+    margin: 0 0 1.5rem;
+    font-size: 1.25rem;
+    color: white;
+    font-weight: 700;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #0f4c81;
+      line-height: 1;
+
+      &--cost {
+        color: #059669;
+      }
+    }
+
+    .stat-detail {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 0.25rem;
+    }
+  }
+}
+
 .recent-quotations {
   margin-top: 2rem;
 

@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { finalize, forkJoin } from 'rxjs';
+import { finalize, forkJoin, interval, Subscription } from 'rxjs';
 import { Quotation } from '../../models/quotation.models';
 import { QuotationsService } from '../../services/quotations.service';
 
@@ -9,13 +9,19 @@ import { QuotationsService } from '../../services/quotations.service';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent implements OnInit {
-  quotations: Quotation[] = [];
-  drafts: Quotation[] = [];
+export class DashboardComponent implements OnInit, OnDestroy {
+  allQuotations: Quotation[] = [];
   isLoading = false;
   errorMessage = '';
   successMessage = '';
   deletingDraftId: string | null = null;
+
+  // Filtro per stato
+  selectedStatus: string = '';
+  readonly statusOptions = ['BOZZA', 'INVIATA', 'IN VALUTAZIONE', 'COMPLETATA', 'RESPINTA'];
+
+  // Auto-refresh
+  private refreshSubscription?: Subscription;
 
   constructor(
     private readonly quotationsService: QuotationsService,
@@ -24,6 +30,37 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+    this.startAutoRefresh();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoRefresh();
+  }
+
+  private startAutoRefresh(): void {
+    // Refresh data every 15 seconds
+    this.refreshSubscription = interval(15000).subscribe(() => {
+      this.loadDataSilently();
+    });
+  }
+
+  private stopAutoRefresh(): void {
+    this.refreshSubscription?.unsubscribe();
+  }
+
+  private loadDataSilently(): void {
+    // Reload without showing loading spinner
+    forkJoin({
+      quotations: this.quotationsService.list(),
+      drafts: this.quotationsService.listDrafts(),
+    }).subscribe({
+      next: ({ quotations, drafts }) => {
+        this.allQuotations = [...quotations, ...drafts];
+      },
+      error: () => {
+        // Silently fail
+      }
+    });
   }
 
   private loadData(): void {
@@ -35,8 +72,8 @@ export class DashboardComponent implements OnInit {
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: ({ quotations, drafts }) => {
-          this.quotations = quotations;
-          this.drafts = drafts;
+          // Unisci quotazioni e bozze in un'unica lista
+          this.allQuotations = [...drafts, ...quotations];
         },
         error: () => {
           this.errorMessage = 'Impossibile caricare i dati.';
@@ -44,8 +81,15 @@ export class DashboardComponent implements OnInit {
       });
   }
 
+  get filteredQuotations(): Quotation[] {
+    if (!this.selectedStatus) {
+      return this.allQuotations;
+    }
+    return this.allQuotations.filter(q => q.status === this.selectedStatus);
+  }
+
   private get countByStatus(): Record<string, number> {
-    return this.quotations.reduce(
+    return this.allQuotations.reduce(
       (acc, q) => {
         acc[q.status] = (acc[q.status] ?? 0) + 1;
         return acc;
@@ -58,12 +102,12 @@ export class DashboardComponent implements OnInit {
   get countInValutazione(): number { return this.countByStatus['IN VALUTAZIONE'] ?? 0; }
   get countCompletata(): number { return this.countByStatus['COMPLETATA'] ?? 0; }
   get countRespinta(): number { return this.countByStatus['RESPINTA'] ?? 0; }
-  get countBozza(): number { return this.drafts.length; }
+  get countBozza(): number { return this.countByStatus['BOZZA'] ?? 0; }
 
   get recentQuotations(): Quotation[] {
-    return [...this.quotations]
+    return [...this.filteredQuotations]
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-      .slice(0, 5);
+      .slice(0, 10);
   }
 
   badgeClass(status: string): string {
@@ -75,6 +119,10 @@ export class DashboardComponent implements OnInit {
       'RESPINTA': 'badge--respinta',
     };
     return map[status] ?? 'badge--default';
+  }
+
+  isDraft(quotation: Quotation): boolean {
+    return quotation.status === 'BOZZA';
   }
 
   editDraft(draftId: string): void {
@@ -94,7 +142,7 @@ export class DashboardComponent implements OnInit {
       .pipe(finalize(() => (this.deletingDraftId = null)))
       .subscribe({
         next: (response) => {
-          this.drafts = this.drafts.filter(d => d.id !== draft.id);
+          this.allQuotations = this.allQuotations.filter(q => q.id !== draft.id);
           this.successMessage = response.message;
           setTimeout(() => (this.successMessage = ''), 3000);
         },

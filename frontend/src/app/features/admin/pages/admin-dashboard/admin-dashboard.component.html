@@ -27,6 +27,33 @@
     </article>
   </div>
 
+  <!-- Token Statistics -->
+  <section class="token-stats" *ngIf="!isLoading && tokenStats">
+    <h3>📊 Statistiche Consumo AI (Claude Sonnet 4.5)</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Token Totali</span>
+        <strong class="stat-value">{{ formatNumber(tokenStats.totalTokens) }}</strong>
+        <span class="stat-detail">Input: {{ formatNumber(tokenStats.totalInputTokens) }} | Output: {{ formatNumber(tokenStats.totalOutputTokens) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Costo Totale</span>
+        <strong class="stat-value stat-value--cost">{{ formatCurrency(tokenStats.totalEstimatedCostUsd) }}</strong>
+        <span class="stat-detail">{{ tokenStats.totalEstimations }} stime generate</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Media Token/Stima</span>
+        <strong class="stat-value">{{ formatNumber(tokenStats.avgInputTokensPerEstimation + tokenStats.avgOutputTokensPerEstimation) }}</strong>
+        <span class="stat-detail">Input: {{ formatNumber(tokenStats.avgInputTokensPerEstimation) }} | Output: {{ formatNumber(tokenStats.avgOutputTokensPerEstimation) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Costo Medio/Stima</span>
+        <strong class="stat-value stat-value--cost">{{ formatCurrency(tokenStats.avgCostPerEstimation) }}</strong>
+        <span class="stat-detail">Aggiornato: {{ tokenStats.lastUpdated | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+    </div>
+  </section>
+
   <section class="recent-quotations" *ngIf="quotations.length > 0">
     <div class="section-header">
       <h3>Quotazioni ({{ quotations.length }} totali)</h3>

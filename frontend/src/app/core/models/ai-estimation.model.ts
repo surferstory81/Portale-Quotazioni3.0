@@ -52,6 +52,19 @@ export interface RiskNote {
   impact: string;
 }
 
+export interface ValidationIssue {
+  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  category: string;
+  message: string;
+  recommendation?: string;
+}
+
+export interface ValidationMetrics {
+  cost_per_vcpu: number;
+  cost_per_tb: number;
+  opex_capex_ratio: number;
+}
+
 export interface ValidationData {
   summary: {
     total_checks: number;
@@ -61,8 +74,11 @@ export interface ValidationData {
   };
   decision: 'APPROVE' | 'REVIEW' | 'SENIOR_REVIEW' | 'REJECT' | 'AI_NEEDS_REVIEW';
   confidence: number;
-  recommendation: string;
-  validation_score: string;
+  issues?: ValidationIssue[];
+  metrics?: ValidationMetrics;
+  next_steps?: string[];
+  recommendation?: string;
+  validation_score?: string;
 }
 
 export interface EstimationData {

@@ -19,8 +19,8 @@
       <h4>Dati del form</h4>
       <dl>
         <ng-container *ngFor="let item of quotation.formData | keyvalue">
-          <dt>{{ item.key }}</dt>
-          <dd>{{ item.value }}</dd>
+          <dt>{{ getFieldLabel(item.key) }}</dt>
+          <dd>{{ formatFieldValue(item.value) }}</dd>
         </ng-container>
       </dl>
     </div>

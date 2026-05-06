@@ -41,52 +41,22 @@
 		</article>
 	</div>
 
-	<!-- Drafts section -->
-	<section class="drafts" *ngIf="!isLoading && drafts.length > 0">
-		<h3 class="section-title">Le Mie Bozze</h3>
-		<p class="section-subtitle">Quotazioni salvate come bozze che puoi completare e inviare</p>
-		<div class="table-wrapper">
-			<table>
-				<thead>
-					<tr>
-						<th>Codice</th>
-						<th>Nome progetto</th>
-						<th>Ultima modifica</th>
-						<th>Azioni</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr *ngFor="let draft of drafts">
-						<td class="td-code">{{ draft.projectCode }}</td>
-						<td>{{ draft.projectName || 'Bozza senza titolo' }}</td>
-						<td class="td-date">{{ draft.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
-						<td class="td-actions">
-							<button
-								type="button"
-								class="btn-sm btn-primary"
-								(click)="editDraft(draft.id)"
-								title="Modifica e completa bozza">
-								✏️ Modifica
-							</button>
-							<button
-								type="button"
-								class="btn-sm btn-danger"
-								(click)="deleteDraft(draft)"
-								[disabled]="isDeletingDraft(draft.id)"
-								title="Elimina bozza">
-								{{ isDeletingDraft(draft.id) ? '...' : '🗑️ Elimina' }}
-							</button>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+	<!-- Quotazioni unificate con filtro -->
+	<section class="quotations" *ngIf="!isLoading">
+		<div class="section-header">
+			<div>
+				<h3 class="section-title">Le Mie Quotazioni</h3>
+			</div>
+			<div class="filter-bar">
+				<label for="statusFilter">Filtra per stato:</label>
+				<select id="statusFilter" [(ngModel)]="selectedStatus" class="select-filter">
+					<option value="">Tutti gli stati</option>
+					<option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+				</select>
+			</div>
 		</div>
-	</section>
 
-	<!-- Recent quotations -->
-	<section class="recent" *ngIf="!isLoading && recentQuotations.length > 0">
-		<h3 class="section-title">Ultime quotazioni</h3>
-		<div class="table-wrapper">
+		<div class="table-wrapper" *ngIf="filteredQuotations.length > 0">
 			<table>
 				<thead>
 					<tr>
@@ -94,26 +64,47 @@
 						<th>Nome progetto</th>
 						<th>Stato</th>
 						<th>Aggiornata</th>
+						<th>Azioni</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr *ngFor="let q of recentQuotations">
 						<td class="td-code">{{ q.projectCode }}</td>
-						<td>{{ q.projectName }}</td>
+						<td>{{ q.projectName || 'Bozza senza titolo' }}</td>
 						<td>
 							<span class="badge" [ngClass]="badgeClass(q.status)">{{ q.status }}</span>
 						</td>
-						<td class="td-date">{{ q.updatedAt | date: 'dd/MM/yyyy' }}</td>
+						<td class="td-date">{{ q.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+						<td class="td-actions">
+							<ng-container *ngIf="isDraft(q)">
+								<button
+									type="button"
+									class="btn-sm btn-primary"
+									(click)="editDraft(q.id)"
+									title="Modifica e completa bozza">
+									✏️ Modifica
+								</button>
+								<button
+									type="button"
+									class="btn-sm btn-danger"
+									(click)="deleteDraft(q)"
+									[disabled]="isDeletingDraft(q.id)"
+									title="Elimina bozza">
+									{{ isDeletingDraft(q.id) ? '...' : '🗑️ Elimina' }}
+								</button>
+							</ng-container>
+							<span *ngIf="!isDraft(q)" class="muted">—</span>
+						</td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
-	</section>
 
-	<!-- Empty state -->
-	<div class="empty-state" *ngIf="!isLoading && quotations.length === 0">
-		<p>Nessuna quotazione trovata.</p>
-		<a routerLink="/dashboard/quotations/new" class="btn-primary">+ Crea la prima quotazione</a>
-	</div>
+		<div class="empty-state" *ngIf="filteredQuotations.length === 0">
+			<p *ngIf="selectedStatus">Nessuna quotazione con stato "{{ selectedStatus }}".</p>
+			<p *ngIf="!selectedStatus">Nessuna quotazione trovata.</p>
+			<a routerLink="/dashboard/quotations/new" class="btn-primary">+ Crea la prima quotazione</a>
+		</div>
+	</section>
 
 </section>

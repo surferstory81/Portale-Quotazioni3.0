@@ -49,6 +49,9 @@ export class BackendApiService {
       const response = await this.client.post('/ai-estimation/generate', {
         quotationId: estimation.quotation_id,
         estimationData: estimation.estimation_data,
+        inputTokens: estimation.input_tokens,
+        outputTokens: estimation.output_tokens,
+        estimatedCostUsd: estimation.estimated_cost_usd,
       });
 
       this.logger.log(`Estimation saved (id: ${response.data.id})`);

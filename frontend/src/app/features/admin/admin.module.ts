@@ -7,6 +7,7 @@ import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard
 import { UsersManagementComponent } from './pages/users-management/users-management.component';
 import { QuotationsManagementComponent } from './pages/quotations-management/quotations-management.component';
 import { AdminSettingsComponent } from './pages/admin-settings/admin-settings.component';
+import { EstimationProgressComponent } from './components/estimation-progress/estimation-progress.component';
 import { AdminGuard } from './services/admin.guard';
 
 @NgModule({
@@ -15,6 +16,7 @@ import { AdminGuard } from './services/admin.guard';
     UsersManagementComponent,
     QuotationsManagementComponent,
     AdminSettingsComponent,
+    EstimationProgressComponent,
   ],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, LayoutModule, AdminRoutingModule],
   providers: [AdminGuard],

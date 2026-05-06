@@ -133,4 +133,11 @@ export class AdminController {
   ) {
     return this.adminService.setSystemSetting(key, dto.value);
   }
+
+  // ─── Token Statistics ────────────────────────────────────
+
+  @Get('token-stats')
+  async getTokenStats() {
+    return this.adminService.getTokenStats();
+  }
 }

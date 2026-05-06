@@ -122,9 +122,10 @@ export class NewQuotationComponent implements OnInit, OnDestroy {
 
     this.isSavingDraft = true;
 
-    const payload = this.normalizePayload(
-      this.form.getRawValue() as Record<string, unknown>,
-    );
+    // Remove empty fields BEFORE normalizing
+    const rawValue = this.form.getRawValue() as Record<string, unknown>;
+    const cleanedValue = this.removeEmptyFields(rawValue);
+    const payload = this.normalizePayload(cleanedValue);
 
     const request = this.draftId
       ? this.quotationsService.updateDraft(this.draftId, payload)
@@ -196,9 +197,10 @@ export class NewQuotationComponent implements OnInit, OnDestroy {
     // Temporarily disable validators for auto-save
     this.disableAllValidators();
 
-    const payload = this.normalizePayload(
-      this.form.getRawValue() as Record<string, unknown>,
-    );
+    // Remove empty fields BEFORE normalizing
+    const rawValue = this.form.getRawValue() as Record<string, unknown>;
+    const cleanedValue = this.removeEmptyFields(rawValue);
+    const payload = this.normalizePayload(cleanedValue);
 
     this.quotationsService.updateDraft(this.draftId!, payload).subscribe({
       next: () => {
@@ -400,5 +402,29 @@ export class NewQuotationComponent implements OnInit, OnDestroy {
           this.form.get(String(field.key))?.setValue(false);
         });
     });
+  }
+
+  private removeEmptyFields(payload: Record<string, unknown>): Record<string, unknown> {
+    const cleaned: Record<string, unknown> = {};
+    Object.entries(payload).forEach(([key, value]) => {
+      // Skip null and undefined
+      if (value === null || value === undefined) {
+        return;
+      }
+
+      // Skip empty strings
+      if (typeof value === 'string' && value.trim() === '') {
+        return;
+      }
+
+      // Skip empty arrays
+      if (Array.isArray(value) && value.length === 0) {
+        return;
+      }
+
+      // Keep false (boolean), 0 (number), and all other valid values
+      cleaned[key] = value;
+    });
+    return cleaned;
   }
 }

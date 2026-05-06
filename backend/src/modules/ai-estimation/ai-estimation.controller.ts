@@ -8,10 +8,13 @@ import {
   UseGuards,
   Res,
   StreamableFile,
+  Sse,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { Observable, map } from 'rxjs';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AIEstimationService } from './ai-estimation.service';
+import { AIEstimationProgressService } from './ai-estimation-progress.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -30,7 +33,10 @@ import {
 @Controller('ai-estimation')
 @UseGuards(JwtAuthGuard)
 export class AIEstimationController {
-  constructor(private readonly aiEstimationService: AIEstimationService) {}
+  constructor(
+    private readonly aiEstimationService: AIEstimationService,
+    private readonly progressService: AIEstimationProgressService,
+  ) {}
 
   /**
    * Internal endpoint: Generate estimation for a quotation.
@@ -47,6 +53,9 @@ export class AIEstimationController {
     return this.aiEstimationService.generateEstimation(
       dto.quotationId,
       dto.estimationData,
+      dto.inputTokens,
+      dto.outputTokens,
+      dto.estimatedCostUsd,
     );
   }
 
@@ -204,5 +213,23 @@ export class AIEstimationController {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename=stima-ai-${quotationId}.xlsx`);
     res.send(excelBuffer);
+  }
+
+  /**
+   * Server-Sent Events: Progress updates for AI estimation
+   */
+  @Sse('progress/:quotationId')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Stream progress eventi per stima AI',
+    description: 'Server-Sent Events per monitorare il progresso della generazione stima AI in tempo reale',
+  })
+  estimationProgress(@Param('quotationId') quotationId: string): Observable<MessageEvent> {
+    return this.progressService.getProgressObservable(quotationId).pipe(
+      map((event) => ({
+        data: event,
+      } as MessageEvent)),
+    );
   }
 }

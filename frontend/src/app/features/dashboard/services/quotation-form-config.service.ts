@@ -49,6 +49,7 @@ export class QuotationFormConfigService {
   private readonly monitoringOptions = ['N/A', 'Existing (no action)', 'YES'];
 
   private readonly testMagnitudeOptions = [
+    'N/A',
     'Up to 100',
     '100–1,000',
     '1,000–10,000',

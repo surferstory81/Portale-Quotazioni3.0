@@ -30,6 +30,9 @@ export interface EstimationResult {
   };
   generated_by: string;
   generated_at: string;
+  input_tokens: number;
+  output_tokens: number;
+  estimated_cost_usd: number;
 }
 
 @Injectable()
@@ -135,11 +138,22 @@ export class EstimationAgentService {
       const finalResponse = messages[messages.length - 1];
       const estimationData = this.parseEstimationResponse(finalResponse.content);
 
+      // Calculate cost: Claude Sonnet 4.5 pricing (eu-central-1)
+      // Input: $3 per MTok, Output: $15 per MTok
+      const inputCostPerMillion = 3.0;
+      const outputCostPerMillion = 15.0;
+      const estimatedCost =
+        (totalTokensUsed.input / 1_000_000 * inputCostPerMillion) +
+        (totalTokensUsed.output / 1_000_000 * outputCostPerMillion);
+
       return {
         quotation_id: quotationData.quotation_id,
         estimation_data: estimationData,
         generated_by: `estimation-agent-v1-tools (${turnCount} turns)`,
         generated_at: new Date().toISOString(),
+        input_tokens: totalTokensUsed.input,
+        output_tokens: totalTokensUsed.output,
+        estimated_cost_usd: estimatedCost,
       };
     } catch (error) {
       this.logger.error(`Failed to generate estimation: ${error.message}`);

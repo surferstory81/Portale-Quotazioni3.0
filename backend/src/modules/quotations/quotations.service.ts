@@ -394,6 +394,8 @@ export class QuotationsService {
 
   private buildFormData(dto: CreateQuotationDto): Record<string, unknown> {
     return {
+      projectCode: dto.projectCode,
+      projectName: dto.projectName,
       projectStartDate: dto.projectStartDate,
       projectEndDate: dto.projectEndDate,
       projectDuration: dto.projectDuration,

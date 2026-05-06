@@ -59,15 +59,63 @@ export class AIEstimationService {
    * Export estimation as PDF
    */
   exportPDF(quotationId: string): void {
+    const token = localStorage.getItem('access_token');
     const url = `${this.apiService['baseUrl']}/ai-estimation/export/pdf/${quotationId}`;
-    window.open(url, '_blank');
+
+    fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Download failed');
+      return response.blob();
+    })
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `stima-ai-${quotationId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    })
+    .catch(error => {
+      console.error('Failed to download PDF:', error);
+      alert('Errore nel download del PDF. Verifica che esista una stima AI per questa quotazione.');
+    });
   }
 
   /**
    * Export estimation as Excel
    */
   exportExcel(quotationId: string): void {
+    const token = localStorage.getItem('access_token');
     const url = `${this.apiService['baseUrl']}/ai-estimation/export/excel/${quotationId}`;
-    window.open(url, '_blank');
+
+    fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Download failed');
+      return response.blob();
+    })
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `stima-ai-${quotationId}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    })
+    .catch(error => {
+      console.error('Failed to download Excel:', error);
+      alert('Errore nel download del file Excel. Verifica che esista una stima AI per questa quotazione.');
+    });
   }
 }

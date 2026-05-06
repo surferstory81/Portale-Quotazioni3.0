@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
+  IsNumber,
   IsObject,
   IsOptional,
   IsString,
@@ -23,6 +24,30 @@ export class GenerateEstimationDto {
   @IsObject()
   @IsNotEmpty()
   estimationData: EstimationData;
+
+  @ApiProperty({
+    description: 'Numero di input tokens usati',
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  inputTokens?: number;
+
+  @ApiProperty({
+    description: 'Numero di output tokens usati',
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  outputTokens?: number;
+
+  @ApiProperty({
+    description: 'Costo stimato in USD',
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  estimatedCostUsd?: number;
 }
 
 export class ValidateEstimationDto {

@@ -15,6 +15,7 @@ import { EmailVerificationToken } from '../../entities/email-verification-token.
 import { AIEstimation, AIStatus } from '../../entities/ai-estimation.entity';
 import { EmailService } from '../email/email.service';
 import { AiServiceClientService } from '../ai-estimation/ai-service-client.service';
+import { TokenStatsDto } from './dto/token-stats.dto';
 
 export interface SystemSettings {
   email_enabled: boolean;
@@ -183,9 +184,15 @@ export class AdminService {
       return false;
     }
 
-    // Stima valida se completata con successo e ha dati
+    // Stima valida se ha uno degli stati approvati e ha dati economici
+    const validStatuses = [
+      AIStatus.AI_GENERATED,
+      AIStatus.AI_VALIDATED,
+      AIStatus.HUMAN_APPROVED,
+    ];
+
     return (
-      estimation.aiStatus === AIStatus.AI_GENERATED &&
+      validStatuses.includes(estimation.aiStatus) &&
       estimation.estimationData?.summary?.total_first_year > 0
     );
   }
@@ -338,5 +345,33 @@ export class AdminService {
       (currentStatus === QuotationStatus.IN_VALUTAZIONE &&
         nextStatus === QuotationStatus.RESPINTA)
     );
+  }
+
+  async getTokenStats(): Promise<TokenStatsDto> {
+    const result = await this.aiEstimationRepo
+      .createQueryBuilder('estimation')
+      .select('SUM(estimation.inputTokens)', 'totalInputTokens')
+      .addSelect('SUM(estimation.outputTokens)', 'totalOutputTokens')
+      .addSelect('SUM(estimation.estimatedCostUsd)', 'totalEstimatedCostUsd')
+      .addSelect('COUNT(*)', 'totalEstimations')
+      .addSelect('MAX(estimation.createdAt)', 'lastUpdated')
+      .getRawOne();
+
+    const totalInputTokens = Number(result.totalInputTokens) || 0;
+    const totalOutputTokens = Number(result.totalOutputTokens) || 0;
+    const totalEstimatedCostUsd = Number(result.totalEstimatedCostUsd) || 0;
+    const totalEstimations = Number(result.totalEstimations) || 0;
+
+    return {
+      totalInputTokens,
+      totalOutputTokens,
+      totalTokens: totalInputTokens + totalOutputTokens,
+      totalEstimatedCostUsd,
+      totalEstimations,
+      avgInputTokensPerEstimation: totalEstimations > 0 ? totalInputTokens / totalEstimations : 0,
+      avgOutputTokensPerEstimation: totalEstimations > 0 ? totalOutputTokens / totalEstimations : 0,
+      avgCostPerEstimation: totalEstimations > 0 ? totalEstimatedCostUsd / totalEstimations : 0,
+      lastUpdated: result.lastUpdated || new Date(),
+    };
   }
 }

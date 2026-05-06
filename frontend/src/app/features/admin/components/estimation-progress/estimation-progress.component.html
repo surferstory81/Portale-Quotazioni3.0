@@ -1,0 +1,23 @@
+<div class="progress-overlay">
+  <div class="progress-modal">
+    <h3>⚙️ Generazione Stima AI in Corso</h3>
+    <p class="quotation-id">Quotazione: {{ quotationId }}</p>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar" [style.width.%]="progress"></div>
+    </div>
+
+    <div class="progress-info">
+      <span class="progress-percentage">{{ progress }}%</span>
+      <span class="progress-status">{{ status }}</span>
+    </div>
+
+    <div class="progress-details">
+      <p class="detail-text">
+        🤖 Claude Sonnet 4.5 sta analizzando i requisiti e generando la stima economica.
+        Questo processo richiede circa 70-90 secondi.
+      </p>
+      <div class="spinner"></div>
+    </div>
+  </div>
+</div>

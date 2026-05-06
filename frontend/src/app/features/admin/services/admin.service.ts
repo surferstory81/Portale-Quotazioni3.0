@@ -34,6 +34,18 @@ export interface SystemSettings {
   sso_enabled: boolean;
 }
 
+export interface TokenStats {
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  totalTokens: number;
+  totalEstimatedCostUsd: number;
+  totalEstimations: number;
+  avgInputTokensPerEstimation: number;
+  avgOutputTokensPerEstimation: number;
+  avgCostPerEstimation: number;
+  lastUpdated: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   constructor(private readonly apiService: ApiService) {}
@@ -134,6 +146,12 @@ export class AdminService {
 
   setSystemSetting(key: string, value: boolean): Observable<SystemSettings> {
     return this.apiService.patch<SystemSettings>(`/admin/settings/${key}`, { value });
+  }
+
+  // ─── Token Statistics ──────────────────────────────────────
+
+  getTokenStats(): Observable<TokenStats> {
+    return this.apiService.get<TokenStats>('/admin/token-stats');
   }
 
   extractApiError(error: unknown): string {

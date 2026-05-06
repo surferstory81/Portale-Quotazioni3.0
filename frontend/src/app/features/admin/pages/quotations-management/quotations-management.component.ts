@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { finalize, forkJoin } from 'rxjs';
+import { finalize, forkJoin, interval, Subscription } from 'rxjs';
 import { AdminQuotation, AdminService } from '../../services/admin.service';
 import { AIEstimationService } from '../../../../core/services/ai-estimation.service';
 import { AIEstimation } from '../../../../core/models/ai-estimation.model';
@@ -12,7 +12,7 @@ type AllowedStatus = 'IN VALUTAZIONE' | 'COMPLETATA' | 'RESPINTA';
   templateUrl: './quotations-management.component.html',
   styleUrls: ['./quotations-management.component.scss'],
 })
-export class QuotationsManagementComponent implements OnInit {
+export class QuotationsManagementComponent implements OnInit, OnDestroy {
   quotations: AdminQuotation[] = [];
   aiEstimations: Record<string, AIEstimation | null> = {};
   isLoading = false;
@@ -27,9 +27,14 @@ export class QuotationsManagementComponent implements OnInit {
   capexOpexLoading: Record<string, boolean> = {};
   capexOpexMessages: Record<string, string> = {};
 
+  statusControls: Record<string, FormControl<string | null>> = {};
   statusLoading: Record<string, boolean> = {};
   retryingQuotationId: string | null = null;
   deletingQuotationId: string | null = null;
+  showProgressDialog = false;
+  progressQuotationId: string = '';
+  approvingAIEstimationId: string | null = null;
+  rejectingAIEstimationId: string | null = null;
 
   // Expandable rows
   expandedRows: Set<string> = new Set();
@@ -41,6 +46,9 @@ export class QuotationsManagementComponent implements OnInit {
   itemsPerPage = 20;
   itemsPerPageOptions = [10, 20, 50, 0]; // 0 = tutte
 
+  // Auto-refresh for AI estimations
+  private refreshSubscription?: Subscription;
+
   constructor(
     private readonly adminService: AdminService,
     private readonly aiEstimationService: AIEstimationService
@@ -48,6 +56,30 @@ export class QuotationsManagementComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadQuotations();
+    this.startAutoRefresh();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoRefresh();
+  }
+
+  private startAutoRefresh(): void {
+    // Refresh AI estimations every 10 seconds
+    this.refreshSubscription = interval(10000).subscribe(() => {
+      this.refreshAIEstimations();
+    });
+  }
+
+  private stopAutoRefresh(): void {
+    this.refreshSubscription?.unsubscribe();
+  }
+
+  private refreshAIEstimations(): void {
+    // Reload AI estimations for quotations in "IN VALUTAZIONE" status
+    const inEvaluationQuotations = this.quotations.filter(q => q.status === 'IN VALUTAZIONE');
+    inEvaluationQuotations.forEach(q => {
+      this.reloadAIEstimation(q.id);
+    });
   }
 
   takeInCharge(quotation: AdminQuotation): void {
@@ -59,7 +91,9 @@ export class QuotationsManagementComponent implements OnInit {
       .subscribe({
         next: (updated) => {
           this.applyQuotationUpdate(updated);
-          this.successMessage = `Quotazione ${updated.projectCode} presa in carico.`;
+          this.successMessage = `Quotazione ${updated.projectCode} presa in carico. La stima AI verrà generata automaticamente.`;
+          // Wait a moment for AI estimation to start, then reload
+          setTimeout(() => this.reloadAIEstimation(quotation.id), 2000);
         },
         error: (err: unknown) => {
           this.errorMessage = this.adminService.extractApiError(err);
@@ -67,8 +101,11 @@ export class QuotationsManagementComponent implements OnInit {
       });
   }
 
-  updateStatus(quotation: AdminQuotation, status: AllowedStatus): void {
+  updateStatus(quotation: AdminQuotation): void {
+    const control = this.getStatusControl(quotation.id);
+    const status = control.value as AllowedStatus;
     if (!status) return;
+
     this.clearMessages();
     this.statusLoading[quotation.id] = true;
     this.adminService
@@ -77,6 +114,7 @@ export class QuotationsManagementComponent implements OnInit {
       .subscribe({
         next: (updated) => {
           this.applyQuotationUpdate(updated);
+          control.reset('');
           this.successMessage = `Stato quotazione ${updated.projectCode} aggiornato a: ${status}`;
         },
         error: (err: unknown) => {
@@ -133,6 +171,13 @@ export class QuotationsManagementComponent implements OnInit {
 
   canSetEconomic(q: AdminQuotation): boolean {
     return q.status === 'IN VALUTAZIONE';
+  }
+
+  getStatusControl(id: string): FormControl<string | null> {
+    if (!this.statusControls[id]) {
+      this.statusControls[id] = new FormControl<string | null>('');
+    }
+    return this.statusControls[id];
   }
 
   getCapexOpexForm(id: string): FormGroup {
@@ -252,12 +297,16 @@ export class QuotationsManagementComponent implements OnInit {
 
   retryAiEstimation(quotationId: string): void {
     this.retryingQuotationId = quotationId;
+    this.progressQuotationId = quotationId;
+    this.showProgressDialog = true;
     this.clearMessages();
 
     this.adminService.retryAiEstimation(quotationId).subscribe({
       next: (response) => {
         this.successMessage = response.message;
         this.retryingQuotationId = null;
+        this.showProgressDialog = false;
+        this.loadQuotations(); // Reload to show updated data
         setTimeout(() => {
           this.successMessage = '';
         }, 5000);
@@ -265,6 +314,7 @@ export class QuotationsManagementComponent implements OnInit {
       error: (err: unknown) => {
         this.errorMessage = this.adminService.extractApiError(err);
         this.retryingQuotationId = null;
+        this.showProgressDialog = false;
       },
     });
   }
@@ -298,6 +348,18 @@ export class QuotationsManagementComponent implements OnInit {
           this.aiEstimations[q.id] = null;
         }
       });
+    });
+  }
+
+  private reloadAIEstimation(quotationId: string): void {
+    // Reload AI estimation for a single quotation
+    this.aiEstimationService.getEstimationByQuotationId(quotationId).subscribe({
+      next: (estimation) => {
+        this.aiEstimations[quotationId] = estimation;
+      },
+      error: () => {
+        this.aiEstimations[quotationId] = null;
+      }
     });
   }
 
@@ -364,5 +426,91 @@ export class QuotationsManagementComponent implements OnInit {
 
   isRowExpanded(quotationId: string): boolean {
     return this.expandedRows.has(quotationId);
+  }
+
+  // ─── AI Estimation Approval ────────────────────────────────
+
+  canApproveAIEstimation(quotationId: string): boolean {
+    const estimation = this.aiEstimations[quotationId];
+    if (!estimation) return false;
+
+    // Can approve if AI_VALIDATED, AI_NEEDS_REVIEW, or AI_REJECTED (manual override)
+    return estimation.aiStatus === 'AI_VALIDATED'
+        || estimation.aiStatus === 'AI_NEEDS_REVIEW'
+        || estimation.aiStatus === 'AI_REJECTED';
+  }
+
+  approveAIEstimation(quotationId: string): void {
+    const estimation = this.aiEstimations[quotationId];
+    if (!estimation) return;
+
+    const adminNotes = prompt('Note admin (opzionali):');
+    if (adminNotes === null) return; // User cancelled
+
+    this.approvingAIEstimationId = estimation.id;
+    this.clearMessages();
+
+    this.aiEstimationService.approveEstimation(estimation.id, adminNotes || undefined).subscribe({
+      next: (updated) => {
+        this.aiEstimations[quotationId] = updated;
+        this.successMessage = 'Stima AI approvata con successo. L\'importo è stato aggiornato sulla quotazione.';
+        this.approvingAIEstimationId = null;
+        this.loadQuotations(); // Reload to show updated quotation
+        setTimeout(() => (this.successMessage = ''), 5000);
+      },
+      error: (err: unknown) => {
+        this.errorMessage = this.adminService.extractApiError(err);
+        this.approvingAIEstimationId = null;
+      },
+    });
+  }
+
+  rejectAIEstimation(quotationId: string): void {
+    const estimation = this.aiEstimations[quotationId];
+    if (!estimation) return;
+
+    const adminNotes = prompt('Motivazione rifiuto (obbligatoria):');
+    if (!adminNotes || adminNotes.trim() === '') {
+      alert('Devi fornire una motivazione per il rifiuto.');
+      return;
+    }
+
+    this.rejectingAIEstimationId = estimation.id;
+    this.clearMessages();
+
+    this.aiEstimationService.rejectEstimation(estimation.id, adminNotes).subscribe({
+      next: (updated) => {
+        this.aiEstimations[quotationId] = updated;
+        this.successMessage = 'Stima AI rifiutata. Puoi richiedere una nuova stima.';
+        this.rejectingAIEstimationId = null;
+        this.reloadAIEstimation(quotationId); // Reload AI estimation
+        setTimeout(() => (this.successMessage = ''), 5000);
+      },
+      error: (err: unknown) => {
+        this.errorMessage = this.adminService.extractApiError(err);
+        this.rejectingAIEstimationId = null;
+      },
+    });
+  }
+
+  isApprovingAI(quotationId: string): boolean {
+    const estimation = this.aiEstimations[quotationId];
+    return estimation ? this.approvingAIEstimationId === estimation.id : false;
+  }
+
+  isRejectingAI(quotationId: string): boolean {
+    const estimation = this.aiEstimations[quotationId];
+    return estimation ? this.rejectingAIEstimationId === estimation.id : false;
+  }
+
+  getValidationIssues(quotationId: string): any[] {
+    const estimation = this.aiEstimations[quotationId];
+    if (!estimation?.validationData?.issues) return [];
+    return estimation.validationData.issues;
+  }
+
+  getValidationSummary(quotationId: string): any {
+    const estimation = this.aiEstimations[quotationId];
+    return estimation?.validationData?.summary || null;
   }
 }

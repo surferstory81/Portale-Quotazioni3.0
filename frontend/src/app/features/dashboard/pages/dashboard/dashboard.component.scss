@@ -110,10 +110,18 @@
 }
 
 // ── sections ──────────────────────────────────────────────────────────────────
-.drafts, .recent {
+.drafts, .recent, .quotations {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
+}
+
+.section-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
 }
 
 .section-title {
@@ -127,6 +135,41 @@
 	margin: -8px 0 0;
 	font-size: 0.85rem;
 	color: #64748b;
+}
+
+.filter-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+
+	label {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: #64748b;
+	}
+}
+
+.select-filter {
+	padding: 8px 12px;
+	border: 1.5px solid #e2eaf4;
+	border-radius: 8px;
+	font-size: 0.9rem;
+	color: #1e293b;
+	background: white;
+	cursor: pointer;
+	transition: border-color 0.15s;
+
+	&:hover { border-color: #0f4c81; }
+	&:focus {
+		outline: none;
+		border-color: #0f4c81;
+		box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.1);
+	}
+}
+
+.muted {
+	color: #94a3b8;
+	font-size: 0.85rem;
 }
 
 .table-wrapper {

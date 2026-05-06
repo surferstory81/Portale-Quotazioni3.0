@@ -161,6 +161,15 @@ export class AIEstimation {
   @Column({ type: 'text', name: 'admin_notes', nullable: true })
   adminNotes: string | null;
 
+  @Column({ type: 'int', name: 'input_tokens', nullable: true, default: 0 })
+  inputTokens: number | null;
+
+  @Column({ type: 'int', name: 'output_tokens', nullable: true, default: 0 })
+  outputTokens: number | null;
+
+  @Column({ type: 'decimal', precision: 10, scale: 6, name: 'estimated_cost_usd', nullable: true, default: 0 })
+  estimatedCostUsd: number | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

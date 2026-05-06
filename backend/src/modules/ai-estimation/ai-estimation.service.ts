@@ -49,6 +49,9 @@ export class AIEstimationService {
   async generateEstimation(
     quotationId: string,
     estimationData: EstimationData,
+    inputTokens?: number,
+    outputTokens?: number,
+    estimatedCostUsd?: number,
   ): Promise<AIEstimation> {
     const quotation = await this.quotationRepo.findOne({
       where: { id: quotationId },
@@ -65,11 +68,22 @@ export class AIEstimationService {
     });
 
     if (existingEstimation) {
-      throw new BadRequestException(
-        'Una stima AI esiste già per questa quotazione. Usa validateEstimation per procedere.',
-      );
+      // Update existing estimation and sum tokens (retry scenario)
+      existingEstimation.estimationData = estimationData;
+      existingEstimation.aiStatus = AIStatus.AI_GENERATED;
+      existingEstimation.generatedBy = 'ai-estimation-service';
+      existingEstimation.generatedAt = new Date();
+      existingEstimation.confidence = estimationData.confidence_score || 0;
+
+      // Sum tokens from multiple estimations (retry adds to total)
+      existingEstimation.inputTokens = (existingEstimation.inputTokens || 0) + (inputTokens || 0);
+      existingEstimation.outputTokens = (existingEstimation.outputTokens || 0) + (outputTokens || 0);
+      existingEstimation.estimatedCostUsd = (existingEstimation.estimatedCostUsd || 0) + (estimatedCostUsd || 0);
+
+      return this.aiEstimationRepo.save(existingEstimation);
     }
 
+    // Create new estimation
     const estimation = this.aiEstimationRepo.create({
       quotationId,
       estimationData,
@@ -77,6 +91,9 @@ export class AIEstimationService {
       generatedBy: 'ai-estimation-service',
       generatedAt: new Date(),
       confidence: estimationData.confidence_score || 0,
+      inputTokens: inputTokens || 0,
+      outputTokens: outputTokens || 0,
+      estimatedCostUsd: estimatedCostUsd || 0,
     });
 
     return this.aiEstimationRepo.save(estimation);
