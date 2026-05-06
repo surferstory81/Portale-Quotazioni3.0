@@ -13,3 +13,29 @@ dist/
 
 # Build artifacts
 *.tsbuildinfo
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Temporary documentation
+*-RESULTS.md
+*-SETUP.md
+
+# Test scripts (development only)
+test-*.js
+check-*.sh
+
+# Environment files (except templates)
+.env.*
+!.env.example
+
+# SQL migration scripts (manual)
+add-*.sql
+check-*.sql
+alter-*.sql
+
+# Package files at root (workspace uses child package.json files)
+/package.json
+/package-lock.json
