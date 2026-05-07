@@ -1,4 +1,13 @@
-## Git Hooks - Quality & Architecture Enforcement
+## Git Hooks - Technical Implementation Guide
+
+> **📘 User Guide**: For basic usage instructions, see [`docs/development/hooks.md`](../../docs/development/hooks.md)  
+> **📐 Design Philosophy**: For rationale and architectural decisions, see [`HOOK-DESIGN.md`](HOOK-DESIGN.md)
+
+This document is the **technical implementation reference** for developers who need to understand, modify, or extend the hook system.
+
+---
+
+## Sistema Hook Overview
 
 Sistema di hook Git per enforcement automatico di qualità codice e principi architetturali.
 

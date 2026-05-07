@@ -1,377 +1,270 @@
-# Git Hook System - Summary for User
+# Git Hooks - User Guide
 
-## 🎯 Cosa Abbiamo Fatto
-
-Sostituito il vecchio sistema di hook **permission-based** (che approvava solo comandi bash) con un sistema **validation-based** completo che:
-
-1. ✅ **Enforza automaticamente** i principi architetturali dichiarati nelle skill
-2. ✅ **Previene** codice problematico dal entrare nel repository
-3. ✅ **Guida** verso best practices con suggerimenti concreti
-4. ✅ **Visualizza** architectural debt prima del merge
+Git hooks automatically enforce code quality and architectural principles before commits and pushes.
 
 ---
 
-## 📦 File Creati
+## 🚀 Quick Start
 
-```
-.claude/
-├── hooks/
-│   ├── validate-architecture.js      ← Pre-commit: Architecture validation
-│   ├── code-quality-check.js         ← Pre-commit: Code quality
-│   ├── check-service-coupling.js     ← Pre-push: Service coupling
-│   ├── install-hooks.sh              ← Installation script
-│   ├── README.md                     ← User guide completo
-│   └── HOOK-DESIGN.md                ← Rationale & philosophy
-└── settings.local.json                ← Hook configuration
-```
-
----
-
-## 🚀 Come Installare
-
-### Passo 1: Installa Hook in Git
+### Installation
 
 ```bash
 cd .claude/hooks
 bash install-hooks.sh
 ```
 
-Questo crea file in `.git/hooks/` che Git eseguirà automaticamente.
+This installs hooks in `.git/hooks/` that Git executes automatically:
+- **pre-commit**: Architecture validation + Code quality (blocks commit on errors)
+- **pre-push**: Service coupling analysis (warns only, doesn't block)
 
-### Passo 2: Verifica Installazione
+### Verification
 
 ```bash
-ls -la .git/hooks/
-# Dovresti vedere pre-commit e pre-push
-```
-
-### Passo 3: Test (Opzionale)
-
-Crea file con violazione intenzionale:
-```bash
-echo "axios.get('http://test')" > test.ts
-git add test.ts
-git commit -m "test"
-```
-
-Output atteso:
-```
-❌ [Line 1] HTTP Timeout Required
-   HTTP call senza timeout esplicito
-   💡 Aggiungi { timeout: 60000 }
+ls -la .git/hooks/pre-commit .git/hooks/pre-push
+# Both files should exist and be executable
 ```
 
 ---
 
-## 🛡️ Cosa Verificano gli Hook
+## 🛡️ What Gets Checked
 
-### Hook 1: **Architecture Validation** (Pre-Commit) - BLOCCA COMMIT
+### Pre-Commit Hook (BLOCKING ⛔)
 
-| Verifica | Perché è Importante | Blocca? |
-|----------|---------------------|---------|
-| HTTP timeout mancante | Hang infinito su network instabile | ✅ Sì |
-| @Public() senza auth | Security breach (endpoint aperto a tutti) | ✅ Sì |
-| External call senza retry | Failure rate aumenta inutilmente | ⚠️ No |
-| Side-effect senza idempotency | Retry = duplicati (double charge) | ⚠️ No |
-| Secrets hardcoded | Credential leak se repo compromesso | ✅ Sì |
-| Multiple DB ops senza transaction | Inconsistenza dati (partial update) | ✅ Sì |
-| SQL injection | Vulnerable a attacchi | ✅ Sì |
-| Logging sensitive data | Leak in Loki/Grafana | ✅ Sì |
+Runs before every commit. **Blocks commit** if critical errors are found.
 
-### Hook 2: **Code Quality** (Pre-Commit) - BLOCCA SELETTIVAMENTE
+| Check | Why It Matters | Severity |
+|-------|----------------|----------|
+| **HTTP calls without timeout** | Can hang indefinitely on network issues | 🔴 ERROR |
+| **Hardcoded secrets** | Credentials leak if repo is compromised | 🔴 ERROR |
+| **@Public() without auth** | Security breach - endpoint open to anyone | 🔴 ERROR |
+| **Multiple DB operations without transaction** | Data inconsistency on partial failures | 🔴 ERROR |
+| **SQL injection vulnerability** | Allows database attacks | 🔴 ERROR |
+| **Logging sensitive data** | PII/credentials exposed in logs | 🔴 ERROR |
+| External calls without retry | Increases failure rate | 🟡 WARNING |
+| Side-effects without idempotency | Retry causes duplicates | 🟡 WARNING |
+| Functions >50 lines | Hard to understand/test | 🟡 WARNING |
+| Magic numbers | Maintenance issues | 🟡 WARNING |
+| `console.log()` instead of Logger | Unstructured logs | 🟡 WARNING |
 
-| Verifica | Perché | Blocca? |
-|----------|--------|---------|
-| Function >50 righe | Difficile capire/testare | ⚠️ No |
-| Magic numbers | Maintenance nightmare | ⚠️ No |
-| console.log() | Usa Logger structured | ⚠️ No |
-| TODO senza issue | Lavoro perso | ℹ️ No |
-| Commented code | Usa git history | ⚠️ No |
-| Class naming wrong | `class test` → `class Test` | ✅ Sì |
-| Callback hell | Unreadable | ⚠️ No |
-| Unused imports | Dead code | ℹ️ No |
+**Example Output:**
 
-### Hook 3: **Service Coupling** (Pre-Push) - SOLO WARNING
+```
+Running pre-commit hooks...
 
-- ❌ Circular dependencies (`backend ↔ aiService`)
-- ❌ Shared database entities
-- ⚠️ High fanout (>3 servizi chiamati)
-- 📊 Interaction map completa
+❌ [backend/src/services/api.service.ts:45] HTTP Timeout Required
+   HTTP call without explicit timeout - risk of infinite hang
+   💡 Add { timeout: 60000 } to HTTP call options
 
-**Questo hook NON blocca push**, solo avvisa per architectural review.
+⚠️  [backend/src/services/user.service.ts:89] Retry Logic for External Calls
+   External HTTP call without retry logic
+   💡 Implement retry with exponential backoff
 
----
+✅ Code quality checks passed
 
-## 💡 Esempi Pratici
-
-### Esempio 1: HTTP Call Senza Timeout
-
-**Codice problematico**:
-```typescript
-// ❌ Hook BLOCCA commit
-const response = await axios.get('http://ai-service/estimate');
+❌ COMMIT BLOCKED - Fix errors above
 ```
 
-**Output hook**:
-```
-❌ [Line 3] HTTP Timeout Required
-   HTTP call senza timeout esplicito - rischio hang infinito
-   💡 Aggiungi { timeout: 60000 } nelle options della chiamata HTTP
-```
+### Pre-Push Hook (WARNING ONLY ⚠️)
 
-**Fix**:
-```typescript
-// ✅ Hook permette commit
-const response = await axios.get('http://ai-service/estimate', {
-  timeout: 60000
-});
-```
+Runs before every push. **Does not block** - shows warnings only.
 
-### Esempio 2: @Public() Senza Authentication
+| Check | What It Looks For |
+|-------|-------------------|
+| **Circular dependencies** | Service A → Service B → Service A |
+| **Shared database access** | Multiple services writing same table |
+| **High fanout** | One service calling >3 other services |
+| **Tight coupling patterns** | Direct entity imports between services |
 
-**Codice problematico**:
-```typescript
-// ❌ Hook BLOCCA commit
-@Public()
-@Post('generate')
-async generateEstimation(@Body() dto: any) { ... }
-```
+**Example Output:**
 
-**Output hook**:
 ```
-❌ [Line 5] Public Endpoint Security
-   @Public() decorator senza service authentication - security risk
-   💡 Implementa ServiceAuthGuard o verifica x-service-token header
-```
+Running pre-push hooks...
 
-**Fix**:
-```typescript
-// ✅ Hook permette commit
-@UseGuards(ServiceAuthGuard)
-@Post('generate')
-async generateEstimation(@Body() dto: any) { ... }
-```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SERVICE COUPLING ANALYSIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-### Esempio 3: Magic Number
+✅ No circular dependencies detected
+⚠️  High coupling detected:
+    - backend → ai-service (HTTP calls)
+    - backend → database (direct access)
+    - ai-service → backend (HTTP calls)
 
-**Codice problematico**:
-```typescript
-// ⚠️ Hook WARN ma non blocca
-if (retryCount > 5) {
-  throw new Error('Too many retries');
-}
-```
-
-**Output hook**:
-```
-⚠️  [Line 3] Magic Numbers
-   Magic number '5' found
-   💡 Extract to named constant: const MAX_RETRY_COUNT = 5
-```
-
-**Fix**:
-```typescript
-// ✅ No warning
-const MAX_RETRY_ATTEMPTS = 5;
-if (retryCount > MAX_RETRY_ATTEMPTS) {
-  throw new Error('Too many retries');
-}
+⚠️  Issues detected - review recommended before push
+These do NOT block push but indicate architectural debt.
+Refer to docs/architecture/microservices.md for mitigation strategies.
 ```
 
 ---
 
-## ⚙️ Configurazione
+## 🔧 Common Workflows
 
-### Disabilitare Hook Temporaneamente
+### Normal Commit (No Issues)
 
 ```bash
-# Bypassa solo questo commit (NON RACCOMANDATO)
-git commit --no-verify
+git add .
+git commit -m "feat: add new feature"
+# ✅ Hooks pass
+# ✅ Commit created
+```
 
-# Bypassa solo questo push
+### Commit with Errors
+
+```bash
+git add .
+git commit -m "fix: update API"
+# ❌ Hooks fail with errors
+# ❌ Commit blocked
+# → Fix errors
+# → Try again
+```
+
+### Bypass Hooks (Emergency Only)
+
+```bash
+git commit --no-verify -m "hotfix: critical bug"
 git push --no-verify
 ```
 
-### Disabilitare Check Specifici
+⚠️ **Use sparingly!** Bypassing hooks should only be done for:
+- Production hotfixes that need immediate deployment
+- Fixing hook bugs themselves
+- Emergency situations approved by tech lead
 
-Modifica `.claude/settings.local.json`:
+**Always create a follow-up ticket to fix violations properly.**
 
-```json
-{
-  "validation": {
-    "architecture": {
-      "enforce_timeout": true,       // ← Cambia a false per disabilitare
-      "enforce_retry": false,
-      "enforce_idempotency": false,
-      "enforce_service_auth": true
-    }
-  }
-}
+---
+
+## 🐛 Troubleshooting
+
+### Hook Not Running
+
+**Problem**: Hook doesn't execute on commit/push.
+
+**Solutions**:
+1. Verify installation:
+   ```bash
+   ls -la .git/hooks/pre-commit .git/hooks/pre-push
+   ```
+2. Check file permissions (should be executable):
+   ```bash
+   chmod +x .git/hooks/pre-commit
+   chmod +x .git/hooks/pre-push
+   ```
+3. Reinstall hooks:
+   ```bash
+   cd .claude/hooks && bash install-hooks.sh
+   ```
+
+### Hook Fails with "node: command not found"
+
+**Problem**: Node.js not in PATH.
+
+**Solution**: Install Node.js 20+ or add to PATH:
+```bash
+# Check Node version
+node --version  # Should be v20+
+
+# If not installed, download from https://nodejs.org
 ```
 
-### Modificare Severity
+### False Positive Error
 
-Modifica direttamente lo script hook. Esempio in `validate-architecture.js`:
+**Problem**: Hook reports error but code is correct.
+
+**Solutions**:
+1. Check if pattern is genuinely problematic (usually it is)
+2. Add inline comment to explain why it's safe:
+   ```typescript
+   // SAFETY: Timeout not needed here because local service call
+   const result = await axios.get('http://localhost:3001/health');
+   ```
+3. If hook is wrong, report bug and bypass temporarily:
+   ```bash
+   git commit --no-verify
+   # Then file issue: "Hook false positive for X pattern"
+   ```
+
+### Slow Hook Execution
+
+**Problem**: Hook takes >5 seconds.
+
+**Causes**:
+- Staging too many files at once
+- Running on very large files
+
+**Solutions**:
+- Commit smaller batches of files
+- Hooks only analyze staged files, not entire repo
+
+---
+
+## 📖 Additional Resources
+
+### For Users
+- [Quality Standards](quality.md) - Code quality best practices enforced by hooks
+- [Troubleshooting](../README.md#troubleshooting) - General troubleshooting guide
+
+### For Developers (Hook Implementation)
+- [`.claude/hooks/README.md`](../../.claude/hooks/README.md) - Technical implementation details
+- [`.claude/hooks/HOOK-DESIGN.md`](../../.claude/hooks/HOOK-DESIGN.md) - Design philosophy and rationale
+
+### For Architects
+- [Microservices Analysis](../architecture/microservices.md) - Service coupling patterns and mitigation
+- [Architecture Overview](../architecture/overview.md) - System design principles
+
+---
+
+## 🤝 Contributing
+
+### Modifying Hook Behavior
+
+If you need to add/modify checks:
+
+1. **Propose change** - Discuss with team (avoid personal preferences)
+2. **Update implementation** - Modify `.claude/hooks/*.js` files
+3. **Update documentation** - Update both this file and `.claude/hooks/README.md`
+4. **Test thoroughly** - Test on multiple scenarios
+5. **Announce to team** - Ensure everyone reinstalls hooks
+
+### Adding New Checks
+
+Follow the existing pattern in hook scripts:
 
 ```javascript
-{
-  name: 'HTTP Timeout Required',
-  severity: 'warning', // ← Cambiato da 'error' a 'warning'
-  // Ora non blocca più commit, solo avvisa
+// In .claude/hooks/validate-architecture.js or code-quality-check.js
+
+function checkNewPattern(line, filePath) {
+  const pattern = /your-pattern-here/;
+  if (pattern.test(line)) {
+    return {
+      severity: 'ERROR',  // ERROR (blocks) or WARNING
+      message: 'Clear description of what is wrong',
+      suggestion: 'Actionable fix: do X instead of Y'
+    };
+  }
+  return null;
 }
 ```
 
 ---
 
-## 📊 Output Hook Spiegato
+## 📝 Summary
 
-### Icone
+**What You Need to Know:**
 
-- ❌ **ERROR** - Blocca commit/push
-- ⚠️ **WARNING** - Avvisa ma non blocca
-- ℹ️ **INFO** - Suggerimento migliorativo
+1. ✅ Hooks run automatically on commit/push
+2. ⛔ Pre-commit blocks on errors, warns on issues
+3. ⚠️ Pre-push only warns, never blocks
+4. 🚫 Use `--no-verify` only for emergencies
+5. 📖 Read error messages - they contain fix suggestions
+6. 🐛 Report false positives, don't just bypass
+7. 🔄 Reinstall hooks after pulling updates
 
-### Colori
+**Benefits:**
 
-- 🔴 Rosso = Error (blocca)
-- 🟡 Giallo = Warning (non blocca)
-- 🔵 Blu = Info (suggerimento)
-- 🟢 Verde = Success (tutto OK)
-
-### Esempio Output Completo
-
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ARCHITECTURE VALIDATION HOOK
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Validating 3 file(s)...
-
-📄 backend/src/services/quotation.service.ts:
-  ❌ [Line 45] HTTP Timeout Required
-     HTTP call senza timeout esplicito - rischio hang infinito
-     💡 Aggiungi { timeout: 60000 } nelle options della chiamata HTTP
-
-  ⚠️  [Line 89] Retry Logic for External Calls
-     External HTTP call senza retry logic
-     💡 Implementa retry con exponential backoff
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   VALIDATION SUMMARY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-❌ 1 error(s) found - COMMIT BLOCKED
-
-Fix errors above before committing.
-To bypass (NOT RECOMMENDED): git commit --no-verify
-```
-
----
-
-## 🔧 Troubleshooting
-
-### Hook Non Esegue
-
-**Problema**: `git commit` non lancia hook
-
-**Soluzione**:
-```bash
-# Verifica che hook esista
-ls -la .git/hooks/pre-commit
-
-# Se non esiste, reinstalla
-cd .claude/hooks && bash install-hooks.sh
-
-# Verifica permessi
-chmod +x .git/hooks/pre-commit
-```
-
-### False Positive
-
-**Problema**: Hook blocca codice legittimo
-
-**Opzioni**:
-1. **Best**: Modifica codice per rispettare check
-2. **Acceptable**: Usa `--no-verify` e documenta nel commit message perché
-3. **Permanent**: Disabilita check specifico in settings
-
-### Hook Troppo Lento
-
-**Problema**: Pre-commit impiega >5 secondi
-
-**Verifica**:
-```bash
-# Quanti file in staging?
-git diff --cached --name-only | wc -l
-
-# Se >20 file, considera commit più piccoli
-# Hook analizza solo file staged, non tutto il repo
-```
-
----
-
-## 📈 Metriche Success
-
-Dopo 1 settimana di uso:
-- ✅ **Bypass rate < 5%** (se più alto, hook troppo strict)
-- ✅ **Zero production incidents** da violazioni catturabili da hook
-- ✅ **Developer satisfaction** (hook aiutano, non rallentano)
-
----
-
-## 🎓 Best Practices
-
-### ✅ DO
-
-- **Installa hook localmente** subito dopo clone repo
-- **Fix warnings** anche se non bloccanti (sono debt tecnico)
-- **Review coupling report** prima di merge a main
-- **Documenta bypass** quando usi `--no-verify`
-
-### ❌ DON'T
-
-- **Non usare `--no-verify` di default** - solo emergenze
-- **Non ignorare warnings** - accumulano debt
-- **Non disabilitare hook in CI/CD** - doppia protezione
-- **Non committare hook changes** senza team review
-
----
-
-## 📚 Documentazione Completa
-
-- **`.claude/hooks/README.md`** - Guida dettagliata con FAQ
-- **`.claude/hooks/HOOK-DESIGN.md`** - Philosophy e rationale
-- **`ARCHITECTURAL-ANALYSIS.md`** - Perché questi check sono necessari
-
----
-
-## 🚀 Prossimi Passi
-
-1. ✅ **Installa hook**: `cd .claude/hooks && bash install-hooks.sh`
-2. ✅ **Fai test commit** con file di esempio
-3. ✅ **Condividi con team** (tutti devono installare hook)
-4. 📊 **Review metriche** dopo 1 settimana
-5. 🔧 **Affina severity** basandoti su feedback
-
----
-
-## ❓ Domande Frequenti
-
-**Q: Hook funzionano su Windows?**  
-A: Sì, se hai Node.js installato. Git Bash esegue hook correttamente.
-
-**Q: Posso usare hook anche in CI/CD?**  
-A: Sì! Stessi script utilizzabili in GitHub Actions, GitLab CI, etc.
-
-**Q: Cosa succede se ho già committato codice problematico?**  
-A: Hook verificano solo nuovo codice. Refactor graduale del vecchio.
-
-**Q: Hook rallentano troppo?**  
-A: No, analizzano solo file staged. Dovrebbe essere <2s per commit normale.
-
-**Q: Come aggiungo check custom?**  
-A: Modifica script hook, aggiungi nuovo validation object. Vedi HOOK-DESIGN.md.
-
----
-
-**Sistema pushato su GitHub nel branch `dev`** ✅
+- 🛡️ Prevents common architectural mistakes
+- 🔒 Enforces security best practices
+- 📊 Maintains code quality standards
+- 🚀 Catches issues before code review
+- 📚 Educates team on best practices
