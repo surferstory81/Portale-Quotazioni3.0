@@ -298,10 +298,11 @@ export class AIEstimationService {
     });
 
     if (existingEstimation) {
-      // Allow retry only if previous estimation failed or needs review
+      // Allow retry only if previous estimation failed, needs review, or was rejected by human
       if (
         existingEstimation.aiStatus !== AIStatus.AI_REJECTED &&
-        existingEstimation.aiStatus !== AIStatus.AI_NEEDS_REVIEW
+        existingEstimation.aiStatus !== AIStatus.AI_NEEDS_REVIEW &&
+        existingEstimation.aiStatus !== AIStatus.HUMAN_REJECTED
       ) {
         throw new BadRequestException(
           `Stima AI già presente con stato ${existingEstimation.aiStatus}. Usa gli endpoint approve/reject per gestirla.`,
