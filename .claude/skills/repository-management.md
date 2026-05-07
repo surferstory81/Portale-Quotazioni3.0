@@ -161,13 +161,22 @@ project-root/
 ├── backend/              ← Backend service source code
 ├── frontend/             ← Frontend application source code
 ├── ai-estimation-service/ ← Microservice source code
+├── docs/                 ← Technical documentation
+│   ├── architecture/     ← System architecture and design
+│   └── development/      ← Development guidelines
 ├── k8s/                  ← Kubernetes manifests
 ├── scripts/              ← Build and deployment scripts
+├── .claude/              ← Claude Code configuration
+│   ├── docs/             ← AI assistant instructions
+│   ├── skills/           ← Domain-specific knowledge
+│   ├── hooks/            ← Quality enforcement scripts
+│   └── memory/           ← Persistent memory
 ├── .dockerignore         ← Docker build exclusions
 ├── .env.example          ← Template for environment variables
 ├── .gitignore            ← Git exclusions
-├── CLAUDE.md             ← Project overview for Claude
+├── CHANGELOG.md          ← Version history
 ├── README.md             ← Project documentation
+├── SECURITY.md           ← Security policy
 └── package.json          ← Root dependencies (if workspace)
 ```
 
@@ -240,4 +249,5 @@ Claude must alert the user when:
 - `.gitignore` - Primary exclusion rules
 - `.dockerignore` - Exclusions for Docker builds
 - `.env.example` - Template for environment variables
-- `CLAUDE.md` - References this skill in governance rules
+- `.claude/docs/CLAUDE.md` - References this skill in governance rules
+- `docs/development/quality.md` - Code quality standards and best practices

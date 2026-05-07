@@ -38,15 +38,40 @@ Detailed functional specifications are maintained in dedicated skill files under
 
 ```
 Portale-Quotazioni3.0/
-├── backend/          ← NestJS (src/, migrations/, reporters/, test/)
-├── frontend/         ← Angular 17 SPA (src/, reporters/, karma.conf.js)
-├── ai-estimation-service/ ← NestJS microservice per stime AI (AWS Bedrock)
-├── k8s/              ← Manifest Kubernetes (all-in-one.yaml, grafana/)
-├── CLAUDE.md
-└── README.md
+├── README.md                      ← Entry point for developers
+├── CHANGELOG.md                   ← Version history
+├── SECURITY.md                    ← Security policy
+├── docs/                          ← Technical documentation
+│   ├── architecture/              ← System architecture and design
+│   │   ├── overview.md           ← Complete architecture (diagrams, DB, API)
+│   │   ├── microservices.md      ← Service coupling analysis
+│   │   └── deployment.md         ← Production deployment options
+│   └── development/               ← Development guidelines
+│       ├── hooks.md              ← Git hooks system
+│       └── quality.md            ← Code quality standards
+├── .claude/                       ← Claude Code configuration
+│   ├── docs/
+│   │   └── CLAUDE.md             ← This file (AI instructions)
+│   ├── skills/                   ← Domain-specific knowledge
+│   │   ├── quotation-workflow.md
+│   │   ├── frontend.md
+│   │   ├── backend.md
+│   │   ├── cost-model.md
+│   │   ├── ai-estimation.md
+│   │   └── admin-portal.md
+│   ├── hooks/                    ← Git quality enforcement
+│   │   ├── check-service-coupling.js
+│   │   ├── code-quality-check.js
+│   │   └── validate-architecture.js
+│   └── memory/                   ← Persistent memory
+├── backend/                       ← NestJS API (src/, test/)
+├── frontend/                      ← Angular 17 SPA (src/)
+├── ai-estimation-service/        ← AI microservice (AWS Bedrock)
+├── k8s/                          ← Kubernetes manifests
+└── scripts/                      ← Deployment and test scripts
 ```
 
-**Note**: Questa è la versione 3.0 con architettura HTTP. La versione 2.0 con RabbitMQ è mantenuta separatamente per compatibilità con ambienti che richiedono message broker.
+**Note**: This is version 3.0 with HTTP-based architecture. Version 2.0 with RabbitMQ is maintained separately for compatibility.
 
 ---
 

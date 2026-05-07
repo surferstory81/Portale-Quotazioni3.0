@@ -297,7 +297,7 @@ function main() {
   if (hasIssues) {
     log('⚠️  Issues detected - review recommended before push\n', colors.yellow);
     log('These do NOT block push but indicate architectural debt.\n', colors.yellow);
-    log('Refer to ARCHITECTURAL-ANALYSIS.md for mitigation strategies.\n');
+    log('Refer to docs/architecture/microservices.md for mitigation strategies.\n');
     return 0; // Don't block push, just warn
   } else {
     log('✅ Service coupling is healthy\n', colors.green);

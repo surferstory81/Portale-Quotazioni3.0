@@ -404,34 +404,45 @@ taskkill /PID <PID> /F  # Windows
 
 ## 📚 Documentation
 
-### Technical Documentation
+Complete documentation is organized in the [`/docs`](docs/) directory. Quick links:
+
+### Essential Documents
 
 | File | Audience | Content |
 |---|---|---|
-| [`CHANGELOG.md`](CHANGELOG.md) | All | Version history, migration notes |
-| [`CLAUDE.md`](CLAUDE.md) | AI Assistant | Architecture, governance, skills reference |
-| [`README.md`](README.md) | Developers | Setup, usage, troubleshooting |
+| [`README.md`](README.md) | Developers | **You are here** - Setup, features, quick start, troubleshooting |
+| [`CHANGELOG.md`](CHANGELOG.md) | All | Version history, migration notes, breaking changes |
 | [`SECURITY.md`](SECURITY.md) | Security Team | Security policy, vulnerability reporting |
+| [`docs/`](docs/) | Technical | **📖 Full documentation index** - Architecture, development guides |
 
-### Architecture & Patterns
+### Architecture Documentation
 
-| File | Content |
+Located in [`docs/architecture/`](docs/architecture/):
+
+| Document | Content |
 |---|---|
-| [`ARCHITECTURAL-ANALYSIS.md`](ARCHITECTURAL-ANALYSIS.md) | Microservice coupling analysis, patterns |
-| [`PRODUCTION-ARCHITECTURE-OPTIONS.md`](PRODUCTION-ARCHITECTURE-OPTIONS.md) | Deployment strategies, scalability |
-| [`HOOK-SYSTEM-SUMMARY.md`](HOOK-SYSTEM-SUMMARY.md) | Git hooks, quality checks |
-| [`QUALITY-SYSTEM-COMPLETE.md`](QUALITY-SYSTEM-COMPLETE.md) | Code quality standards, enforcement |
+| [`overview.md`](docs/architecture/overview.md) | System architecture, diagrams, database schema, API design |
+| [`microservices.md`](docs/architecture/microservices.md) | Service coupling analysis, communication patterns |
+| [`deployment.md`](docs/architecture/deployment.md) | Production deployment strategies, Kubernetes/OpenShift |
 
-### Domain Skills (for Claude AI)
+### Development Documentation
 
-| File | Scope |
+Located in [`docs/development/`](docs/development/):
+
+| Document | Content |
 |---|---|
-| [`.claude/skills/quotation-workflow.md`](.claude/skills/quotation-workflow.md) | Quotation lifecycle, states, form |
-| [`.claude/skills/frontend.md`](.claude/skills/frontend.md) | Angular structure, UX patterns |
-| [`.claude/skills/backend.md`](.claude/skills/backend.md) | API design, database, security |
-| [`.claude/skills/cost-model.md`](.claude/skills/cost-model.md) | CAPEX/OPEX structure, formulas |
-| [`.claude/skills/ai-estimation.md`](.claude/skills/ai-estimation.md) | AI scope, constraints, validation |
-| [`.claude/skills/admin-portal.md`](.claude/skills/admin-portal.md) | Admin workflows, state transitions |
+| [`hooks.md`](docs/development/hooks.md) | Git hooks system, quality enforcement, pre-commit checks |
+| [`quality.md`](docs/development/quality.md) | Code quality standards, best practices, testing guidelines |
+
+### AI Assistant Documentation
+
+Located in [`.claude/`](.claude/):
+
+| Document | Content |
+|---|---|
+| [`.claude/docs/CLAUDE.md`](.claude/docs/CLAUDE.md) | Instructions for Claude AI - principles, constraints, skills |
+| [`.claude/skills/`](.claude/skills/) | Domain-specific behavior: quotations, frontend, backend, cost model |
+| [`.claude/hooks/`](.claude/hooks/) | Quality enforcement hooks and validation scripts |
 
 ---
 

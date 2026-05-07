@@ -314,7 +314,7 @@ rm .git/hooks/pre-push
 1. Review coupling report aggregato (tutti i branch)
 2. Analizza pattern ricorrenti nei warnings
 3. Valuta se aggiungere nuovi check o rilassare esistenti
-4. Documenta decisioni in ARCHITECTURAL-ANALYSIS.md
+4. Documenta decisioni in docs/architecture/microservices.md
 
 ---
 
@@ -339,7 +339,8 @@ A: No, pre-commit vede solo file staged (`git add`). Pre-push vede tutto il bran
 
 ## Riferimenti
 
-- **ARCHITECTURAL-ANALYSIS.md** - Rationale dei check architetturali
-- **PRODUCTION-ARCHITECTURE-OPTIONS.md** - Linee guida deployment
+- **docs/architecture/microservices.md** - Rationale dei check architetturali
+- **docs/architecture/deployment.md** - Linee guida deployment
+- **docs/development/quality.md** - Code quality standards
 - **.claude/skills/microservice-interaction-auditor.md** - Principi verificati dagli hook
 - **.claude/skills/backend.md** - Backend best practices
