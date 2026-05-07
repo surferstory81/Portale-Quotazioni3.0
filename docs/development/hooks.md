@@ -32,19 +32,19 @@ ls -la .git/hooks/pre-commit .git/hooks/pre-push
 
 Runs before every commit. **Blocks commit** if critical errors are found.
 
-| Check | Why It Matters | Severity |
-|-------|----------------|----------|
-| **HTTP calls without timeout** | Can hang indefinitely on network issues | 🔴 ERROR |
-| **Hardcoded secrets** | Credentials leak if repo is compromised | 🔴 ERROR |
-| **@Public() without auth** | Security breach - endpoint open to anyone | 🔴 ERROR |
-| **Multiple DB operations without transaction** | Data inconsistency on partial failures | 🔴 ERROR |
-| **SQL injection vulnerability** | Allows database attacks | 🔴 ERROR |
-| **Logging sensitive data** | PII/credentials exposed in logs | 🔴 ERROR |
-| External calls without retry | Increases failure rate | 🟡 WARNING |
-| Side-effects without idempotency | Retry causes duplicates | 🟡 WARNING |
-| Functions >50 lines | Hard to understand/test | 🟡 WARNING |
-| Magic numbers | Maintenance issues | 🟡 WARNING |
-| `console.log()` instead of Logger | Unstructured logs | 🟡 WARNING |
+| Check                                          | Why It Matters                            | Severity   |
+|------------------------------------------------|-------------------------------------------|------------|
+| **HTTP calls without timeout**                 | Can hang indefinitely on network issues   | 🔴 ERROR   |
+| **Hardcoded secrets**                          | Credentials leak if repo is compromised   | 🔴 ERROR   |
+| **@Public() without auth**                     | Security breach - endpoint open to anyone | 🔴 ERROR   |
+| **Multiple DB operations without transaction** | Data inconsistency on partial failures    | 🔴 ERROR   |
+| **SQL injection vulnerability**                | Allows database attacks                   | 🔴 ERROR   |
+| **Logging sensitive data**                     | PII/credentials exposed in logs           | 🔴 ERROR   |
+| External calls without retry                   | Increases failure rate                    | 🟡 WARNING |
+| Side-effects without idempotency               | Retry causes duplicates                   | 🟡 WARNING |
+| Functions >50 lines                            | Hard to understand/test                   | 🟡 WARNING |
+| Magic numbers                                  | Maintenance issues                        | 🟡 WARNING |
+| `console.log()` instead of Logger              | Unstructured logs                         | 🟡 WARNING |
 
 **Example Output:**
 
