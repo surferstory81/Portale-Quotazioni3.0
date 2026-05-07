@@ -303,13 +303,20 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
 
     this.adminService.retryAiEstimation(quotationId).subscribe({
       next: (response) => {
-        this.successMessage = response.message;
+        this.successMessage = response.message + ' Attendi il completamento della validazione...';
         this.retryingQuotationId = null;
-        this.showProgressDialog = false;
-        this.loadQuotations(); // Reload to show updated data
+        // Keep progress dialog open while AI processes
+        // Auto-refresh will update the status automatically
+        setTimeout(() => {
+          this.showProgressDialog = false;
+        }, 3000);
+        // Reload AI estimation after a delay to get updated status
+        setTimeout(() => {
+          this.reloadAIEstimation(quotationId);
+        }, 5000);
         setTimeout(() => {
           this.successMessage = '';
-        }, 5000);
+        }, 8000);
       },
       error: (err: unknown) => {
         this.errorMessage = this.adminService.extractApiError(err);

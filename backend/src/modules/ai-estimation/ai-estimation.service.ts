@@ -75,6 +75,17 @@ export class AIEstimationService {
       existingEstimation.generatedAt = new Date();
       existingEstimation.confidence = estimationData.confidence_score || 0;
 
+      // Clear previous validation data - will be recalculated by validation agent
+      existingEstimation.validationData = null;
+      existingEstimation.validatedBy = null;
+      existingEstimation.validatedAt = null;
+
+      // Reset human review data since this is a new estimation
+      existingEstimation.humanReviewerId = null;
+      existingEstimation.humanReviewer = null;
+      existingEstimation.humanReviewedAt = null;
+      existingEstimation.adminNotes = null;
+
       // Sum tokens from multiple estimations (retry adds to total)
       existingEstimation.inputTokens = (existingEstimation.inputTokens || 0) + (inputTokens || 0);
       existingEstimation.outputTokens = (existingEstimation.outputTokens || 0) + (outputTokens || 0);
@@ -154,12 +165,25 @@ export class AIEstimationService {
    */
   async getEstimationByQuotationId(
     quotationId: string,
+    isAdmin: boolean = false,
   ): Promise<AIEstimation | null> {
-    return this.aiEstimationRepo.findOne({
+    const estimation = await this.aiEstimationRepo.findOne({
       where: { quotationId },
       order: { createdAt: 'DESC' },
       relations: ['quotation', 'humanReviewer'],
     });
+
+    // Users can only see HUMAN_APPROVED estimations
+    // Admins can see all estimations
+    if (!estimation) {
+      return null;
+    }
+
+    if (!isAdmin && estimation.aiStatus !== AIStatus.HUMAN_APPROVED) {
+      return null;
+    }
+
+    return estimation;
   }
 
   /**

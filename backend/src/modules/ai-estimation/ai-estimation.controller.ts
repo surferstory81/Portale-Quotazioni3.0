@@ -79,14 +79,20 @@ export class AIEstimationController {
 
   /**
    * Get estimation by quotation ID.
+   * Users can only see HUMAN_APPROVED estimations.
+   * Admins can see all estimations.
    */
   @Get('quotation/:quotationId')
   @ApiOperation({
     summary: 'Ottieni stima AI per una quotazione',
-    description: 'Recupera la stima AI associata a una quotazione specifica',
+    description: 'Recupera la stima AI associata a una quotazione specifica. Gli utenti possono vedere solo stime approvate.',
   })
-  async getEstimationByQuotationId(@Param('quotationId') quotationId: string) {
-    return this.aiEstimationService.getEstimationByQuotationId(quotationId);
+  async getEstimationByQuotationId(
+    @Param('quotationId') quotationId: string,
+    @CurrentUser() user: User,
+  ) {
+    const isAdmin = user.role?.name === 'ADMIN';
+    return this.aiEstimationService.getEstimationByQuotationId(quotationId, isAdmin);
   }
 
   /**
