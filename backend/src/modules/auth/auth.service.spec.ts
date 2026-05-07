@@ -42,6 +42,11 @@ const mockRepo = () => ({
   findOne: jest.fn(),
   create: jest.fn(),
   save: jest.fn(),
+  createQueryBuilder: jest.fn(() => ({
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    getOne: jest.fn(),
+  })),
 });
 
 // ── suite ─────────────────────────────────────────────────────────────────────
@@ -136,7 +141,7 @@ describe('AuthService', () => {
   // ── login ─────────────────────────────────────────────────────────────────
 
   describe('login()', () => {
-    const loginDto = () => ({ email: 'user@test.it', password: 'Password1!' });
+    const loginDto = () => ({ username: 'user@test.it', password: 'Password1!' });
 
     beforeEach(() => {
       refreshTokenRepo.create = jest.fn().mockReturnValue({});
@@ -144,40 +149,40 @@ describe('AuthService', () => {
     });
 
     it('restituisce access e refresh token per credenziali valide', async () => {
-      userRepo.findOne.mockResolvedValue(verifiedUser());
+      (userRepo.createQueryBuilder().getOne as jest.Mock).mockResolvedValue(verifiedUser());
       const result = await service.login(loginDto());
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
     });
 
     it('include i dati utente nella risposta', async () => {
-      userRepo.findOne.mockResolvedValue(verifiedUser());
+      (userRepo.createQueryBuilder().getOne as jest.Mock).mockResolvedValue(verifiedUser());
       const result = await service.login(loginDto());
       expect(result.user).toMatchObject({ email: 'user@test.it' });
     });
 
     it('lancia UnauthorizedException se utente non trovato', async () => {
-      userRepo.findOne.mockResolvedValue(null);
+      (userRepo.createQueryBuilder().getOne as jest.Mock).mockResolvedValue(null);
       await expect(service.login(loginDto())).rejects.toThrow(UnauthorizedException);
     });
 
     it('lancia UnauthorizedException se password errata', async () => {
-      userRepo.findOne.mockResolvedValue(verifiedUser());
+      (userRepo.createQueryBuilder().getOne as jest.Mock).mockResolvedValue(verifiedUser());
       await expect(service.login({ ...loginDto(), password: 'WrongPass1!' })).rejects.toThrow(UnauthorizedException);
     });
 
     it('lancia UnauthorizedException se email non verificata', async () => {
-      userRepo.findOne.mockResolvedValue(verifiedUser({ isVerified: false }));
+      (userRepo.createQueryBuilder().getOne as jest.Mock).mockResolvedValue(verifiedUser({ isVerified: false }));
       await expect(service.login(loginDto())).rejects.toThrow(UnauthorizedException);
     });
 
     it('lancia UnauthorizedException se utente bloccato', async () => {
-      userRepo.findOne.mockResolvedValue(verifiedUser({ isBlocked: true }));
+      (userRepo.createQueryBuilder().getOne as jest.Mock).mockResolvedValue(verifiedUser({ isBlocked: true }));
       await expect(service.login(loginDto())).rejects.toThrow(UnauthorizedException);
     });
 
     it('registra un tentativo fallito nel servizio di sicurezza', async () => {
-      userRepo.findOne.mockResolvedValue(null);
+      (userRepo.createQueryBuilder().getOne as jest.Mock).mockResolvedValue(null);
       await expect(service.login(loginDto())).rejects.toThrow();
       expect(securityLogService.log).toHaveBeenCalled();
     });

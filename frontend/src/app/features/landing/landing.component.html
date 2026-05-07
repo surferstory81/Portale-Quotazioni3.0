@@ -62,14 +62,14 @@
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <label>
-        Email
+        Email o Matricola
         <input
-          type="email"
-          placeholder="nome@azienda.it"
-          formControlName="email"
-          autocomplete="email"
+          type="text"
+          placeholder="nome@azienda.it o matricola"
+          formControlName="username"
+          autocomplete="username"
         />
-        <small class="error" *ngIf="hasError('email')">Inserisci una email valida.</small>
+        <small class="error" *ngIf="hasError('username')">Inserisci una email o matricola valida.</small>
       </label>
 
       <label>

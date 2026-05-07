@@ -17,9 +17,9 @@ export class LandingComponent implements OnInit, OnDestroy {
   showLogin = false;
 
   readonly form = new FormGroup({
-    email: new FormControl('', {
+    username: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.email],
+      validators: [Validators.required],
     }),
     password: new FormControl('', {
       nonNullable: true,
@@ -79,7 +79,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     }
   }
 
-  hasError(controlName: 'email' | 'password'): boolean {
+  hasError(controlName: 'username' | 'password'): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && control.touched;
   }
