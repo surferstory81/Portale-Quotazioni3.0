@@ -306,6 +306,7 @@ export class QuotationsService {
       .createQueryBuilder('quotation')
       .leftJoinAndSelect('quotation.createdBy', 'createdBy')
       .where('createdBy.id = :userId', { userId })
+      .andWhere('quotation.status != :draftStatus', { draftStatus: QuotationStatus.BOZZA })
       .orderBy('quotation.createdAt', 'DESC');
 
     if (query.projectCode) {

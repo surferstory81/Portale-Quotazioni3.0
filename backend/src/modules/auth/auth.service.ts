@@ -161,11 +161,11 @@ export class AuthService {
     const ip = ctx?.ip || 'unknown';
     const userAgent = ctx?.userAgent;
 
-    // Try to find user by email or matricola
+    // Try to find user by email or matricola (case-insensitive)
     const user = await this.userRepo
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.role', 'role')
-      .where('user.email = :username OR user.matricola = :username', {
+      .where('LOWER(user.email) = LOWER(:username) OR LOWER(user.matricola) = LOWER(:username)', {
         username: dto.username,
       })
       .getOne();
