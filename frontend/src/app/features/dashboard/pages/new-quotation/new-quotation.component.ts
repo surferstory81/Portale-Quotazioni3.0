@@ -150,9 +150,9 @@ export class NewQuotationComponent implements OnInit, OnDestroy {
   }
 
   private loadDraft(draftId: string): void {
-    this.quotationsService.list().subscribe({
-      next: (quotations) => {
-        const draft = quotations.find(q => q.id === draftId && q.status === 'BOZZA');
+    this.quotationsService.listDrafts().subscribe({
+      next: (drafts) => {
+        const draft = drafts.find(q => q.id === draftId);
         if (draft && draft.formData) {
           this.draftId = draft.id;
           this.isDraftMode = true;
