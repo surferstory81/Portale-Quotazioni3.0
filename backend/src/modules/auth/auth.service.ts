@@ -161,10 +161,14 @@ export class AuthService {
     const ip = ctx?.ip || 'unknown';
     const userAgent = ctx?.userAgent;
 
-    const user = await this.userRepo.findOne({
-      where: { email: dto.email },
-      relations: ['role'],
-    });
+    // Try to find user by email or matricola
+    const user = await this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .where('user.email = :username OR user.matricola = :username', {
+        username: dto.username,
+      })
+      .getOne();
 
     if (!user) {
       this.ipBlockService.recordFailedAttempt(ip);
@@ -172,7 +176,7 @@ export class AuthService {
         action: SecurityAction.LOGIN_FAILED,
         ip,
         userAgent,
-        email: dto.email,
+        email: dto.username,
         details: { reason: 'user_not_found' },
       });
       throw new UnauthorizedException('Credenziali non valide');
@@ -183,7 +187,7 @@ export class AuthService {
         action: SecurityAction.LOGIN_BLOCKED_SSO,
         ip,
         userAgent,
-        email: dto.email,
+        email: user.email,
         userId: user.id,
       });
       throw new UnauthorizedException(
@@ -196,7 +200,7 @@ export class AuthService {
         action: SecurityAction.LOGIN_FAILED,
         ip,
         userAgent,
-        email: dto.email,
+        email: user.email,
         userId: user.id,
         details: { reason: 'user_blocked' },
       });
@@ -210,7 +214,7 @@ export class AuthService {
         action: SecurityAction.LOGIN_FAILED,
         ip,
         userAgent,
-        email: dto.email,
+        email: user.email,
         userId: user.id,
         details: { reason: 'invalid_password' },
       });
@@ -222,7 +226,7 @@ export class AuthService {
         action: SecurityAction.LOGIN_BLOCKED_UNVERIFIED,
         ip,
         userAgent,
-        email: dto.email,
+        email: user.email,
         userId: user.id,
       });
       throw new UnauthorizedException(

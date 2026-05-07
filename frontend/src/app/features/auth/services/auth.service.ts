@@ -5,7 +5,7 @@ import { Observable, tap, switchMap } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 
 interface LoginPayload {
-  email: string;
+  username: string;
   password: string;
 }
 

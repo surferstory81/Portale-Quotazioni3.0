@@ -21,9 +21,9 @@ export class RegisterDto {
 }
 
 export class LoginDto {
-  @IsNotEmpty({ message: "L'email è obbligatoria" })
-  @IsEmail({}, { message: 'Formato email non valido' })
-  email: string;
+  @IsNotEmpty({ message: "L'email o matricola è obbligatoria" })
+  @IsString()
+  username: string; // Can be email or matricola
 
   @IsNotEmpty({ message: 'La password è obbligatoria' })
   @IsString()

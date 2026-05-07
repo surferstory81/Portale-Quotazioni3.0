@@ -11,9 +11,9 @@ import { AuthService } from '../../services/auth.service';
 })
 export class LoginComponent implements OnInit, OnDestroy {
   readonly form = new FormGroup({
-    email: new FormControl('', {
+    username: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.email],
+      validators: [Validators.required],
     }),
     password: new FormControl('', {
       nonNullable: true,
@@ -92,7 +92,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   onResendVerification(): void {
     this.resendMessage = '';
     this.isResending = true;
-    const email = this.form.controls.email.value;
+    const email = this.form.controls.username.value;
 
     this.authService
       .resendVerification(email)
@@ -111,7 +111,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       });
   }
 
-  hasError(controlName: 'email' | 'password'): boolean {
+  hasError(controlName: 'username' | 'password'): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && control.touched;
   }
