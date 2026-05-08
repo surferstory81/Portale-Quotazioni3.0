@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { BedrockService } from './bedrock/bedrock.service';
+import { VERSION_INFO } from './version';
 
 @Controller('health')
 export class HealthController {
@@ -12,7 +13,8 @@ export class HealthController {
       status: 'ok',
       timestamp: new Date().toISOString(),
       service: 'ai-estimation-service',
-      version: '1.0.0',
+      version: VERSION_INFO.version,
+      buildDate: VERSION_INFO.buildDate,
       bedrock: {
         circuitBreaker: circuitStatus,
       },
