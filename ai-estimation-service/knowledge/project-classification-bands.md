@@ -14,6 +14,57 @@ Projects are classified into complexity bands based on **technical and operation
 
 ---
 
+## Estimation Accuracy by Band
+
+Target accuracy for cost estimates based on project complexity:
+
+| Band | Target Accuracy | Reasoning |
+|------|----------------|-----------|
+| **LIGHT** | ±20% | Small scope, limited complexity, higher uncertainty |
+| **MEDIUM** | ±15% | Moderate scope, better defined requirements |
+| **COMPLESSO** | ±10% | Large scope, detailed requirements, comprehensive analysis |
+| **SPECIALE** | ±10% (with custom review) | Strategic initiatives require detailed custom evaluation |
+
+**Note:** These accuracy targets apply to the AI-generated estimate. Final estimates should be reviewed by CTO office.
+
+---
+
+## Risk Contingency by Service Risk Level
+
+Contingency buffers to be added to base estimates based on project risk:
+
+| Service Risk Level | Contingency Buffer | Application |
+|--------------------|-------------------|-------------|
+| **Minimal** (LIGHT) | +10% | Low business impact, well-understood technologies |
+| **Moderate** (MEDIUM) | +15% | Medium business impact, some new technologies |
+| **Relevant** (COMPLESSO) | +20% | High business impact, complex integrations |
+| **Radical** (SPECIALE) | +25-30% | Critical business services, major technology changes |
+
+**Formula:** `Final_Estimate = Base_Estimate * (1 + Contingency_Percentage)`
+
+**Example:** Base estimate €100k with Moderate risk → €100k * 1.15 = €115k
+
+---
+
+## Testing Effort by Test Magnitude
+
+Estimated testing effort as percentage of total development time:
+
+| Test Magnitude | Test Cases | Testing Effort % | Activities Included |
+|----------------|-----------|------------------|---------------------|
+| **Bassa** | <100 | 15% | Unit testing, basic functional testing |
+| **Media** | 100-1,000 | 20% | Unit + integration + functional testing |
+| **Alta** | 1,000-10,000 | 25% | Unit + integration + functional + performance + security |
+| **Very High** | >10,000 | 30% | Comprehensive testing + compliance + UAT + load testing |
+
+**Formula:** `Testing_Effort_Days = Development_Days * Testing_Percentage`
+
+**Example:** 120 development days with Media test magnitude → 120 * 0.20 = 24 testing days
+
+**Note:** Testing effort is included in CAPEX (QA activities) in budget estimates.
+
+---
+
 ## Classification Bands
 
 ### NO IMPATTI CTO

@@ -1,8 +1,19 @@
 # Pricing Rules and Guidelines
 
-This file contains rules and guidelines for generating cost estimates.
+⚠️ **IMPORTANT - Crédit Agricole Projects:** For Crédit Agricole projects, use the official classification system defined in `project-classification-bands.md`. This file contains generic industry best practices for reference only.
 
-## General Principles
+## Crédit Agricole Projects
+
+For CA projects, classification is determined by the **Fasce Budget CTO** system:
+- See `project-classification-bands.md` for official thresholds and classification criteria
+- Classification based on 16 technical criteria (microservices, cores, storage, duration, etc.)
+- Budget ranges: LIGHT (€50-100k), MEDIUM (€100-200k), COMPLESSO (€200-500k), SPECIALE (>€500k)
+- Use "at least one parameter" rule for classification
+- **ALWAYS prioritize project-classification-bands.md over this file for CA projects**
+
+---
+
+## General Principles (Generic Industry Best Practices)
 
 ### Estimation Accuracy
 - Small projects (<€50k): ±20% accuracy
