@@ -10,6 +10,7 @@ export interface AdminQuotation {
   totalAmount: number;
   manualCapex: number | null;
   manualOpex: number | null;
+  formData: Record<string, any>;
   createdAt: string;
   updatedAt: string;
   takenInChargeAt: string | null;

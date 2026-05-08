@@ -87,9 +87,10 @@ export class AIEstimationService {
       existingEstimation.adminNotes = null;
 
       // Sum tokens from multiple estimations (retry adds to total)
-      existingEstimation.inputTokens = (existingEstimation.inputTokens || 0) + (inputTokens || 0);
-      existingEstimation.outputTokens = (existingEstimation.outputTokens || 0) + (outputTokens || 0);
-      existingEstimation.estimatedCostUsd = (existingEstimation.estimatedCostUsd || 0) + (estimatedCostUsd || 0);
+      // Ensure numeric conversion to prevent string concatenation
+      existingEstimation.inputTokens = (existingEstimation.inputTokens || 0) + Number(inputTokens || 0);
+      existingEstimation.outputTokens = (existingEstimation.outputTokens || 0) + Number(outputTokens || 0);
+      existingEstimation.estimatedCostUsd = (existingEstimation.estimatedCostUsd || 0) + Number(estimatedCostUsd || 0);
 
       return this.aiEstimationRepo.save(existingEstimation);
     }

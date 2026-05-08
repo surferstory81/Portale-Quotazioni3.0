@@ -181,6 +181,150 @@
                   </div>
                 </div>
 
+                <!-- Form Data Section -->
+                <div class="details-section">
+                  <h4 class="details-section-title">Dati Form Quotazione</h4>
+                  <div class="form-data-viewer">
+                    <!-- Project Info -->
+                    <div class="form-category">
+                      <h5 class="form-category-title">📋 Informazioni Progetto</h5>
+                      <div class="form-data-grid">
+                        <div class="form-data-item" *ngIf="getFormField(q, 'projectStartDate')">
+                          <span class="form-data-label">Data Inizio:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'projectStartDate') | date: 'dd/MM/yyyy' }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'projectEndDate')">
+                          <span class="form-data-label">Data Fine:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'projectEndDate') | date: 'dd/MM/yyyy' }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'projectDuration')">
+                          <span class="form-data-label">Durata:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'projectDuration') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'projectBudget')">
+                          <span class="form-data-label">Budget:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'projectBudget') }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Infrastructure -->
+                    <div class="form-category">
+                      <h5 class="form-category-title">🏗️ Infrastruttura</h5>
+                      <div class="form-data-grid">
+                        <div class="form-data-item" *ngIf="getFormField(q, 'architecturalImpact')">
+                          <span class="form-data-label">Impatto Architetturale:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'architecturalImpact') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'impactEntity')">
+                          <span class="form-data-label">Entità Impatto:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'impactEntity') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'serviceConsumer')">
+                          <span class="form-data-label">Consumatore Servizio:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'serviceConsumer') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'serviceVolumesPerDay') !== undefined">
+                          <span class="form-data-label">Volumi Giornalieri:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'serviceVolumesPerDay') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'microservicesCount') !== undefined">
+                          <span class="form-data-label">N° Microservizi:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'microservicesCount') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'storageGb') !== undefined">
+                          <span class="form-data-label">Storage (GB):</span>
+                          <span class="form-data-value">{{ getFormField(q, 'storageGb') }} GB</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'computeCores') !== undefined">
+                          <span class="form-data-label">Core Calcolo:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'computeCores') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'scheduledBatches') !== undefined">
+                          <span class="form-data-label">Batch Schedulati:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'scheduledBatches') }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Technology -->
+                    <div class="form-category">
+                      <h5 class="form-category-title">⚙️ Tecnologia</h5>
+                      <div class="form-data-grid">
+                        <div class="form-data-item" *ngIf="getFormField(q, 'technologicalImpact')">
+                          <span class="form-data-label">Impatto Tecnologico:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'technologicalImpact') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'expectedReleases') !== undefined">
+                          <span class="form-data-label">Release Previste:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'expectedReleases') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'projectType')">
+                          <span class="form-data-label">Tipo Progetto:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'projectType') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'serviceRisk')">
+                          <span class="form-data-label">Rischio Servizio:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'serviceRisk') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'pipeline')">
+                          <span class="form-data-label">Pipeline:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'pipeline') }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Testing & Quality -->
+                    <div class="form-category">
+                      <h5 class="form-category-title">🧪 Testing & Quality</h5>
+                      <div class="form-data-grid">
+                        <div class="form-data-item" *ngIf="getFormField(q, 'testMagnitude')">
+                          <span class="form-data-label">Magnitudo Test:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'testMagnitude') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'qa')">
+                          <span class="form-data-label">QA:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'qa') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'monitoringSystems')">
+                          <span class="form-data-label">Sistemi Monitoraggio:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'monitoringSystems') }}</span>
+                        </div>
+                        <div class="form-data-item" *ngIf="getFormField(q, 'observability')">
+                          <span class="form-data-label">Observability:</span>
+                          <span class="form-data-value">{{ getFormField(q, 'observability') }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Flags (Checkboxes) -->
+                    <div class="form-category" *ngIf="hasAnyFlags(q.formData)">
+                      <h5 class="form-category-title">🔧 Caratteristiche</h5>
+                      <div class="form-data-flags">
+                        <span *ngIf="getFormField(q, 'cloudSaas')" class="flag-badge flag-active">☁️ Cloud SaaS</span>
+                        <span *ngIf="getFormField(q, 'cloudIaasPaasLandingZoneCa')" class="flag-badge flag-active">☁️ Cloud IaaS/PaaS</span>
+                        <span *ngIf="getFormField(q, 'hostMainframe')" class="flag-badge flag-active">🖥️ Host/Mainframe</span>
+                        <span *ngIf="getFormField(q, 'onPremiseDipartimentale')" class="flag-badge flag-active">🏢 On-Premise Dipartimentale</span>
+                        <span *ngIf="getFormField(q, 'needNewInfrastructure')" class="flag-badge flag-active">🆕 Nuova Infrastruttura</span>
+                        <span *ngIf="getFormField(q, 'infraOnVm')" class="flag-badge flag-active">💻 Infra su VM</span>
+                        <span *ngIf="getFormField(q, 'infraMicroservices')" class="flag-badge flag-active">🔷 Microservizi</span>
+                        <span *ngIf="getFormField(q, 'developedInternally')" class="flag-badge flag-active">🏠 Sviluppo Interno</span>
+                        <span *ngIf="getFormField(q, 'developedByExternalVendors')" class="flag-badge flag-active">🌐 Vendor Esterno</span>
+                        <span *ngIf="getFormField(q, 'hasCaIntellectualProperty')" class="flag-badge flag-active">©️ Proprietà Intellettuale CA</span>
+                        <span *ngIf="getFormField(q, 'serviceExposure')" class="flag-badge flag-active">🌍 Servizio Esposto</span>
+                        <span *ngIf="getFormField(q, 'marketProduct')" class="flag-badge flag-active">🛒 Prodotto Market</span>
+                        <span *ngIf="getFormField(q, 'dependenciesWithExternalServices')" class="flag-badge flag-active">🔗 Dipendenze Esterne</span>
+                        <span *ngIf="getFormField(q, 'integrationsWithInternalSystems')" class="flag-badge flag-active">🔌 Integrazioni Interne</span>
+                        <span *ngIf="getFormField(q, 'saasProduct')" class="flag-badge flag-active">☁️ Prodotto SaaS</span>
+                        <span *ngIf="getFormField(q, 'monitoringOrSecurityTool')" class="flag-badge flag-active">🛡️ Tool Monitoring/Security</span>
+                        <span *ngIf="getFormField(q, 'hasDatabaseImpactDip')" class="flag-badge flag-active">🗄️ Impatto DB (DIP)</span>
+                        <span *ngIf="getFormField(q, 'hasSqlDbType')" class="flag-badge flag-active">🗃️ DB SQL</span>
+                        <span *ngIf="getFormField(q, 'hasDatabaseImpactHostDb2')" class="flag-badge flag-active">🗄️ DB Host DB2</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Economic Quotation Section -->
                 <div class="details-section" *ngIf="canSetEconomic(q)">
                   <h4 class="details-section-title">Quotazione Economica Manuale</h4>

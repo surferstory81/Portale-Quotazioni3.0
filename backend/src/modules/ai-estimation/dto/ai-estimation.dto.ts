@@ -7,6 +7,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { EstimationData, ValidationData } from '../../../entities/ai-estimation.entity';
 
 export class GenerateEstimationDto {
@@ -29,6 +30,7 @@ export class GenerateEstimationDto {
     description: 'Numero di input tokens usati',
     required: false,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   inputTokens?: number;
@@ -37,6 +39,7 @@ export class GenerateEstimationDto {
     description: 'Numero di output tokens usati',
     required: false,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   outputTokens?: number;
@@ -45,6 +48,7 @@ export class GenerateEstimationDto {
     description: 'Costo stimato in USD',
     required: false,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   estimatedCostUsd?: number;

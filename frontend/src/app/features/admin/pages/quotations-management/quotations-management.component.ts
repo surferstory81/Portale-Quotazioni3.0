@@ -85,18 +85,29 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
   takeInCharge(quotation: AdminQuotation): void {
     this.clearMessages();
     this.statusLoading[quotation.id] = true;
+    this.progressQuotationId = quotation.id;
+    this.showProgressDialog = true;
+
     this.adminService
       .takeInCharge(quotation.id)
       .pipe(finalize(() => (this.statusLoading[quotation.id] = false)))
       .subscribe({
         next: (updated) => {
           this.applyQuotationUpdate(updated);
-          this.successMessage = `Quotazione ${updated.projectCode} presa in carico. La stima AI verrà generata automaticamente.`;
-          // Wait a moment for AI estimation to start, then reload
-          setTimeout(() => this.reloadAIEstimation(quotation.id), 2000);
+          this.successMessage = `Quotazione ${updated.projectCode} presa in carico. La stima AI è in corso di generazione...`;
+          // Keep progress dialog open while AI processes (75 seconds total)
+          // Auto-refresh will update the status automatically
+          setTimeout(() => {
+            this.showProgressDialog = false;
+            this.reloadAIEstimation(quotation.id);
+          }, 75000);
+          // Reload periodically to show updates
+          setTimeout(() => this.reloadAIEstimation(quotation.id), 30000);
+          setTimeout(() => this.reloadAIEstimation(quotation.id), 60000);
         },
         error: (err: unknown) => {
           this.errorMessage = this.adminService.extractApiError(err);
+          this.showProgressDialog = false;
         },
       });
   }
@@ -519,5 +530,21 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
   getValidationSummary(quotationId: string): any {
     const estimation = this.aiEstimations[quotationId];
     return estimation?.validationData?.summary || null;
+  }
+
+  hasAnyFlags(formData: Record<string, any>): boolean {
+    const flags = [
+      'cloudSaas', 'cloudIaasPaasLandingZoneCa', 'hostMainframe', 'onPremiseDipartimentale',
+      'needNewInfrastructure', 'infraOnVm', 'infraMicroservices', 'developedInternally',
+      'developedByExternalVendors', 'hasCaIntellectualProperty', 'serviceExposure',
+      'marketProduct', 'dependenciesWithExternalServices', 'integrationsWithInternalSystems',
+      'saasProduct', 'monitoringOrSecurityTool', 'hasDatabaseImpactDip', 'hasSqlDbType',
+      'hasDatabaseImpactHostDb2'
+    ];
+    return flags.some(flag => formData?.[flag] === true);
+  }
+
+  getFormField(quotation: AdminQuotation, field: string): any {
+    return quotation.formData?.[field];
   }
 }
