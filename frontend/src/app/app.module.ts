@@ -7,6 +7,7 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LandingComponent } from './features/landing/landing.component';
+import { VersionFooterComponent } from './shared/components/version-footer/version-footer.component';
 
 @NgModule({
   declarations: [
@@ -17,6 +18,7 @@ import { LandingComponent } from './features/landing/landing.component';
     HttpClientModule,
     AppRoutingModule,
     LandingComponent,
+    VersionFooterComponent,
   ],
   providers: [
     provideClientHydration()

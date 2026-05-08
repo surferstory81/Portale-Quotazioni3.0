@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { timeout } from 'rxjs/operators';
 import { VERSION_INFO } from '../../../core/version';
 
 interface ServiceVersion {
@@ -148,7 +149,8 @@ export class VersionFooterComponent implements OnInit {
     for (const endpoint of serviceEndpoints) {
       try {
         const response: any = await this.http
-          .get(endpoint.url, { timeout: 5000 })
+          .get(endpoint.url)
+          .pipe(timeout(5000))
           .toPromise();
         this.services.push({
           name: endpoint.name,
