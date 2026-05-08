@@ -170,6 +170,12 @@ export class AIEstimation {
   @Column({ type: 'decimal', precision: 10, scale: 6, name: 'estimated_cost_usd', nullable: true, default: 0 })
   estimatedCostUsd: number | null;
 
+  @Column({ type: 'varchar', length: 100, name: 'model_id', nullable: true })
+  modelId: string | null;
+
+  @Column({ type: 'varchar', length: 50, name: 'model_name', nullable: true })
+  modelName: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

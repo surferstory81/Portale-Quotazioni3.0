@@ -12,6 +12,7 @@ interface ProcessQuotationRequest {
   user_id: string;
   project_code: string;
   status: string;
+  model_id?: string;
 }
 
 @Controller('api/estimation')
@@ -28,9 +29,9 @@ export class EstimationController {
 
   @Post('process')
   async processQuotation(@Body() request: ProcessQuotationRequest) {
-    const { quotation_id } = request;
+    const { quotation_id, model_id } = request;
 
-    this.logger.log(`Processing quotation ${quotation_id} via HTTP`);
+    this.logger.log(`Processing quotation ${quotation_id} via HTTP${model_id ? ` with model ${model_id}` : ''}`);
 
     try {
       // Step 1: Fetch full quotation data from backend
@@ -41,9 +42,9 @@ export class EstimationController {
       const quotationData = transformQuotationForAI(backendQuotation);
       this.logger.log(`Transformed quotation data for AI processing`);
 
-      // Step 3: Generate estimation
+      // Step 3: Generate estimation (with optional model override)
       this.logger.log(`Generating estimation for ${quotation_id}`);
-      const estimation = await this.estimationAgent.generateEstimation(quotationData);
+      const estimation = await this.estimationAgent.generateEstimation(quotationData, model_id);
 
       // Step 3: Save estimation to backend
       this.logger.log(`Saving estimation to backend`);

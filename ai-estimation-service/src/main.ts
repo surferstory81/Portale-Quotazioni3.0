@@ -1,11 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { FileLoggerService } from './common/logger/file-logger.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
+  const fileLogger = new FileLoggerService();
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: fileLogger,
+  });
 
   // Global validation pipe
   app.useGlobalPipes(

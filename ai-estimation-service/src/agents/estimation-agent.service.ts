@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { BedrockService } from '../bedrock/bedrock.service';
 import { KnowledgeLoaderService } from '../knowledge/knowledge-loader.service';
 import { PricingToolsService } from '../tools/pricing-tools.service';
+import { getModelConfigById } from '../config/models.config';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -33,6 +34,8 @@ export interface EstimationResult {
   input_tokens: number;
   output_tokens: number;
   estimated_cost_usd: number;
+  model_id?: string;
+  model_name?: string;
 }
 
 @Injectable()
@@ -60,8 +63,8 @@ export class EstimationAgentService {
    * Generate cost estimation for a quotation
    * Supports multi-turn tool use for fetching live pricing
    */
-  async generateEstimation(quotationData: QuotationData): Promise<EstimationResult> {
-    this.logger.log(`Generating estimation for quotation ${quotationData.quotation_id}`);
+  async generateEstimation(quotationData: QuotationData, modelId?: string): Promise<EstimationResult> {
+    this.logger.log(`Generating estimation for quotation ${quotationData.quotation_id}${modelId ? ` with model ${modelId}` : ''}`);
 
     const knowledgeBase = this.knowledgeLoader.getKnowledgeBase();
     const systemPrompt = this.buildSystemPrompt(knowledgeBase);
@@ -87,6 +90,7 @@ export class EstimationAgentService {
           messages,
           maxTokens: 16000,
           temperature: 1.0,
+          modelId, // Pass modelId override if provided
         });
 
         totalTokensUsed.input += response.usage.inputTokens;
@@ -154,6 +158,8 @@ export class EstimationAgentService {
         input_tokens: totalTokensUsed.input,
         output_tokens: totalTokensUsed.output,
         estimated_cost_usd: estimatedCost,
+        model_id: modelId,
+        model_name: modelId ? getModelConfigById(modelId)?.displayName : undefined,
       };
     } catch (error) {
       this.logger.error(`Failed to generate estimation: ${error.message}`);

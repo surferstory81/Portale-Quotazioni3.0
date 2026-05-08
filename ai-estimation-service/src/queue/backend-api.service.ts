@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { EstimationResult } from '../agents/estimation-agent.service';
 import { ValidationResult } from '../agents/validation-agent.service';
+import { getModelConfigById } from '../config/models.config';
 
 @Injectable()
 export class BackendApiService {
@@ -52,6 +53,8 @@ export class BackendApiService {
         inputTokens: estimation.input_tokens,
         outputTokens: estimation.output_tokens,
         estimatedCostUsd: estimation.estimated_cost_usd,
+        modelId: estimation.model_id,
+        modelName: estimation.model_name,
       });
 
       this.logger.log(`Estimation saved (id: ${response.data.id})`);

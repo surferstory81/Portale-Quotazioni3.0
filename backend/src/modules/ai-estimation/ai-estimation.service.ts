@@ -52,6 +52,8 @@ export class AIEstimationService {
     inputTokens?: number,
     outputTokens?: number,
     estimatedCostUsd?: number,
+    modelId?: string,
+    modelName?: string,
   ): Promise<AIEstimation> {
     const quotation = await this.quotationRepo.findOne({
       where: { id: quotationId },
@@ -61,11 +63,17 @@ export class AIEstimationService {
       throw new NotFoundException('Quotazione non trovata');
     }
 
-    // Check if estimation already exists
-    const existingEstimation = await this.aiEstimationRepo.findOne({
-      where: { quotationId },
-      order: { createdAt: 'DESC' },
-    });
+    // Check if estimation already exists FOR THE SAME MODEL
+    // This allows multiple estimations with different models
+    const existingEstimation = modelId
+      ? await this.aiEstimationRepo.findOne({
+          where: { quotationId, modelId },
+          order: { createdAt: 'DESC' },
+        })
+      : await this.aiEstimationRepo.findOne({
+          where: { quotationId },
+          order: { createdAt: 'DESC' },
+        });
 
     if (existingEstimation) {
       // Update existing estimation and sum tokens (retry scenario)
@@ -88,9 +96,18 @@ export class AIEstimationService {
 
       // Sum tokens from multiple estimations (retry adds to total)
       // Ensure numeric conversion to prevent string concatenation
-      existingEstimation.inputTokens = (existingEstimation.inputTokens || 0) + Number(inputTokens || 0);
-      existingEstimation.outputTokens = (existingEstimation.outputTokens || 0) + Number(outputTokens || 0);
-      existingEstimation.estimatedCostUsd = (existingEstimation.estimatedCostUsd || 0) + Number(estimatedCostUsd || 0);
+      // Note: TypeORM returns decimal columns as strings, must parse first
+      const prevInputTokens = Number(existingEstimation.inputTokens) || 0;
+      const prevOutputTokens = Number(existingEstimation.outputTokens) || 0;
+      const prevCost = Number(existingEstimation.estimatedCostUsd) || 0;
+
+      existingEstimation.inputTokens = prevInputTokens + (Number(inputTokens) || 0);
+      existingEstimation.outputTokens = prevOutputTokens + (Number(outputTokens) || 0);
+      existingEstimation.estimatedCostUsd = prevCost + (Number(estimatedCostUsd) || 0);
+
+      // Update model info if provided
+      if (modelId) existingEstimation.modelId = modelId;
+      if (modelName) existingEstimation.modelName = modelName;
 
       return this.aiEstimationRepo.save(existingEstimation);
     }
@@ -106,6 +123,8 @@ export class AIEstimationService {
       inputTokens: inputTokens || 0,
       outputTokens: outputTokens || 0,
       estimatedCostUsd: estimatedCostUsd || 0,
+      modelId: modelId || null,
+      modelName: modelName || null,
     });
 
     return this.aiEstimationRepo.save(estimation);
@@ -359,6 +378,76 @@ export class AIEstimationService {
     } catch (error) {
       this.logger.error(
         `Failed to request AI processing for quotation ${quotationId}: ${error.message}`,
+      );
+      throw new BadRequestException(
+        'Impossibile contattare l\'AI service. Verifica che il servizio sia attivo.',
+      );
+    }
+  }
+
+  /**
+   * Get all estimations for a quotation (for model comparison).
+   */
+  async getEstimationsByQuotationId(quotationId: string): Promise<AIEstimation[]> {
+    return this.aiEstimationRepo.find({
+      where: { quotationId },
+      order: { createdAt: 'DESC' },
+      relations: ['humanReviewer'],
+    });
+  }
+
+  /**
+   * Retry estimation with a specific model.
+   * Creates a NEW estimation with the specified model without overwriting existing ones.
+   */
+  async retryEstimationWithModel(
+    quotationId: string,
+    adminId: string,
+    modelId: string,
+  ): Promise<{ message: string; quotationId: string }> {
+    // Verify quotation exists
+    const quotation = await this.quotationRepo.findOne({
+      where: { id: quotationId },
+      relations: ['createdBy'],
+    });
+
+    if (!quotation) {
+      throw new NotFoundException('Quotazione non trovata');
+    }
+
+    // Check if estimation with this model already exists
+    const existingModelEstimation = await this.aiEstimationRepo.findOne({
+      where: { quotationId, modelId },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (existingModelEstimation) {
+      this.logger.log(
+        `Re-running estimation with model ${modelId} for quotation ${quotationId}`,
+      );
+    }
+
+    // Call AI service via HTTP with modelId parameter
+    try {
+      const result = await this.aiServiceClient.requestQuotationProcessingSyncWithModel({
+        quotation_id: quotation.id,
+        user_id: quotation.createdBy?.id || 'system',
+        project_code: quotation.projectCode,
+        status: quotation.status,
+        model_id: modelId,
+      });
+
+      this.logger.log(
+        `AI estimation with model ${modelId} completed by admin ${adminId} for quotation ${quotationId}`,
+      );
+
+      return {
+        message: `Stima AI generata con modello ${modelId}.`,
+        quotationId,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to request AI processing with model ${modelId} for quotation ${quotationId}: ${error.message}`,
       );
       throw new BadRequestException(
         'Impossibile contattare l\'AI service. Verifica che il servizio sia attivo.',

@@ -56,6 +56,8 @@ export class AIEstimationController {
       dto.inputTokens,
       dto.outputTokens,
       dto.estimatedCostUsd,
+      dto.modelId,
+      dto.modelName,
     );
   }
 
@@ -237,5 +239,38 @@ export class AIEstimationController {
         data: event,
       } as MessageEvent)),
     );
+  }
+
+  /**
+   * Get all estimations for a quotation (for comparison).
+   */
+  @Get('quotation/:quotationId/all')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Ottieni tutte le stime AI per una quotazione',
+    description: 'Recupera tutte le stime generate per una quotazione (per comparazione tra modelli)',
+  })
+  async getEstimationsByQuotationId(@Param('quotationId') quotationId: string) {
+    return this.aiEstimationService.getEstimationsByQuotationId(quotationId);
+  }
+
+  /**
+   * Admin: Retry AI estimation with specific model.
+   */
+  @Post('retry/:quotationId/model/:modelId')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Genera stima AI con modello specifico',
+    description:
+      'Crea una nuova stima AI utilizzando il modello specificato. Permette di confrontare output di modelli diversi.',
+  })
+  async retryEstimationWithModel(
+    @Param('quotationId') quotationId: string,
+    @Param('modelId') modelId: string,
+    @CurrentUser() admin: User,
+  ) {
+    return this.aiEstimationService.retryEstimationWithModel(quotationId, admin.id, modelId);
   }
 }

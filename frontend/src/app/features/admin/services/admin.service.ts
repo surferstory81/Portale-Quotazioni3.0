@@ -103,6 +103,17 @@ export class AdminService {
     );
   }
 
+  retryAiEstimationWithModel(quotationId: string, modelId: string): Observable<{ message: string; quotationId: string }> {
+    return this.apiService.post<{ message: string; quotationId: string }>(
+      `/ai-estimation/retry/${quotationId}/model/${modelId}`,
+      {},
+    );
+  }
+
+  getAllEstimationsForQuotation(quotationId: string): Observable<any[]> {
+    return this.apiService.get<any[]>(`/ai-estimation/quotation/${quotationId}/all`);
+  }
+
   // ─── Utenti ────────────────────────────────────────────────
 
   getUsers(): Observable<AdminUser[]> {

@@ -52,6 +52,24 @@ export class GenerateEstimationDto {
   @IsNumber()
   @IsOptional()
   estimatedCostUsd?: number;
+
+  @ApiProperty({
+    description: 'ID del modello AI utilizzato',
+    example: 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  modelId?: string;
+
+  @ApiProperty({
+    description: 'Nome del modello AI per visualizzazione',
+    example: 'Claude Sonnet 4.5',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  modelName?: string;
 }
 
 export class ValidateEstimationDto {

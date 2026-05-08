@@ -38,6 +38,7 @@ export interface BedrockRequest {
   maxTokens?: number;
   temperature?: number;
   topP?: number;
+  modelId?: string; // Override default model for this request
 }
 
 export interface ToolUseBlock {
@@ -156,8 +157,11 @@ export class BedrockService {
         }
       : undefined;
 
+    // Use override modelId if provided, otherwise use default
+    const modelIdToUse = request.modelId || this.modelId;
+
     const input: ConverseCommandInput = {
-      modelId: this.modelId,
+      modelId: modelIdToUse,
       messages,
       system,
       toolConfig,
@@ -171,7 +175,7 @@ export class BedrockService {
     const startTime = Date.now();
 
     try {
-      this.logger.debug(`Invoking Bedrock model ${this.modelId} via Converse API`);
+      this.logger.debug(`Invoking Bedrock model ${modelIdToUse} via Converse API`);
 
       const command = new ConverseCommand(input);
       const response: ConverseCommandOutput = await this.client.send(command);

@@ -1,62 +1,18 @@
 
 import { NestFactory } from '@nestjs/core';
-import { Logger, ValidationPipe, LoggerService } from '@nestjs/common';
-import { FileLogger } from './file-logger';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { FileLoggerService } from './common/logger/file-logger.service';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
-class DualLogger implements LoggerService {
-  private readonly fileLogger = new FileLogger();
-
-  // Use process.stdout directly — avoids re-entering the global NestJS logger
-  // which would cause infinite recursion (DualLogger → Logger('Nest') → DualLogger → ...)
-  log(message: unknown, ...params: unknown[]): void {
-    const line = this.format('LOG', message, params);
-    process.stdout.write(line + '\n');
-    this.safeFileWrite(line);
-  }
-  error(message: unknown, ...params: unknown[]): void {
-    const line = this.format('ERROR', message, params);
-    process.stderr.write(line + '\n');
-    this.safeFileWrite(line);
-  }
-  warn(message: unknown, ...params: unknown[]): void {
-    const line = this.format('WARN', message, params);
-    process.stdout.write(line + '\n');
-    this.safeFileWrite(line);
-  }
-  debug(message: unknown, ...params: unknown[]): void {
-    const line = this.format('DEBUG', message, params);
-    process.stdout.write(line + '\n');
-    this.safeFileWrite(line);
-  }
-  verbose(message: unknown, ...params: unknown[]): void {
-    const line = this.format('VERBOSE', message, params);
-    process.stdout.write(line + '\n');
-    this.safeFileWrite(line);
-  }
-
-  private format(level: string, message: unknown, params: unknown[]): string {
-    const msg = typeof message === 'string' ? message : JSON.stringify(message);
-    const extra = params.map(p => (typeof p === 'string' ? p : JSON.stringify(p))).join(' ');
-    return `[Nest] ${level} ${new Date().toISOString()} ${msg}${extra ? ' ' + extra : ''}`;
-  }
-
-  private safeFileWrite(line: string): void {
-    try {
-      this.fileLogger.log(line);
-    } catch {
-      // file logging is best-effort — never crash NestJS
-    }
-  }
-}
-
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
+  const fileLogger = new FileLoggerService();
+
   const app = await NestFactory.create(AppModule, {
-    logger: new DualLogger(),
+    logger: fileLogger,
   });
   const configService = app.get(ConfigService);
 

@@ -9,6 +9,7 @@ export interface QuotationProcessRequest {
   user_id: string;
   project_code: string;
   status: string;
+  model_id?: string;
 }
 
 @Injectable()
@@ -157,6 +158,44 @@ export class AiServiceClientService {
     } catch (error) {
       this.logger.error(`Failed to export Excel for quotation ${quotationId}: ${error.message}`);
       throw new Error(`Excel export failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Synchronously request AI processing with a specific model.
+   */
+  async requestQuotationProcessingSyncWithModel(request: QuotationProcessRequest): Promise<{
+    estimation: EstimationData;
+    validation: ValidationData;
+  }> {
+    try {
+      this.logger.log(
+        `Synchronously requesting AI processing for quotation ${request.quotation_id} with model ${request.model_id}`,
+      );
+
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${this.aiServiceUrl}/api/estimation/process`,
+          request,
+          {
+            headers: {
+              'Authorization': `Bearer ${this.serviceToken}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 120000, // 2 minutes timeout for sync call
+          },
+        ),
+      );
+
+      this.logger.log(
+        `AI processing with model ${request.model_id} completed for quotation ${request.quotation_id}`,
+      );
+      return response.data;
+    } catch (error) {
+      this.logger.error(
+        `Sync AI processing with model ${request.model_id} failed for quotation ${request.quotation_id}: ${error.message}`,
+      );
+      throw new Error(`AI service unavailable: ${error.message}`);
     }
   }
 }
