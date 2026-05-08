@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { AdminQuotation, AdminService, TokenStats } from '../../services/admin.service';
+import { AVAILABLE_MODELS, AIModel } from '../../models/ai-model.model';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -19,6 +20,16 @@ export class AdminDashboardComponent implements OnInit {
   currentPage = 1;
   itemsPerPage = 10;
   itemsPerPageOptions = [10, 20, 50, 0]; // 0 = tutte
+
+  // Model selection
+  availableModels = AVAILABLE_MODELS;
+  selectedModelForRetry: { [quotationId: string]: string } = {};
+  showModelDropdown: { [quotationId: string]: boolean } = {};
+
+  // Comparison
+  comparisonQuotationId: string | null = null;
+  comparisonEstimations: any[] = [];
+  isLoadingComparison = false;
 
   constructor(private readonly adminService: AdminService) {}
 
@@ -133,5 +144,67 @@ export class AdminDashboardComponent implements OnInit {
       minimumFractionDigits: 2,
       maximumFractionDigits: 6,
     }).format(num);
+  }
+
+  toggleModelDropdown(quotationId: string): void {
+    this.showModelDropdown[quotationId] = !this.showModelDropdown[quotationId];
+  }
+
+  retryWithModel(quotationId: string, modelId: string): void {
+    this.retryingQuotationId = quotationId;
+    this.errorMessage = '';
+    this.retrySuccessMessage = '';
+    this.showModelDropdown[quotationId] = false;
+
+    this.adminService.retryAiEstimationWithModel(quotationId, modelId).subscribe({
+      next: (response) => {
+        this.retrySuccessMessage = response.message;
+        this.retryingQuotationId = null;
+        setTimeout(() => {
+          this.retrySuccessMessage = '';
+        }, 5000);
+      },
+      error: (err: unknown) => {
+        this.errorMessage = this.adminService.extractApiError(err);
+        this.retryingQuotationId = null;
+      },
+    });
+  }
+
+  loadComparison(quotationId: string): void {
+    this.comparisonQuotationId = quotationId;
+    this.isLoadingComparison = true;
+    this.errorMessage = '';
+
+    this.adminService.getAllEstimationsForQuotation(quotationId).subscribe({
+      next: (estimations) => {
+        this.comparisonEstimations = estimations.sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        this.isLoadingComparison = false;
+      },
+      error: (err: unknown) => {
+        this.errorMessage = this.adminService.extractApiError(err);
+        this.isLoadingComparison = false;
+        this.comparisonQuotationId = null;
+      },
+    });
+  }
+
+  closeComparison(): void {
+    this.comparisonQuotationId = null;
+    this.comparisonEstimations = [];
+  }
+
+  hasMultipleEstimations(quotationId: string): boolean {
+    // This would need to be tracked in the quotation data
+    // For now, return false - can be enhanced later
+    return false;
+  }
+
+  getModelDisplayName(modelId: string | null): string {
+    if (!modelId) return 'Claude Sonnet 4.5';
+    const model = this.availableModels.find(m => m.id === modelId);
+    return model?.displayName || modelId;
   }
 }
