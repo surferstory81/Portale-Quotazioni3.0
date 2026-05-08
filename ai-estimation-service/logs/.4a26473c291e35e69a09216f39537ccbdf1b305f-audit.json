@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\J18331-CyberArk\\IdeaProjects\\Portale-Quotazioni3.0\\ai-estimation-service\\logs\\.4a26473c291e35e69a09216f39537ccbdf1b305f-audit.json",
+    "files": [
+        {
+            "date": 1778261856590,
+            "name": "C:\\Users\\J18331-CyberArk\\IdeaProjects\\Portale-Quotazioni3.0\\ai-estimation-service\\logs\\ai-estimation-2026-05-08.log",
+            "hash": "dd38a6d1909553cbe6f2cae56483efb14db1c4f22ab814ebf4879f1840b91e9c"
+        }
+    ],
+    "hashType": "sha256"
+}

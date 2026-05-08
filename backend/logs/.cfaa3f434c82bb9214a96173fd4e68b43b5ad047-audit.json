@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\J18331-CyberArk\\IdeaProjects\\Portale-Quotazioni3.0\\backend\\logs\\.cfaa3f434c82bb9214a96173fd4e68b43b5ad047-audit.json",
+    "files": [
+        {
+            "date": 1778261714392,
+            "name": "C:\\Users\\J18331-CyberArk\\IdeaProjects\\Portale-Quotazioni3.0\\backend\\logs\\backend-error-2026-05-08.log",
+            "hash": "6b90bbd1587272ffde2a80af05bfd1415045107deb7b2801f3cf685d9a35f68f"
+        }
+    ],
+    "hashType": "sha256"
+}
