@@ -28,6 +28,22 @@ Perform rigorous validation of cost estimations to ensure they are:
   - Support & maintenance
 
 - **QA costs must be ≥10%** of total project cost (governance requirement)
+  - **EXCEPTION**: If `qa_required = "NO"` in form data, this rule does NOT apply (explicit governance exemption)
+  - Only validate QA percentage if QA is actually required/requested
+
+### 1.1 Governance Exemptions (Do NOT flag these scenarios)
+
+**QA = "NO" Exemption:**
+When form data shows `qa = "NO"` or `qa_required = "NO"`:
+- DO NOT flag "QA costs are €0"
+- DO NOT flag "QA is 0% of total project cost"
+- DO NOT require minimum 10% QA budget
+- This is an **explicit governance exemption** requested by project owner
+- The requestor has consciously chosen to exclude QA services
+
+**Only flag QA budget issues when:**
+- `qa != "NO"` AND QA costs < 10% of total project cost
+- In this case, use MEDIUM severity (not HIGH)
 
 ### 2. Mathematical Accuracy
 
@@ -141,7 +157,8 @@ Start at 100% and subtract:
   "severity": "MEDIUM",
   "category": "QA Budget",
   "message": "QA costs are 8% of total project budget. Governance requires minimum 10%.",
-  "recommendation": "Increase QA budget to at least 10% of total project cost to comply with governance requirements."
+  "recommendation": "Increase QA budget to at least 10% of total project cost to comply with governance requirements.",
+  "note": "IMPORTANT: Only flag this if qa_required != 'NO' in form data. If qa='NO', skip this check entirely (explicit governance exemption)."
 }
 ```
 

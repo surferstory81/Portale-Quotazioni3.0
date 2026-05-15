@@ -40,11 +40,16 @@ This file contains typical licensing costs for common software components.
 
 ## Monitoring and APM
 
-### Dynatrace
-- Full-stack monitoring: €0.08-0.15/hour per host
-- Digital Experience: €0.10-0.20 per session
+### Dynatrace (CA Real Pricing - See field-to-cost-mapping.md)
+**IMPORTANT:** Use CA-specific Dynatrace pricing from `field-to-cost-mapping.md` Section 5️⃣:
+- Full Stack: €39.79/GB RAM/anno
+- Infrastructure: €159.12/VM/anno
+- K8s Platform: €14.86/POD/anno
+- Logs: €741.16/GB/anno
 
-### New Relic
+**DO NOT use generic €0.08/hour pricing** - this is obsolete AWS/Azure pricing.
+
+### New Relic (Generic - Not used by CA)
 - Standard: €25/host/month
 - Pro: €150/host/month
 - Enterprise: €450/host/month

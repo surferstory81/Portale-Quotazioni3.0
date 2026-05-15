@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-05-15
+
+### Fixed
+- **CRITICAL: Em-dash bug in form options**: Replaced Unicode em-dash (–, char 8211) with ASCII hyphen (-, char 45)
+  - **Pipeline options**: `"5–15"` → `"5-15"`, `"15–40"` → `"15-40"` (frontend + backend)
+  - **Duration options**: `"1–6 months"` → `"1-6 months"`, `"7–12 months"` → `"7-12 months"`
+  - **Budget options**: `"500–1,000"` → `"500-1,000"`, `"1,000–5,000"` → `"1,000-5,000"`
+  - **Impact**: AI couldn't parse em-dash values, causing €0 CAPEX instead of €7,320 for MEDIO pipeline
+  - **Root cause**: Copy-paste from Word/Docs auto-converted hyphens to typographic em-dashes
+- **QA validation false positive**: Fixed validation agent incorrectly flagging `qa = "NO"` as governance violation
+  - **Rule**: QA must be ≥10% of total project cost (governance requirement)
+  - **Exception**: If `qa = "NO"`, rule does NOT apply (explicit exemption)
+  - **Impact**: PRJ0123456 flagged "Missing QA Costs - Governance Violation" despite valid `qa = "NO"`
+- **OPEX multi-year projection for short projects**: Fixed Year 2-5 calculated on prorated Year 1 instead of annualized cost
+  - **Wrong**: 3-month project Year 1 €10k → Year 2 €10k × 0.91 = €9.1k
+  - **Correct**: 3-month project Year 1 €10k (prorated) → Year 2 €40k × 0.91 = €36.4k (annualized)
+  - **Impact**: PRJ0123456 showed Year 2 €35,755 but validation flagged "364% increase" as error
+
+### Added
+- **Detailed JSON logging in AI service**: Log full `estimation_data` and `validation_data` JSON for debugging
+  - Enables log-based troubleshooting without database queries
+  - Logged after estimation generation and validation completion
+- **Governance exemptions section** in validation prompt: Clear instructions for when to skip validation rules
+
+### Changed
+- **Dynatrace pricing in knowledge base**: Removed obsolete generic pricing (€0.08/hour) from software-licenses.md
+  - Now points to CA real pricing in field-to-cost-mapping.md (€39.79/GB RAM, €14.86/POD, etc.)
+  - Prevents AI from using incorrect AWS/Azure pricing
+
+### Documentation
+- **BUGFIX_EM_DASH_PIPELINE_2026-05-15.md**: Complete analysis of em-dash bug and fix
+
 ## [1.1.3] - 2026-05-15
 
 ### Added

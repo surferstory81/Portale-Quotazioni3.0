@@ -236,23 +236,53 @@ Include:
   - Line item description: "Infrastructure Management - On-premise (18 months prorated)"
   - NO separate "Duration Adjustment" line item
 
+**⚠️ CRITICAL - Store Annual Full Cost:**
+When calculating prorated Year 1, you MUST also store the **annual full cost** for use in multi-year projection:
+- `opex_year_1_annualized` = Annual full OPEX (before proration)
+- `opex_year_1` = Prorated OPEX for project duration
+- Years 2-5 are calculated from `opex_year_1_annualized`, NOT from `opex_year_1`
+
+**Example:** 3-month project
+- Annual OPEX: €40,000
+- `opex_year_1`: €10,000 (3 months prorated)
+- `opex_year_1_annualized`: €40,000 (stored for future years)
+- `opex_year_2`: €40,000 × 0.91 = €36,400 (based on annualized, NOT prorated)
+
 ---
 
 ### Step 8: Multi-Year Projection
 
 **CRITICAL: Different patterns for on-premise vs cloud**
 
+#### ⚠️ IMPORTANT: Proration vs Annualized Costs
+
+**For projects < 12 months (prorated Year 1):**
+- Year 1 = Prorated OPEX (e.g., 3 months = Annual / 4)
+- Year 2-5 = **Full annualized OPEX** with depreciation
+
+**Example:** 3-month project with €40,000 annual OPEX
+- Year 1: €40,000 × 3/12 = **€10,000** (prorated)
+- Year 2: €40,000 × 0.91 = **€36,400** (annualized with depreciation)
+- Year 3: €40,000 × 0.87 = €34,800
+- Year 4: €40,000 × 0.84 = €33,600
+- Year 5: €40,000 × 0.83 = €33,200
+
+**❌ WRONG:** Apply depreciation to Year 1 prorated cost  
+**✅ CORRECT:** Apply depreciation to **annual full cost**
+
+---
+
 #### On-Premise Infrastructure (decreasing costs)
 OPEX decreases over time due to depreciation and efficiency gains:
 
-**Typical on-premise depreciation pattern:**
-- Year 1: 100% (initial full cost)
-- Year 2: 91% (efficiency gains, reduced support)
-- Year 3: 87%
-- Year 4: 84%
-- Year 5: 83%
+**Typical on-premise depreciation pattern (on annualized cost):**
+- Year 1: 100% (prorated if < 12 months)
+- Year 2: 91% (of annual full cost)
+- Year 3: 87% (of annual full cost)
+- Year 4: 84% (of annual full cost)
+- Year 5: 83% (of annual full cost)
 
-**Example:** Year 1 OPEX €120,000 on-premise
+**Example:** Year 1 OPEX €120,000 on-premise (12-month project)
 - Year 2: €109,200 (91%)
 - Year 3: €104,400 (87%)
 - Year 4: €100,800 (84%)

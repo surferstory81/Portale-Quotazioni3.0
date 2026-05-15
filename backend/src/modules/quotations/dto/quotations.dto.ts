@@ -13,8 +13,8 @@ import {
 
 
 export const PROJECT_DURATION_OPTIONS = [
-  '1–6 months',
-  '7–12 months',
+  '1-6 months',
+  '7-12 months',
   '> 1 year',
   'multi-year',
 ] as const;
@@ -22,8 +22,8 @@ export const PROJECT_DURATION_OPTIONS = [
 
 export const PROJECT_BUDGET_OPTIONS = [
   'Up to 500',
-  '500–1,000',
-  '1,000–5,000',
+  '500-1,000',
+  '1,000-5,000',
   '> 5,000',
 ] as const;
 
@@ -47,7 +47,7 @@ export const SERVICE_RISK_OPTIONS = [
   'Relevant',
   'Radical',
 ] as const;
-export const PIPELINE_OPTIONS = ['< 5', '5–15', '15–40', '> 40'] as const;
+export const PIPELINE_OPTIONS = ['< 5', '5-15', '15-40', '> 40'] as const;
 export const MONITORING_OPTIONS = ['N/A', 'Existing (no action)', 'YES'] as const;
 export const QA_OPTIONS = ['N/A', 'YES', 'NO'] as const;
 

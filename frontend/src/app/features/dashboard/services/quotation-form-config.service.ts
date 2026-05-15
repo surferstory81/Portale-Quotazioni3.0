@@ -6,16 +6,16 @@ export class QuotationFormConfigService {
 
   // ── valori identici a quelli validati dal backend ──────────────────────
   private readonly projectDurationOptions = [
-    '1–6 months',
-    '7–12 months',
+    '1-6 months',
+    '7-12 months',
     '> 1 year',
     'multi-year',
   ];
 
   private readonly projectBudgetOptions = [
     'Up to 500',
-    '500–1,000',
-    '1,000–5,000',
+    '500-1,000',
+    '1,000-5,000',
     '> 5,000',
   ];
 
@@ -44,7 +44,7 @@ export class QuotationFormConfigService {
     'Radical',
   ];
 
-  private readonly pipelineOptions = ['< 5', '5–15', '15–40', '> 40'];
+  private readonly pipelineOptions = ['< 5', '5-15', '15-40', '> 40'];
 
   private readonly monitoringOptions = ['N/A', 'Existing (no action)', 'YES'];
 

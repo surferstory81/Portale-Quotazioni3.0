@@ -46,6 +46,9 @@ export class EstimationController {
       this.logger.log(`Generating estimation for ${quotation_id}`);
       const estimation = await this.estimationAgent.generateEstimation(quotationData, model_id);
 
+      // Log full estimation data for debugging
+      this.logger.log(`ESTIMATION DATA [${quotation_id}]: ${JSON.stringify(estimation, null, 2)}`);
+
       // Step 3: Save estimation to backend
       this.logger.log(`Saving estimation to backend`);
       const savedEstimation = await this.backendApi.saveEstimation(estimation);
@@ -56,6 +59,9 @@ export class EstimationController {
         savedEstimation.id,
         estimation,
       );
+
+      // Log full validation data for debugging
+      this.logger.log(`VALIDATION DATA [${quotation_id}]: ${JSON.stringify(validation, null, 2)}`);
 
       // Step 5: Save validation to backend
       this.logger.log(`Saving validation to backend`);
