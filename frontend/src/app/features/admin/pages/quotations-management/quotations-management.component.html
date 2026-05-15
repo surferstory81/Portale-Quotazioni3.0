@@ -128,28 +128,89 @@
                 <!-- AI Estimation Section -->
                 <div class="details-section">
                   <h4 class="details-section-title">Stima AI</h4>
-                  <div class="details-grid">
-                    <div class="detail-item">
-                      <span class="detail-label">Stato AI:</span>
-                      <span class="ai-badge" [ngClass]="getAIStatusBadgeClass(q.id)">
-                        {{ getAIStatusLabel(q.id) }}
-                      </span>
-                      <small *ngIf="getAIEstimation(q.id)" class="confidence-mini">
-                        Confidenza: {{ getAIEstimation(q.id)!.confidence }}%
-                      </small>
+
+                  <!-- Summary Cards -->
+                  <div class="ai-summary-cards" *ngIf="getAIEstimation(q.id) as estimation">
+                    <div class="summary-card summary-card--status">
+                      <div class="card-header">
+                        <span class="ai-badge" [ngClass]="getAIStatusBadgeClass(q.id)">
+                          {{ getAIStatusLabel(q.id) }}
+                        </span>
+                        <span class="card-subtitle">Confidenza {{ estimation.confidence }}%</span>
+                      </div>
+                      <div class="card-meta">
+                        <small class="text-muted">
+                          Modello: {{ estimation.aiModel || 'Sonnet 4.5' }}
+                        </small>
+                        <small class="text-muted" *ngIf="estimation.inputTokens">
+                          ~{{ formatTokens(estimation.inputTokens + estimation.outputTokens) }} tokens
+                        </small>
+                      </div>
                     </div>
-                    <div class="detail-item" *ngIf="getAIEstimation(q.id)">
-                      <span class="detail-label">CAPEX:</span>
-                      <span class="ai-value">{{ formatCurrency(getAIEstimation(q.id)!.estimationData.summary.total_capex) }}</span>
+
+                    <div class="summary-card summary-card--classification">
+                      <div class="card-label">Classificazione</div>
+                      <div class="card-value classification-badge" [ngClass]="'classification--' + estimation.estimationData.summary.project_classification?.toLowerCase()">
+                        {{ estimation.estimationData.summary.project_classification || 'N/A' }}
+                      </div>
+                      <div class="card-meta">
+                        <small class="text-muted">Budget previsto CA</small>
+                      </div>
                     </div>
-                    <div class="detail-item" *ngIf="getAIEstimation(q.id)">
-                      <span class="detail-label">OPEX Y1:</span>
-                      <span class="ai-value">{{ formatCurrency(getAIEstimation(q.id)!.estimationData.summary.total_opex_year_1) }}</span>
+
+                    <div class="summary-card summary-card--capex">
+                      <div class="card-label">CAPEX</div>
+                      <div class="card-value">{{ formatCurrency(estimation.estimationData.summary.total_capex) }}</div>
+                      <div class="card-meta">
+                        <small class="text-muted">Investimento iniziale</small>
+                      </div>
                     </div>
-                    <div class="detail-item" *ngIf="getAIEstimation(q.id)">
-                      <span class="detail-label">Totale 1° Anno:</span>
-                      <span class="ai-value-total">{{ formatCurrency(getAIEstimation(q.id)!.estimationData.summary.total_first_year) }}</span>
+
+                    <div class="summary-card summary-card--opex">
+                      <div class="card-label">OPEX Anno 1</div>
+                      <div class="card-value">{{ formatCurrency(estimation.estimationData.summary.total_opex_year_1) }}</div>
+                      <div class="card-meta">
+                        <small class="text-muted">Costi operativi</small>
+                      </div>
                     </div>
+
+                    <div class="summary-card summary-card--total">
+                      <div class="card-label">Totale 1° Anno</div>
+                      <div class="card-value card-value--highlight">{{ formatCurrency(estimation.estimationData.summary.total_first_year) }}</div>
+                      <div class="card-meta">
+                        <small class="text-muted">CAPEX + OPEX Y1</small>
+                      </div>
+                    </div>
+
+                    <div class="summary-card summary-card--5years">
+                      <div class="card-label">Totale 5 Anni</div>
+                      <div class="card-value">{{ formatCurrency(estimation.estimationData.summary.total_5_years) }}</div>
+                      <div class="card-meta">
+                        <small class="text-muted">Proiezione completa</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- OPEX 5-Year Projection -->
+                  <div class="opex-projection" *ngIf="getAIEstimation(q.id)?.estimationData?.breakdown?.opex_projection as projection">
+                    <h5 class="projection-title">📊 Proiezione OPEX 5 Anni</h5>
+                    <div class="projection-bars">
+                      <div class="projection-bar" *ngFor="let year of [1,2,3,4,5]">
+                        <div class="bar-label">Y{{year}}</div>
+                        <div class="bar-container">
+                          <div class="bar-fill" [style.width.%]="getProjectionBarWidth(projection, year, projection['year_' + year])">
+                          </div>
+                        </div>
+                        <div class="bar-value">{{ formatCurrency(projection['year_' + year]) }}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- No Estimation Message -->
+                  <div class="no-estimation-message" *ngIf="!getAIEstimation(q.id)">
+                    <p class="text-muted">
+                      <em>Nessuna stima AI disponibile. Prendi in carico la quotazione per generare una stima automatica.</em>
+                    </p>
                   </div>
 
                   <!-- Validation Issues -->

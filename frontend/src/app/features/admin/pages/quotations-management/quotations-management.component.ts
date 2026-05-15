@@ -430,6 +430,21 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
     }).format(value);
   }
 
+  formatTokens(tokens: number): string {
+    if (tokens >= 1000000) {
+      return (tokens / 1000000).toFixed(1) + 'M';
+    } else if (tokens >= 1000) {
+      return (tokens / 1000).toFixed(0) + 'K';
+    }
+    return tokens.toString();
+  }
+
+  getProjectionBarWidth(projection: any, year: number, value: number): number {
+    const allYears = [1, 2, 3, 4, 5].map(y => projection['year_' + y] || 0);
+    const maxValue = Math.max(...allYears);
+    return maxValue > 0 ? (value / maxValue) * 100 : 0;
+  }
+
   private applyQuotationUpdate(updated: AdminQuotation): void {
     const idx = this.quotations.findIndex((q) => q.id === updated.id);
     if (idx !== -1) this.quotations[idx] = updated;

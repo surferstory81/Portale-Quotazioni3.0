@@ -1,0 +1,202 @@
+// AI Summary Cards Styles
+
+.ai-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.summary-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all 0.2s;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-color: #0f4c81;
+  }
+}
+
+.summary-card--status {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-color: #0f4c81;
+
+  @media (max-width: 768px) {
+    grid-column: span 2;
+  }
+}
+
+.summary-card--classification {
+  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  border-color: #eab308;
+}
+
+.summary-card--total {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #16a34a;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+}
+
+.card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.card-value--highlight {
+  font-size: 1.75rem;
+  color: #16a34a;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.classification-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.classification--light {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.classification--medio {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.classification--complesso {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.classification--speciale {
+  background: #e9d5ff;
+  color: #6b21a8;
+}
+
+// OPEX Projection Bars
+
+.opex-projection {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.projection-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+.projection-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.projection-bar {
+  display: grid;
+  grid-template-columns: 40px 1fr 120px;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bar-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-align: right;
+}
+
+.bar-container {
+  height: 24px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0f4c81 0%, #1e40af 100%);
+  transition: width 0.6s ease-out;
+  border-radius: 4px;
+}
+
+.bar-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #111827;
+  text-align: right;
+}
+
+// No Estimation Message
+
+.no-estimation-message {
+  padding: 2rem;
+  text-align: center;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 2px dashed #d1d5db;
+
+  p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+}
+
+// Token Display
+
+.text-muted {
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
