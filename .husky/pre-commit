@@ -1,0 +1,14 @@
+# Run ESLint + SonarJS check
+echo "🔍 Running ESLint + SonarJS analysis..."
+npm run lint:fix || {
+  echo "❌ ESLint found issues. Some were auto-fixed, please review changes."
+  echo "💡 Run 'npm run lint' to see remaining issues."
+}
+
+# Run Knip check (warning only, doesn't block commit)
+echo ""
+echo "🔍 Running Knip analysis (informational)..."
+npm run knip || echo "⚠️  Knip found some issues. Review with 'npm run knip' when convenient."
+
+echo ""
+echo "✅ Pre-commit checks completed!"

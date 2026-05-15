@@ -56,6 +56,20 @@ export class AIEstimationService {
   }
 
   /**
+   * Get all estimations for a quotation (for model comparison, admin only)
+   */
+  getAllEstimationsByQuotationId(quotationId: string): Observable<AIEstimation[]> {
+    return this.apiService.get<AIEstimation[]>(`/ai-estimation/quotation/${quotationId}/all`);
+  }
+
+  /**
+   * Retry AI estimation with a specific model (admin only)
+   */
+  retryEstimationWithModel(quotationId: string, modelId: string): Observable<any> {
+    return this.apiService.post(`/ai-estimation/retry/${quotationId}/model/${modelId}`, {});
+  }
+
+  /**
    * Export estimation as PDF
    */
   exportPDF(quotationId: string): void {

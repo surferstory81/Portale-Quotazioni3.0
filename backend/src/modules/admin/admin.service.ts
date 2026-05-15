@@ -72,11 +72,14 @@ export class AdminService {
     const savedQuotation = await this.quotationRepo.save(quotation);
     console.log(`[ADMIN-SERVICE] Quotation saved with status ${savedQuotation.status}`);
 
-    await this.emailService.sendQuotationStatusChangedEmail(
+    // Send email asynchronously (fire-and-forget)
+    this.emailService.sendQuotationStatusChangedEmail(
       savedQuotation,
       previousStatus,
-    );
-    console.log(`[ADMIN-SERVICE] Email sent`);
+    ).catch((error) => {
+      console.error(`[ADMIN-SERVICE] Failed to send status change email: ${error.message}`);
+    });
+    console.log(`[ADMIN-SERVICE] Email send initiated`);
 
     // Launch AI estimation when admin takes quotation in charge
     console.log(`[ADMIN-SERVICE] Calling AI service for quotation ${savedQuotation.id}`);
@@ -96,6 +99,7 @@ export class AdminService {
   async updateQuotationStatus(
     quotationId: string,
     status: string,
+    adminUser: User,
   ): Promise<Quotation> {
     const quotation = await this.findQuotationOrFail(quotationId);
     const previousStatus = quotation.status;
@@ -119,16 +123,40 @@ export class AdminService {
       }
     }
 
+    // Auto-assign admin when changing status to IN_VALUTAZIONE
+    if (nextStatus === QuotationStatus.IN_VALUTAZIONE && !quotation.takenInChargeAt) {
+      quotation.assignedAdmin = adminUser;
+      quotation.takenInChargeAt = new Date();
+      console.log(`[ADMIN-SERVICE] Auto-assigned quotation ${quotationId} to admin ${adminUser.id}`);
+
+      // Launch AI estimation when auto-assigning
+      console.log(`[ADMIN-SERVICE] Calling AI service for quotation ${quotationId}`);
+      this.aiServiceClient.requestQuotationProcessing({
+        quotation_id: quotationId,
+        user_id: adminUser.id,
+        project_code: quotation.projectCode,
+        status: nextStatus,
+      }).catch((error: Error) => {
+        console.error(`[ADMIN-SERVICE] Failed to request AI processing: ${error.message}`);
+      });
+      console.log(`[ADMIN-SERVICE] AI service call initiated`);
+    }
+
     quotation.status = nextStatus;
     const savedQuotation = await this.quotationRepo.save(quotation);
 
+    // Send email asynchronously (fire-and-forget)
     if (nextStatus === QuotationStatus.COMPLETATA) {
-      await this.emailService.sendQuotationCompletedEmail(savedQuotation);
+      this.emailService.sendQuotationCompletedEmail(savedQuotation).catch((error) => {
+        console.error(`Failed to send quotation completed email: ${error.message}`);
+      });
     } else {
-      await this.emailService.sendQuotationStatusChangedEmail(
+      this.emailService.sendQuotationStatusChangedEmail(
         savedQuotation,
         previousStatus,
-      );
+      ).catch((error) => {
+        console.error(`Failed to send status change email: ${error.message}`);
+      });
     }
 
     return savedQuotation;
@@ -172,6 +200,37 @@ export class AdminService {
     const quotation = await this.findQuotationOrFail(quotationId);
     await this.quotationRepo.remove(quotation);
     return { message: `Quotazione ${quotation.projectCode} eliminata con successo` };
+  }
+
+  async reassignQuotation(
+    quotationId: string,
+    newAdminId: string,
+  ): Promise<Quotation> {
+    const quotation = await this.findQuotationOrFail(quotationId);
+
+    // Verify new admin exists and is an ADMIN
+    const newAdmin = await this.userRepo.findOne({
+      where: { id: newAdminId },
+      relations: ['role'],
+    });
+
+    if (!newAdmin) {
+      throw new NotFoundException('Admin non trovato');
+    }
+
+    if (newAdmin.role?.name !== 'ADMIN') {
+      throw new BadRequestException('L\'utente selezionato non è un amministratore');
+    }
+
+    // Reassign
+    quotation.assignedAdmin = newAdmin;
+
+    // If not yet taken in charge, mark it as taken
+    if (!quotation.takenInChargeAt) {
+      quotation.takenInChargeAt = new Date();
+    }
+
+    return this.quotationRepo.save(quotation);
   }
 
   private async hasValidAIEstimation(quotationId: string): Promise<boolean> {

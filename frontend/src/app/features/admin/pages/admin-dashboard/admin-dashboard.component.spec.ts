@@ -13,6 +13,7 @@ class AdminServiceStub {
 const q = (status: string, override: Partial<AdminQuotation> = {}): AdminQuotation => ({
   id: Math.random().toString(36), projectCode: 'PRJ1234567',
   projectName: 'Test', status, totalAmount: 0,
+  manualCapex: null, manualOpex: null, formData: {},
   createdAt: '2026-01-01', updatedAt: '2026-01-01', takenInChargeAt: null,
   createdBy: { id: 'u1', email: 'u@t.it', matricola: 'M01' },
   assignedAdmin: null, ...override,
@@ -53,22 +54,22 @@ describe('AdminDashboardComponent', () => {
     expect(component.count('RESPINTA')).toBe(0);
   });
 
-  it('recentQuotations restituisce al massimo 10', () => {
+  it('quotations carica tutte le quotazioni', () => {
     const many = Array.from({ length: 15 }, (_, i) =>
       q('INVIATA', { id: String(i), createdAt: new Date(2026, 0, i + 1).toISOString() }),
     );
     adminStub.getQuotations.and.returnValue(of(many));
     component.ngOnInit();
-    expect(component.recentQuotations.length).toBeLessThanOrEqual(10);
+    expect(component.quotations.length).toBe(15);
   });
 
-  it('recentQuotations è ordinato per data discendente', () => {
+  it('sortedQuotations è ordinato per data discendente', () => {
     adminStub.getQuotations.and.returnValue(of([
       q('INVIATA', { id: 'a', createdAt: '2026-01-01' }),
       q('INVIATA', { id: 'b', createdAt: '2026-06-01' }),
     ]));
     component.ngOnInit();
-    expect(component.recentQuotations[0].id).toBe('b');
+    expect(component.sortedQuotations[0].id).toBe('b');
   });
 
   it('badgeClass restituisce classe corretta', () => {

@@ -13,6 +13,7 @@ class ApiServiceStub {
 const mockQuotation = (override: Partial<AdminQuotation> = {}): AdminQuotation => ({
   id: 'q1', projectCode: 'PRJ1234567', projectName: 'Test',
   status: 'INVIATA', totalAmount: 0,
+  manualCapex: null, manualOpex: null, formData: {},
   createdAt: '2026-01-01', updatedAt: '2026-01-01', takenInChargeAt: null,
   createdBy: { id: 'u1', email: 'u@t.it', matricola: 'M01' },
   assignedAdmin: null, ...override,

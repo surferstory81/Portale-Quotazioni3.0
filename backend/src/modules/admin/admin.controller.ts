@@ -51,8 +51,17 @@ export class AdminController {
   async updateQuotationStatus(
     @Param('id') id: string,
     @Body() dto: UpdateQuotationStatusDto,
+    @CurrentUser() admin: User,
   ) {
-    return this.adminService.updateQuotationStatus(id, dto.status);
+    return this.adminService.updateQuotationStatus(id, dto.status, admin);
+  }
+
+  @Patch('quotations/:id/reassign')
+  async reassignQuotation(
+    @Param('id') id: string,
+    @Body() dto: { adminId: string },
+  ) {
+    return this.adminService.reassignQuotation(id, dto.adminId);
   }
 
   @Patch('quotations/:id/economic-quotation')

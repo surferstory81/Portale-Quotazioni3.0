@@ -8,7 +8,20 @@
     "version:patch": "node scripts/update-version.js patch",
     "version:minor": "node scripts/update-version.js minor",
     "version:major": "node scripts/update-version.js major",
-    "version:set": "node scripts/update-version.js"
+    "version:set": "node scripts/update-version.js",
+    "knip": "knip",
+    "knip:frontend": "knip --workspace frontend",
+    "knip:backend": "knip --workspace backend",
+    "knip:ai": "knip --workspace ai-estimation-service",
+    "knip:production": "knip --production",
+    "knip:fix": "knip --fix",
+    "prepare": "husky",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:ai": "cd ai-estimation-service && npm run lint",
+    "lint:all": "npm run lint:frontend && npm run lint:backend && npm run lint:ai"
   },
   "repository": {
     "type": "git",
@@ -21,5 +34,25 @@
     "aws-bedrock"
   ],
   "author": "CTO Team",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "lint-staged": {
+    "*.{ts,js,json,md}": [
+      "prettier --write"
+    ],
+    "package.json": [
+      "npm run knip:production"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.59.3",
+    "@typescript-eslint/parser": "^8.59.3",
+    "axios": "^1.16.1",
+    "eslint": "^10.3.0",
+    "eslint-plugin-sonarjs": "^4.0.3",
+    "husky": "^9.1.7",
+    "knip": "^6.13.1",
+    "lint-staged": "^17.0.4",
+    "prettier": "^3.8.3"
+  }
 }

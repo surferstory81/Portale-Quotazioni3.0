@@ -114,6 +114,13 @@ export class AdminService {
     return this.apiService.get<any[]>(`/ai-estimation/quotation/${quotationId}/all`);
   }
 
+  reassignQuotation(quotationId: string, adminId: string): Observable<AdminQuotation> {
+    return this.apiService.patch<AdminQuotation>(
+      `/admin/quotations/${quotationId}/reassign`,
+      { adminId },
+    );
+  }
+
   // ─── Utenti ────────────────────────────────────────────────
 
   getUsers(): Observable<AdminUser[]> {

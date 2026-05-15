@@ -32,10 +32,13 @@ const validPayload = (): Record<string, unknown> => ({
   integrationsWithInternalSystems: true,
   saasProduct: false,
   monitoringOrSecurityTool: false,
+  isThirdPartyApp: false,
+  isAppliance: false,
   expectedReleases: 2,
   projectType: 'Nuovo',
   serviceRisk: 'Moderato',
-  pipeline: '10-30',
+  pipeline: '< 5',
+  hasExistingPipelines: false,
   microservicesCount: 3,
   hasDatabaseImpactDip: false,
   hasSqlDbType: true,
@@ -45,8 +48,9 @@ const validPayload = (): Record<string, unknown> => ({
   scheduledBatches: 0,
   monitoringSystems: 'SI',
   observability: 'SI',
-  testMagnitude: '100–1.000',
   qa: 'SI',
+  requiresFeasibilityStudy: false,
+  requiresRfcSupport: false,
 });
 
 const dto = (override: Record<string, unknown> = {}) =>
@@ -232,10 +236,9 @@ describe('CreateQuotationDto — validazione', () => {
       ['technologicalImpact', ['NA', 'In continuità con AS IS', 'Evoluzione tecnologica', 'Cambio tecnologico'], 'Altro'],
       ['projectType', ['Nuovo', 'Evolutiva', 'CIF'], 'Legacy'],
       ['serviceRisk', ['Minimo', 'Moderato', 'Rilevante', 'Radicale'], 'Basso'],
-      ['pipeline', ['Max 10', '10-30', '30-60', '> 60'], '100+'],
+      ['pipeline', ['< 5', '5–15', '15–40', '> 40'], '100+'],
       ['monitoringSystems', ['NA', 'Esistente (no action)', 'SI'], 'NO'],
       ['observability', ['NA', 'Esistente (no action)', 'SI'], 'NO'],
-      ['testMagnitude', ['Fino a 100', '100–1.000', '1.000–10.000', '>10.000'], '500'],
       ['qa', ['NA', 'SI', 'NO'], 'FORSE'],
     ];
 

@@ -16,6 +16,7 @@ class AdminServiceStub {
 const mockQ = (override: Partial<AdminQuotation> = {}): AdminQuotation => ({
   id: 'q1', projectCode: 'PRJ1234567', projectName: 'Test',
   status: 'INVIATA', totalAmount: 0,
+  manualCapex: null, manualOpex: null, formData: {},
   createdAt: '2026-01-01', updatedAt: '2026-01-01', takenInChargeAt: null,
   createdBy: { id: 'u1', email: 'u@t.it', matricola: 'M01' },
   assignedAdmin: null, ...override,
@@ -68,12 +69,18 @@ describe('QuotationsManagementComponent', () => {
   describe('updateStatus()', () => {
     it('chiama adminService.updateStatus con ID e stato', () => {
       adminStub.updateStatus.and.returnValue(of(mockQ({ status: 'RESPINTA' })));
-      component.updateStatus(mockQ({ status: 'IN VALUTAZIONE' }), 'RESPINTA');
+      const quotation = mockQ({ status: 'IN VALUTAZIONE' });
+      const control = component.getStatusControl(quotation.id);
+      control.setValue('RESPINTA');
+      component.updateStatus(quotation);
       expect(adminStub.updateStatus).toHaveBeenCalledWith('q1', 'RESPINTA');
     });
 
     it('non chiama updateStatus se stato è vuoto', () => {
-      component.updateStatus(mockQ(), '' as any);
+      const quotation = mockQ();
+      const control = component.getStatusControl(quotation.id);
+      control.setValue('');
+      component.updateStatus(quotation);
       expect(adminStub.updateStatus).not.toHaveBeenCalled();
     });
   });

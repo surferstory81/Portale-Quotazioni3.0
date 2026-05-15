@@ -112,10 +112,13 @@ export class AuthService {
       `Utente registrato: ${savedUser.email} — token verifica: ${verificationToken.token}`,
     );
 
-    await this.emailService.sendVerificationEmail(
+    // Send verification email asynchronously (fire-and-forget)
+    this.emailService.sendVerificationEmail(
       savedUser,
       verificationToken.token,
-    );
+    ).catch((error) => {
+      this.logger.error('Failed to send verification email:', error);
+    });
 
     return {
       message:
@@ -324,7 +327,10 @@ export class AuthService {
       `Password reset richiesto per ${user.email} — token: ${resetToken.token}`,
     );
 
-    await this.emailService.sendPasswordResetEmail(user, resetToken.token);
+    // Send password reset email asynchronously (fire-and-forget)
+    this.emailService.sendPasswordResetEmail(user, resetToken.token).catch((error) => {
+      this.logger.error('Failed to send password reset email:', error);
+    });
 
     return {
       message:
@@ -366,7 +372,10 @@ export class AuthService {
 
     this.logger.log(`Verifica email reinviata a ${user.email} — token: ${verificationToken.token}`);
 
-    await this.emailService.sendVerificationEmail(user, verificationToken.token);
+    // Send verification email asynchronously (fire-and-forget)
+    this.emailService.sendVerificationEmail(user, verificationToken.token).catch((error) => {
+      this.logger.error('Failed to resend verification email:', error);
+    });
 
     return {
       message: genericMessage,

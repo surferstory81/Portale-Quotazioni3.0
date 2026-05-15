@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BedrockService } from '../bedrock/bedrock.service';
-import { KnowledgeLoaderService } from '../knowledge/knowledge-loader.service';
-import { EstimationResult } from './estimation-agent.service';
+import { BedrockService } from '../../bedrock/bedrock.service';
+import { KnowledgeLoaderService } from '../../knowledge/knowledge-loader.service';
+import { EstimationResult } from '../estimation/estimation.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -42,10 +42,10 @@ export class ValidationAgentService {
     private readonly bedrockService: BedrockService,
     private readonly knowledgeLoader: KnowledgeLoaderService,
   ) {
-    const skillPath = path.join(__dirname, '../../prompts/validation-agent-prompt.md');
+    const skillPath = path.join(__dirname, 'validation.prompt.md');
     if (fs.existsSync(skillPath)) {
       this.agentSkill = fs.readFileSync(skillPath, 'utf-8');
-      this.logger.log('Validation agent skill loaded');
+      this.logger.log('Validation agent skill loaded from validation.prompt.md');
     } else {
       this.logger.warn('Validation agent skill file not found, using embedded prompt');
       this.agentSkill = this.getDefaultPrompt();
@@ -61,9 +61,9 @@ export class ValidationAgentService {
   ): Promise<ValidationResult> {
     this.logger.log(`Validating estimation ${estimationId}`);
 
-    const knowledgeBase = this.knowledgeLoader.getKnowledgeBase();
+    const knowledgeBaseString = this.knowledgeLoader.getKnowledgeAsString();
 
-    const systemPrompt = this.buildSystemPrompt(knowledgeBase);
+    const systemPrompt = this.buildSystemPrompt(knowledgeBaseString);
     const userMessage = this.buildUserMessage(estimation);
 
     const startTime = Date.now();
@@ -107,16 +107,12 @@ export class ValidationAgentService {
     }
   }
 
-  private buildSystemPrompt(knowledgeBase: any): string {
+  private buildSystemPrompt(knowledgeBase: string): string {
     return `${this.agentSkill}
 
 ## Knowledge Base (for reference)
 
-### Pricing Rules
-${knowledgeBase.pricingRules}
-
-### Validation Thresholds
-${knowledgeBase.validationThresholds}`;
+${knowledgeBase}`;
   }
 
   private buildUserMessage(estimation: EstimationResult): string {

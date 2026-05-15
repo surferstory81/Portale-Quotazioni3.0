@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
-import { EstimationResult } from '../agents/estimation-agent.service';
-import { ValidationResult } from '../agents/validation-agent.service';
+import { EstimationResult } from '../agents/estimation/estimation.service';
+import { ValidationResult } from '../agents/validation/validation.service';
 import { getModelConfigById } from '../config/models.config';
 
 @Injectable()

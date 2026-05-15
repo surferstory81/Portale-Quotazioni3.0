@@ -1,4 +1,4 @@
-# Cost Model Skill
+continuo a non vedere # Cost Model Skill
 
 This document defines the logical and structural cost model used for
 economic quotations in the **Quotazioni Infrastrutturali** application.

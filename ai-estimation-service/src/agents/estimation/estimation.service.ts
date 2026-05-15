@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BedrockService } from '../bedrock/bedrock.service';
-import { KnowledgeLoaderService } from '../knowledge/knowledge-loader.service';
-import { PricingToolsService } from '../tools/pricing-tools.service';
-import { getModelConfigById } from '../config/models.config';
+import { BedrockService } from '../../bedrock/bedrock.service';
+import { KnowledgeLoaderService } from '../../knowledge/knowledge-loader.service';
+import { PricingToolsService } from '../../tools/pricing-tools.service';
+import { getModelConfigById } from '../../config/models.config';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -49,10 +49,10 @@ export class EstimationAgentService {
     private readonly pricingTools: PricingToolsService,
   ) {
     // Load agent skill prompt from file
-    const skillPath = path.join(__dirname, '../../prompts/estimation-agent-prompt.md');
+    const skillPath = path.join(__dirname, 'estimation.prompt.md');
     if (fs.existsSync(skillPath)) {
       this.agentSkill = fs.readFileSync(skillPath, 'utf-8');
-      this.logger.log('Estimation agent skill loaded');
+      this.logger.log('Estimation agent skill loaded from estimation.prompt.md');
     } else {
       this.logger.warn('Estimation agent skill file not found, using embedded prompt');
       this.agentSkill = this.getDefaultPrompt();
@@ -66,8 +66,8 @@ export class EstimationAgentService {
   async generateEstimation(quotationData: QuotationData, modelId?: string): Promise<EstimationResult> {
     this.logger.log(`Generating estimation for quotation ${quotationData.quotation_id}${modelId ? ` with model ${modelId}` : ''}`);
 
-    const knowledgeBase = this.knowledgeLoader.getKnowledgeBase();
-    const systemPrompt = this.buildSystemPrompt(knowledgeBase);
+    const knowledgeBaseString = this.knowledgeLoader.getKnowledgeAsString();
+    const systemPrompt = this.buildSystemPrompt(knowledgeBaseString);
     const userMessage = this.buildUserMessage(quotationData);
     const availableTools = this.pricingTools.getAvailableTools();
 
@@ -142,13 +142,17 @@ export class EstimationAgentService {
       const finalResponse = messages[messages.length - 1];
       const estimationData = this.parseEstimationResponse(finalResponse.content);
 
-      // Calculate cost: Claude Sonnet 4.5 pricing (eu-central-1)
-      // Input: $3 per MTok, Output: $15 per MTok
-      const inputCostPerMillion = 3.0;
-      const outputCostPerMillion = 15.0;
+      // Calculate cost based on model used
+      const modelConfig = modelId ? getModelConfigById(modelId) : null;
+      const inputCostPerMillion = modelConfig?.inputCostPer1M || 3.0; // Default to Sonnet 4.5 pricing
+      const outputCostPerMillion = modelConfig?.outputCostPer1M || 15.0;
       const estimatedCost =
         (totalTokensUsed.input / 1_000_000 * inputCostPerMillion) +
         (totalTokensUsed.output / 1_000_000 * outputCostPerMillion);
+
+      this.logger.log(
+        `Model pricing: ${modelConfig?.displayName || 'default'} (input: $${inputCostPerMillion}/MTok, output: $${outputCostPerMillion}/MTok) = $${estimatedCost.toFixed(6)}`,
+      );
 
       return {
         quotation_id: quotationData.quotation_id,
@@ -159,7 +163,7 @@ export class EstimationAgentService {
         output_tokens: totalTokensUsed.output,
         estimated_cost_usd: estimatedCost,
         model_id: modelId,
-        model_name: modelId ? getModelConfigById(modelId)?.displayName : undefined,
+        model_name: modelConfig?.displayName,
       };
     } catch (error) {
       this.logger.error(`Failed to generate estimation: ${error.message}`);
@@ -170,25 +174,12 @@ export class EstimationAgentService {
   /**
    * Build system prompt with knowledge base context
    */
-  private buildSystemPrompt(knowledgeBase: any): string {
+  private buildSystemPrompt(knowledgeBase: string): string {
     return `${this.agentSkill}
 
 ## Knowledge Base
 
-### Infrastructure Costs
-${knowledgeBase.infrastructureCosts}
-
-### Software Licenses
-${knowledgeBase.softwareLicenses}
-
-### Professional Services
-${knowledgeBase.professionalServices}
-
-### Pricing Rules
-${knowledgeBase.pricingRules}
-
-### Validation Thresholds
-${knowledgeBase.validationThresholds}`;
+${knowledgeBase}`;
   }
 
   /**

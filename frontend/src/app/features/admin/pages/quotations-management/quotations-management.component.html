@@ -51,8 +51,38 @@
             <td>{{ q.projectName }}</td>
             <td>{{ q.createdBy.email }}</td>
             <td>
-              <span *ngIf="q.assignedAdmin" class="admin-badge">{{ q.assignedAdmin.email }}</span>
-              <span *ngIf="!q.assignedAdmin" class="muted">—</span>
+              <div class="assigned-admin-cell">
+                <span *ngIf="q.assignedAdmin" class="admin-badge">{{ q.assignedAdmin.email }}</span>
+                <span *ngIf="!q.assignedAdmin" class="muted">—</span>
+                <button
+                  *ngIf="canReassign(q)"
+                  type="button"
+                  class="btn-icon btn-xs"
+                  title="Riassegna ad altro admin"
+                  (click)="showReassign(q.id)">
+                  ↻
+                </button>
+              </div>
+
+              <!-- Reassign Dialog -->
+              <div *ngIf="isShowingReassign(q.id)" class="reassign-dropdown">
+                <div class="reassign-dropdown-header">
+                  <strong>Riassegna a:</strong>
+                  <button type="button" class="btn-close-sm" (click)="hideReassign(q.id)">×</button>
+                </div>
+                <div class="reassign-dropdown-list">
+                  <button
+                    *ngFor="let admin of adminUsers"
+                    type="button"
+                    class="reassign-option"
+                    [class.active]="admin.id === q.assignedAdmin?.id"
+                    [disabled]="admin.id === q.assignedAdmin?.id || isReassigning(q.id)"
+                    (click)="reassign(q.id, admin.id)">
+                    {{ admin.email }}
+                    <span *ngIf="admin.id === q.assignedAdmin?.id" class="current-badge">Attuale</span>
+                  </button>
+                </div>
+              </div>
             </td>
             <td>
               <span class="badge" [ngClass]="badgeClass(q.status)">{{ q.status }}</span>

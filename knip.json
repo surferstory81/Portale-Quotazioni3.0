@@ -1,0 +1,70 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/**/*.js"],
+      "project": ["scripts/**/*.js"]
+    },
+    "frontend": {
+      "entry": [
+        "src/main.ts",
+        "src/polyfills.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "src/**/*.html",
+        "!src/**/*.spec.ts"
+      ],
+      "ignore": [
+        "**/*.spec.ts",
+        "**/test-setup.ts"
+      ],
+      "angular": {
+        "tags": ["app"]
+      }
+    },
+    "backend": {
+      "entry": [
+        "src/main.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "!src/**/*.spec.ts"
+      ],
+      "ignore": [
+        "**/*.spec.ts",
+        "test/**"
+      ]
+    },
+    "ai-estimation-service": {
+      "entry": [
+        "src/main.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "!src/**/*.spec.ts"
+      ],
+      "ignore": [
+        "**/*.spec.ts",
+        "test/**"
+      ]
+    }
+  },
+  "ignore": [
+    "**/*.spec.ts",
+    "**/*.e2e-spec.ts",
+    "**/test/**",
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/.angular/**",
+    "**/coverage/**",
+    "**/logs/**",
+    "**/*.log"
+  ],
+  "ignoreDependencies": [
+    "@types/*",
+    "typescript",
+    "eslint",
+    "prettier"
+  ]
+}

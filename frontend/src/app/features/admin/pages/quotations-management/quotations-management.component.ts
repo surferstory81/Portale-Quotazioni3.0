@@ -39,6 +39,11 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
   // Expandable rows
   expandedRows: Set<string> = new Set();
 
+  // Reassignment
+  adminUsers: any[] = [];
+  showReassignDialog: Record<string, boolean> = {};
+  reassigningQuotationId: string | null = null;
+
   readonly statusOptions: AllowedStatus[] = ['IN VALUTAZIONE', 'COMPLETATA', 'RESPINTA'];
 
   // Pagination
@@ -56,6 +61,7 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadQuotations();
+    this.loadAdminUsers();
     this.startAutoRefresh();
   }
 
@@ -546,5 +552,57 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
 
   getFormField(quotation: AdminQuotation, field: string): any {
     return quotation.formData?.[field];
+  }
+
+  loadAdminUsers(): void {
+    this.adminService.getUsers().subscribe({
+      next: (users) => {
+        this.adminUsers = users.filter(u => u.role?.name === 'ADMIN');
+      },
+      error: (err: unknown) => {
+        console.error('Failed to load admin users:', err);
+      },
+    });
+  }
+
+  showReassign(quotationId: string): void {
+    this.showReassignDialog[quotationId] = true;
+  }
+
+  hideReassign(quotationId: string): void {
+    this.showReassignDialog[quotationId] = false;
+  }
+
+  isShowingReassign(quotationId: string): boolean {
+    return !!this.showReassignDialog[quotationId];
+  }
+
+  reassign(quotationId: string, newAdminId: string): void {
+    this.clearMessages();
+    this.reassigningQuotationId = quotationId;
+    this.hideReassign(quotationId);
+
+    this.adminService.reassignQuotation(quotationId, newAdminId).subscribe({
+      next: (updated) => {
+        this.applyQuotationUpdate(updated);
+        this.reassigningQuotationId = null;
+        const adminName = this.adminUsers.find(u => u.id === newAdminId)?.email || 'admin';
+        this.successMessage = `Quotazione riassegnata a ${adminName}`;
+        setTimeout(() => this.successMessage = '', 5000);
+      },
+      error: (err: unknown) => {
+        this.errorMessage = this.adminService.extractApiError(err);
+        this.reassigningQuotationId = null;
+      },
+    });
+  }
+
+  isReassigning(quotationId: string): boolean {
+    return this.reassigningQuotationId === quotationId;
+  }
+
+  canReassign(q: AdminQuotation): boolean {
+    // Can reassign if already taken in charge (has assignedAdmin)
+    return !!q.assignedAdmin;
   }
 }

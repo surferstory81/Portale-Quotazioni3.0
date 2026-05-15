@@ -4,11 +4,28 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export interface KnowledgeBase {
-  infrastructureCosts: string;
-  softwareLicenses: string;
-  professionalServices: string;
-  pricingRules: string;
-  validationThresholds: string;
+  // Costs
+  costs: {
+    devopsPipeline: string;
+    qaInfrastructure: string;
+    loadTesting: string;
+    dynatraceMonitoring: string;
+    professionalServices: string;
+    professionalServicesCosts: string;
+    infrastructure: string;
+    softwareLicenses: string;
+  };
+
+  // Rules
+  rules: {
+    pricing: string;
+    projectClassification: string;
+  };
+
+  // Mapping
+  mapping: {
+    fieldToCost: string;
+  };
 }
 
 @Injectable()
@@ -18,7 +35,8 @@ export class KnowledgeLoaderService implements OnModuleInit {
   private readonly basePath: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.basePath = this.configService.get<string>('knowledgeBase.path');
+    // New path: src/knowledge/
+    this.basePath = path.join(__dirname, '../knowledge');
   }
 
   async onModuleInit() {
@@ -28,24 +46,65 @@ export class KnowledgeLoaderService implements OnModuleInit {
   }
 
   /**
-   * Load all knowledge base markdown files
+   * Load all knowledge base markdown files from organized structure
    */
   private async loadKnowledgeBase(): Promise<void> {
     const files = {
-      infrastructureCosts: 'infrastructure-costs.md',
-      softwareLicenses: 'software-licenses.md',
-      professionalServices: 'professional-services.md',
-      pricingRules: 'pricing-rules.md',
-      validationThresholds: 'validation-thresholds.md',
+      costs: {
+        devopsPipeline: 'costs/devops-pipeline-costs.md',
+        qaInfrastructure: 'costs/qa-quality-assurance-costs.md',
+        loadTesting: 'costs/load-testing-costs.md',
+        dynatraceMonitoring: 'costs/dynatrace-dashboard-costs.md',
+        professionalServices: 'costs/professional-services.md',
+        professionalServicesCosts: 'costs/professional-services-costs.md',
+        infrastructure: 'costs/infrastructure-costs.md',
+        softwareLicenses: 'costs/software-licenses.md',
+      },
+      rules: {
+        pricing: 'rules/pricing-rules.md',
+        projectClassification: 'rules/project-classification-bands.md',
+      },
+      mapping: {
+        fieldToCost: 'mapping/field-to-cost-mapping.md',
+      },
     };
 
-    this.knowledgeBase = {} as KnowledgeBase;
+    this.knowledgeBase = {
+      costs: {} as any,
+      rules: {} as any,
+      mapping: {} as any,
+    };
 
-    for (const [key, filename] of Object.entries(files)) {
+    // Load costs
+    for (const [key, filename] of Object.entries(files.costs)) {
       const filePath = path.join(this.basePath, filename);
       try {
-        this.knowledgeBase[key] = fs.readFileSync(filePath, 'utf-8');
-        this.logger.debug(`Loaded ${filename} (${this.knowledgeBase[key].length} bytes)`);
+        this.knowledgeBase.costs[key] = fs.readFileSync(filePath, 'utf-8');
+        this.logger.debug(`Loaded ${filename} (${this.knowledgeBase.costs[key].length} bytes)`);
+      } catch (error) {
+        this.logger.error(`Failed to load ${filename}: ${error.message}`);
+        throw new Error(`Knowledge base file missing: ${filename}`);
+      }
+    }
+
+    // Load rules
+    for (const [key, filename] of Object.entries(files.rules)) {
+      const filePath = path.join(this.basePath, filename);
+      try {
+        this.knowledgeBase.rules[key] = fs.readFileSync(filePath, 'utf-8');
+        this.logger.debug(`Loaded ${filename} (${this.knowledgeBase.rules[key].length} bytes)`);
+      } catch (error) {
+        this.logger.error(`Failed to load ${filename}: ${error.message}`);
+        throw new Error(`Knowledge base file missing: ${filename}`);
+      }
+    }
+
+    // Load mapping
+    for (const [key, filename] of Object.entries(files.mapping)) {
+      const filePath = path.join(this.basePath, filename);
+      try {
+        this.knowledgeBase.mapping[key] = fs.readFileSync(filePath, 'utf-8');
+        this.logger.debug(`Loaded ${filename} (${this.knowledgeBase.mapping[key].length} bytes)`);
       } catch (error) {
         this.logger.error(`Failed to load ${filename}: ${error.message}`);
         throw new Error(`Knowledge base file missing: ${filename}`);
@@ -64,13 +123,31 @@ export class KnowledgeLoaderService implements OnModuleInit {
   }
 
   /**
-   * Get a specific knowledge base file
+   * Get all knowledge as concatenated string (for backward compatibility)
    */
-  getFile(key: keyof KnowledgeBase): string {
-    if (!this.knowledgeBase) {
-      throw new Error('Knowledge base not loaded');
-    }
-    return this.knowledgeBase[key];
+  getKnowledgeAsString(): string {
+    const kb = this.getKnowledgeBase();
+
+    const sections = [
+      '# KNOWLEDGE BASE - COSTS',
+      kb.costs.devopsPipeline,
+      kb.costs.qaInfrastructure,
+      kb.costs.loadTesting,
+      kb.costs.dynatraceMonitoring,
+      kb.costs.professionalServices,
+      kb.costs.professionalServicesCosts,
+      kb.costs.infrastructure,
+      kb.costs.softwareLicenses,
+      '',
+      '# KNOWLEDGE BASE - RULES',
+      kb.rules.pricing,
+      kb.rules.projectClassification,
+      '',
+      '# KNOWLEDGE BASE - MAPPING',
+      kb.mapping.fieldToCost,
+    ];
+
+    return sections.join('\n\n');
   }
 
   /**

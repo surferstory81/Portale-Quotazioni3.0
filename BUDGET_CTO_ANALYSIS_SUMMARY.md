@@ -18,35 +18,35 @@ Defines project classification bands based on complexity and impact criteria. Th
 
 ### Budget Bands Structure
 
-| Criterion | NO IMPATTI CTO | LIGHT | MEDIUM | COMPLESSO | SPECIALE |
-|-----------|---------------|-------|--------|-----------|----------|
-| **Example Project** | - | New Mobile App Functions | DOL Evolution | CORPORATE | FREE/Open Finance |
-| **Project Budget (k, i.i.)** | - | Up to 500 | 500-1,000 | 1,000-5,000 | > 5,000 |
-| **Project Duration** | - | 1-6 months | 7-9 months | > 1 year | Multi-year |
-| **Architectural/Infrastructure Impact** | NO | YES | YES | YES | YES |
-| **Impact Magnitude** | NA | Limited | Moderate | Considerable | Substantial |
-| **Technological Impact** | NA | Continuity with AS IS | Tech evolution (no new) | Evolution/new tech | Tech change |
-| **Service Risk** | NA | Minimal | Moderate | Relevant | Radical |
-| **Pipeline** | NA | Max 10 | 10-30 | 30-60 | > 60 |
-| **Number of Microservices** | NA | 0-15 new containers | 16-30 new containers | 31-100 new containers | > 100 new containers |
-| **Database Impact (Dip)** | NA | < 1 TB | 1-10 TB | 10-50 TB | > 50 TB |
-| **Database Impact (Host)** | NA | < 10 GB | 10-50 GB | 50-100 GB | > 100 GB |
-| **Computing Power** | NA | 0-30 cores | 30-60 cores | 60-200 cores | > 200 cores |
-| **Batch Scheduling** | NA | 0-30 | 30-60 | 60-200 | > 200 |
-| **Monitoring Systems** | NA | Existing (no action) | YES | YES | YES |
-| **Observability** | NA | Existing (no action) | YES | YES | YES |
-| **Test Magnitude** | NA | Up to 100 Test Cases | 100-1,000 Test Cases | 1,000-10,000 Test Cases | > 10,000 Test Cases |
-| **Test Complexity** | NA | Low | Medium | High | High |
+| Criterion                               | NO IMPATTI CTO | LIGHT                    | MEDIUM                  | COMPLESSO               | SPECIALE             |
+|-----------------------------------------|----------------|--------------------------|-------------------------|-------------------------|----------------------|
+| **Example Project**                     | -              | New Mobile App Functions | DOL Evolution           | CORPORATE               | FREE/Open Finance    |
+| **Project Budget (k, i.i.)**            | -              | Up to 500                | 500-1,000               | 1,000-5,000             | > 5,000              |
+| **Project Duration**                    | -              | 1-6 months               | 7-9 months              | > 1 year                | Multi-year           |
+| **Architectural/Infrastructure Impact** | NO             | YES                      | YES                     | YES                     | YES                  |
+| **Impact Magnitude**                    | NA             | Limited                  | Moderate                | Considerable            | Substantial          |
+| **Technological Impact**                | NA             | Continuity with AS IS    | Tech evolution (no new) | Evolution/new tech      | Tech change          |
+| **Service Risk**                        | NA             | Minimal                  | Moderate                | Relevant                | Radical              |
+| **Pipeline**                            | NA             | Max 10                   | 10-30                   | 30-60                   | > 60                 |
+| **Number of Microservices**             | NA             | 0-15 new containers      | 16-30 new containers    | 31-100 new containers   | > 100 new containers |
+| **Database Impact (Dip)**               | NA             | < 1 TB                   | 1-10 TB                 | 10-50 TB                | > 50 TB              |
+| **Database Impact (Host)**              | NA             | < 10 GB                  | 10-50 GB                | 50-100 GB               | > 100 GB             |
+| **Computing Power**                     | NA             | 0-30 cores               | 30-60 cores             | 60-200 cores            | > 200 cores          |
+| **Batch Scheduling**                    | NA             | 0-30                     | 30-60                   | 60-200                  | > 200                |
+| **Monitoring Systems**                  | NA             | Existing (no action)     | YES                     | YES                     | YES                  |
+| **Observability**                       | NA             | Existing (no action)     | YES                     | YES                     | YES                  |
+| **Test Magnitude**                      | NA             | Up to 100 Test Cases     | 100-1,000 Test Cases    | 1,000-10,000 Test Cases | > 10,000 Test Cases  |
+| **Test Complexity**                     | NA             | Low                      | Medium                  | High                    | High                 |
 
 ### CTO Cost Estimates by Band
 
-| Band | Total CTO Estimate (k, i.i.) | OPEX | CAPEX |
-|------|----------------------------|------|-------|
-| **NO IMPATTI CTO** | No macro-estimate | - | - |
-| **LIGHT** | 50-100 | 20-40 | 40-60 |
-| **MEDIUM** | 100-200 | 40-90 | 60-110 |
-| **COMPLESSO** | 200-500 | 90-275 | 110-225 |
-| **SPECIALE** | To be determined based on specifics | - | - |
+| Band               | Total CTO Estimate (k, i.i.)        | OPEX   | CAPEX   |
+|--------------------|-------------------------------------|--------|---------|
+| **NO IMPATTI CTO** | No macro-estimate                   | -      | -       |
+| **LIGHT**          | 50-100                              | 20-40  | 40-60   |
+| **MEDIUM**         | 100-200                             | 40-90  | 60-110  |
+| **COMPLESSO**      | 200-500                             | 90-275 | 110-225 |
+| **SPECIALE**       | To be determined based on specifics | -      | -       |
 
 **Key Decision Rule:** The presence of **at least one** parameter from a band is sufficient to classify the project in that band.
 

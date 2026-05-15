@@ -52,7 +52,11 @@ export class QuotationsService {
 
     const savedQuotation = await this.quotationRepo.save(quotation);
 
-    await this.emailService.sendNewQuotationEmail(savedQuotation, user);
+    // Send email asynchronously (fire-and-forget) to avoid blocking the response
+    this.emailService.sendNewQuotationEmail(savedQuotation, user).catch((error) => {
+      // Log error but don't fail the request
+      console.error('Failed to send new quotation email:', error);
+    });
 
     // AI estimation will be triggered when admin takes the quotation in charge
 
@@ -232,9 +236,6 @@ export class QuotationsService {
     if (!formData.observability) {
       errors.push('Observability');
     }
-    if (!formData.testMagnitude) {
-      errors.push('Magnitudo test');
-    }
     if (!formData.qa) {
       errors.push('QA');
     }
@@ -250,10 +251,14 @@ export class QuotationsService {
 
     const savedQuotation = await this.quotationRepo.save(quotation);
 
-    await this.emailService.sendNewQuotationEmail(
+    // Send email asynchronously (fire-and-forget) to avoid blocking the response
+    this.emailService.sendNewQuotationEmail(
       savedQuotation,
       quotation.createdBy,
-    );
+    ).catch((error) => {
+      // Log error but don't fail the request
+      console.error('Failed to send draft submission email:', error);
+    });
 
     return savedQuotation;
   }
@@ -435,8 +440,12 @@ export class QuotationsService {
       scheduledBatches: dto.scheduledBatches,
       monitoringSystems: dto.monitoringSystems,
       observability: dto.observability,
-      testMagnitude: dto.testMagnitude,
       qa: dto.qa,
+      isThirdPartyApp: dto.isThirdPartyApp,
+      isAppliance: dto.isAppliance,
+      hasExistingPipelines: dto.hasExistingPipelines,
+      requiresFeasibilityStudy: dto.requiresFeasibilityStudy,
+      requiresRfcSupport: dto.requiresRfcSupport,
     };
   }
 }

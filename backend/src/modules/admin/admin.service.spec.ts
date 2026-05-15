@@ -133,11 +133,13 @@ describe('AdminService', () => {
   // ── updateQuotationStatus ─────────────────────────────────────────────────
 
   describe('updateQuotationStatus()', () => {
+    const admin = mockAdmin();
+
     it('permette transizione IN_VALUTAZIONE → RESPINTA', async () => {
       const q = mockQuotation({ status: QuotationStatus.IN_VALUTAZIONE });
       quotationRepo.findOne.mockResolvedValue(q);
       quotationRepo.save.mockImplementation(async (s) => s);
-      const result = await service.updateQuotationStatus('quot-1', 'RESPINTA');
+      const result = await service.updateQuotationStatus('quot-1', 'RESPINTA', admin);
       expect(result.status).toBe(QuotationStatus.RESPINTA);
     });
 
@@ -145,27 +147,36 @@ describe('AdminService', () => {
       const q = mockQuotation({ status: QuotationStatus.IN_VALUTAZIONE, totalAmount: 5000 });
       quotationRepo.findOne.mockResolvedValue(q);
       quotationRepo.save.mockImplementation(async (s) => s);
-      await expect(service.updateQuotationStatus('quot-1', 'COMPLETATA')).resolves.toBeDefined();
+      await expect(service.updateQuotationStatus('quot-1', 'COMPLETATA', admin)).resolves.toBeDefined();
     });
 
     it('invia email completamento quando quota → COMPLETATA', async () => {
       const q = mockQuotation({ status: QuotationStatus.IN_VALUTAZIONE, totalAmount: 5000 });
       quotationRepo.findOne.mockResolvedValue(q);
       quotationRepo.save.mockImplementation(async (s) => s);
-      await service.updateQuotationStatus('quot-1', 'COMPLETATA');
+      await service.updateQuotationStatus('quot-1', 'COMPLETATA', admin);
       expect(emailService.sendQuotationCompletedEmail).toHaveBeenCalled();
     });
 
     it('lancia BadRequestException per transizione INVIATA → COMPLETATA', async () => {
       const q = mockQuotation({ status: QuotationStatus.INVIATA });
       quotationRepo.findOne.mockResolvedValue(q);
-      await expect(service.updateQuotationStatus('quot-1', 'COMPLETATA')).rejects.toThrow(BadRequestException);
+      await expect(service.updateQuotationStatus('quot-1', 'COMPLETATA', admin)).rejects.toThrow(BadRequestException);
     });
 
     it('lancia BadRequestException se COMPLETATA senza totalAmount', async () => {
       const q = mockQuotation({ status: QuotationStatus.IN_VALUTAZIONE, totalAmount: 0 });
       quotationRepo.findOne.mockResolvedValue(q);
-      await expect(service.updateQuotationStatus('quot-1', 'COMPLETATA')).rejects.toThrow(BadRequestException);
+      await expect(service.updateQuotationStatus('quot-1', 'COMPLETATA', admin)).rejects.toThrow(BadRequestException);
+    });
+
+    it('auto-assegna admin quando si cambia a IN_VALUTAZIONE senza presa in carico', async () => {
+      const q = mockQuotation({ status: QuotationStatus.INVIATA, assignedAdmin: null, takenInChargeAt: null });
+      quotationRepo.findOne.mockResolvedValue(q);
+      quotationRepo.save.mockImplementation(async (s) => s);
+      const result = await service.updateQuotationStatus('quot-1', 'IN VALUTAZIONE', admin);
+      expect(result.assignedAdmin).toBe(admin);
+      expect(result.takenInChargeAt).toBeDefined();
     });
   });
 

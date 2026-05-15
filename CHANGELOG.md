@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **AI agent architecture reorganization**: Clearer project structure for AI components
+  - Agents now organized in `src/agents/{agent-name}/` with service + prompt + README
+  - Knowledge base organized in `src/knowledge/{costs|rules|mapping}/` (shared across agents)
+  - Each agent has dedicated documentation explaining purpose, workflow, and development
+- **Multi-model comparison test script**: `scripts/test-multi-model-comparison.js`
+  - Tests Sonnet 4.5, Opus 4.7, Haiku 4.5 side-by-side
+  - Compares CAPEX/OPEX, token usage, cost, latency, validation issues
+  - Provides recommendation based on variance and cost/performance tradeoff
+- **Architecture documentation**: `ai-estimation-service/ARCHITECTURE.md`
+  - Complete guide to agent-based architecture pattern
+  - Knowledge base organization and updating procedures
+  - Multi-model support and performance optimization strategies
+
+### Changed
+- **Knowledge loader refactored**: New structured interface for organized knowledge access
+  - `getKnowledgeAsString()` method for backward compatibility
+  - Automatic loading from organized directory structure
+- **Agent services relocated**: Moved from `src/agents/*.service.ts` to `src/agents/{agent}/agent.service.ts`
+  - `estimation-agent.service.ts` → `agents/estimation/estimation.service.ts`
+  - `validation-agent.service.ts` → `agents/validation/validation.service.ts`
+- **Prompts collocated**: Moved from `prompts/*.md` to `agents/{agent}/*.prompt.md`
+
 ## [1.1.4] - 2026-05-15
 
 ### Fixed

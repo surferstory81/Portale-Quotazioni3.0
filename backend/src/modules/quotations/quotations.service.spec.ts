@@ -60,10 +60,13 @@ const baseDto = (): CreateQuotationDto => ({
   integrationsWithInternalSystems: true,
   saasProduct: false,
   monitoringOrSecurityTool: false,
+  isThirdPartyApp: false,
+  isAppliance: false,
   expectedReleases: 4,
   projectType: 'Nuovo',
   serviceRisk: 'Moderato',
-  pipeline: '10-30',
+  pipeline: '< 5',
+  hasExistingPipelines: false,
   microservicesCount: 5,
   hasDatabaseImpactDip: true,
   hasSqlDbType: true,
@@ -73,8 +76,9 @@ const baseDto = (): CreateQuotationDto => ({
   scheduledBatches: 2,
   monitoringSystems: 'SI',
   observability: 'SI',
-  testMagnitude: '100–1.000',
   qa: 'SI',
+  requiresFeasibilityStudy: false,
+  requiresRfcSupport: false,
 } as CreateQuotationDto);
 
 // ── mock factories ────────────────────────────────────────────────────────────

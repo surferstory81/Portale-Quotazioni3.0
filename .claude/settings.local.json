@@ -14,7 +14,12 @@
       "Bash(findstr \":3001\")",
       "Bash(findstr \"LISTENING\")",
       "Bash(findstr \":3000\")",
-      "Bash(curl -X POST http://localhost:3001/api/estimation/process -H 'Content-Type: application/json' -H 'Authorization: Bearer change-me-backend-service-token' -d '{\"quotation_id\":\"test-123\",\"user_id\":\"test-user\",\"project_code\":\"TEST001\",\"status\":\"IN VALUTAZIONE\"}' -v)"
+      "Bash(curl -X POST http://localhost:3001/api/estimation/process -H 'Content-Type: application/json' -H 'Authorization: Bearer change-me-backend-service-token' -d '{\"quotation_id\":\"test-123\",\"user_id\":\"test-user\",\"project_code\":\"TEST001\",\"status\":\"IN VALUTAZIONE\"}' -v)",
+      "Bash(mv knowledge/pricing-rules.md src/knowledge/rules/)",
+      "Bash(mv knowledge/project-classification-bands.md src/knowledge/rules/)",
+      "Bash(mv knowledge/field-to-cost-mapping.md src/knowledge/mapping/)",
+      "Bash(mv knowledge/professional-services.md src/knowledge/costs/)",
+      "Bash(mv knowledge/README.md src/knowledge/)"
     ]
   },
   "validation": {

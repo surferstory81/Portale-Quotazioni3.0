@@ -36,6 +36,9 @@ export class EmailService {
       port,
       secure,
       auth: user && pass ? { user, pass } : undefined,
+      connectionTimeout: 10000, // 10 seconds max for connection
+      greetingTimeout: 10000,   // 10 seconds max for greeting
+      socketTimeout: 15000,     // 15 seconds max for socket inactivity
     });
   }
 
@@ -154,8 +157,8 @@ export class EmailService {
       return;
     }
 
-    const maxAttempts = 3;
-    const retryDelayMs = 5000;
+    const maxAttempts = 2; // Reduced from 3 to avoid long waits
+    const retryDelayMs = 2000; // Reduced from 5000ms to 2000ms
     const recipient = params.to.join(', ');
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {

@@ -1,7 +1,7 @@
 import { Controller, Post, Body, UseGuards, Logger, Get, Param, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { EstimationAgentService } from '../agents/estimation-agent.service';
-import { ValidationAgentService } from '../agents/validation-agent.service';
+import { EstimationAgentService } from '../agents/estimation/estimation.service';
+import { ValidationAgentService } from '../agents/validation/validation.service';
 import { BackendApiService } from '../queue/backend-api.service';
 import { ExportService } from './export.service';
 import { ServiceAuthGuard } from '../guards/service-auth.guard';

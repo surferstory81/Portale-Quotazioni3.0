@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { EstimationAgentService } from './estimation-agent.service';
-import { ValidationAgentService } from './validation-agent.service';
+import { EstimationAgentService } from './estimation/estimation.service';
+import { ValidationAgentService } from './validation/validation.service';
 import { BedrockModule } from '../bedrock/bedrock.module';
 import { KnowledgeLoaderModule } from '../knowledge/knowledge-loader.module';
 import { ToolsModule } from '../tools/tools.module';
