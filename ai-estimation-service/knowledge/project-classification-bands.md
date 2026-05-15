@@ -1,7 +1,7 @@
 # Project Classification Bands - Fasce Budget CTO
 
 **Source:** Budget CTO v2.1 - Tab "Fasce Budget CTO"  
-**Last Updated:** 2026-05-08  
+**Last Updated:** 2026-05-12  
 **Purpose:** Classification criteria for project complexity and CTO budget allocation
 
 ---
@@ -14,16 +14,29 @@ Projects are classified into complexity bands based on **technical and operation
 
 ---
 
+## ⚠️ IMPORTANT: Budget Ranges are Indicative
+
+**The CAPEX and OPEX ranges provided in each band are high-level indicative guidelines only.**
+
+- **Actual costs may vary significantly** based on specific project characteristics, vendor contracts, technological choices, and architectural decisions
+- **Ranges serve as sanity checks** for classification validation, not as rigid limits
+- **Bottom-up estimation is authoritative**: Always calculate costs from detailed requirements; if the calculated estimate falls outside the band's typical range, the estimate takes precedence over the band range
+- **Flag significant deviations**: If estimate differs by >30% from band range, document the reason but do not force-fit the estimate into the range
+
+**Example**: A LIGHT project (by technical criteria) may legitimately cost €120k if it requires specialized software licenses or cloud services, even though the typical LIGHT range is €50-100k. The classification remains LIGHT, but the estimate reflects actual costs.
+
+---
+
 ## Estimation Accuracy by Band
 
 Target accuracy for cost estimates based on project complexity:
 
-| Band | Target Accuracy | Reasoning |
-|------|----------------|-----------|
-| **LIGHT** | ±20% | Small scope, limited complexity, higher uncertainty |
-| **MEDIUM** | ±15% | Moderate scope, better defined requirements |
-| **COMPLESSO** | ±10% | Large scope, detailed requirements, comprehensive analysis |
-| **SPECIALE** | ±10% (with custom review) | Strategic initiatives require detailed custom evaluation |
+| Band          | Target Accuracy           | Reasoning                                                  |
+|---------------|---------------------------|------------------------------------------------------------|
+| **LIGHT**     | ±20%                      | Small scope, limited complexity, higher uncertainty        |
+| **MEDIUM**    | ±15%                      | Moderate scope, better defined requirements                |
+| **COMPLESSO** | ±10%                      | Large scope, detailed requirements, comprehensive analysis |
+| **SPECIALE**  | ±10% (with custom review) | Strategic initiatives require detailed custom evaluation   |
 
 **Note:** These accuracy targets apply to the AI-generated estimate. Final estimates should be reviewed by CTO office.
 
@@ -33,12 +46,12 @@ Target accuracy for cost estimates based on project complexity:
 
 Contingency buffers to be added to base estimates based on project risk:
 
-| Service Risk Level | Contingency Buffer | Application |
-|--------------------|-------------------|-------------|
-| **Minimal** (LIGHT) | +10% | Low business impact, well-understood technologies |
-| **Moderate** (MEDIUM) | +15% | Medium business impact, some new technologies |
-| **Relevant** (COMPLESSO) | +20% | High business impact, complex integrations |
-| **Radical** (SPECIALE) | +25-30% | Critical business services, major technology changes |
+| Service Risk Level       | Contingency Buffer | Application                                          |
+|--------------------------|--------------------|------------------------------------------------------|
+| **Minimal** (LIGHT)      | +10%               | Low business impact, well-understood technologies    |
+| **Moderate** (MEDIUM)    | +15%               | Medium business impact, some new technologies        |
+| **Relevant** (COMPLESSO) | +20%               | High business impact, complex integrations           |
+| **Radical** (SPECIALE)   | +25-30%            | Critical business services, major technology changes |
 
 **Formula:** `Final_Estimate = Base_Estimate * (1 + Contingency_Percentage)`
 
@@ -46,22 +59,19 @@ Contingency buffers to be added to base estimates based on project risk:
 
 ---
 
-## Testing Effort by Test Magnitude
+## Testing Effort - OUT OF SCOPE
 
-Estimated testing effort as percentage of total development time:
+**⚠️ APPLICATION TESTING IS NO LONGER WITHIN CTO SCOPE**
 
-| Test Magnitude | Test Cases | Testing Effort % | Activities Included |
-|----------------|-----------|------------------|---------------------|
-| **Bassa** | <100 | 15% | Unit testing, basic functional testing |
-| **Media** | 100-1,000 | 20% | Unit + integration + functional testing |
-| **Alta** | 1,000-10,000 | 25% | Unit + integration + functional + performance + security |
-| **Very High** | >10,000 | 30% | Comprehensive testing + compliance + UAT + load testing |
+Application testing activities (unit testing, functional testing, UAT, etc.) are **not included in CTO budget estimates** as they are managed and funded by application teams outside of CTO's area of responsibility.
 
-**Formula:** `Testing_Effort_Days = Development_Days * Testing_Percentage`
+**What remains in scope for CTO:**
+- Infrastructure testing (performance, load, stress testing of infrastructure components)
+- Infrastructure validation and smoke tests
+- Disaster recovery and backup testing
 
-**Example:** 120 development days with Media test magnitude → 120 * 0.20 = 24 testing days
-
-**Note:** Testing effort is included in CAPEX (QA activities) in budget estimates.
+**Deprecated fields (removed from classification):**
+- Application testing fields (testMagnitude, testCases) → Outside CTO scope, not used for classification or cost estimation
 
 ---
 
@@ -217,12 +227,12 @@ Estimated testing effort as percentage of total development time:
 | Band           | Number of Pipelines |
 |----------------|---------------------|
 | NO IMPATTI CTO | N/A                 |
-| LIGHT          | Max 10              |
-| MEDIUM         | 10 - 30             |
-| COMPLESSO      | 30 - 60             |
-| SPECIALE       | > 60                |
+| LIGHT          | Max 5               |
+| MEDIUM         | 5 - 15              |
+| COMPLESSO      | 15 - 40             |
+| SPECIALE       | > 40                |
 
-**Note:** This refers to the total number of CI/CD pipelines to be created or modified for the project.
+**Note:** This refers to the total number of CI/CD pipelines to be created or modified for the project. Thresholds aligned to market standards where typical ratio is ~1 pipeline every 2-3 microservices.
 
 ---
 
@@ -328,36 +338,16 @@ Estimated testing effort as percentage of total development time:
 
 ---
 
-### 15. Test Magnitude
-
-| Band           | Test Cases                |
-|----------------|---------------------------|
-| NO IMPATTI CTO | N/A                       |
-| LIGHT          | Up to 100 Test Cases      |
-| MEDIUM         | 100 - 1,000 Test Cases    |
-| COMPLESSO      | 1,000 - 10,000 Test Cases |
-| SPECIALE       | > 10,000 Test Cases       |
-
-**Mapping to Form Field:** `testMagnitude`
-
 ---
 
-### 16. Test Complexity
-
-| Band           | Complexity Level                                          |
-|----------------|-----------------------------------------------------------|
-| NO IMPATTI CTO | N/A                                                       |
-| LIGHT          | Low (basic functional testing)                            |
-| MEDIUM         | Medium (integration testing, performance testing)         |
-| COMPLESSO      | High (end-to-end, security, compliance testing)           |
-| SPECIALE       | High (comprehensive test strategy, multiple environments) |
+**NOTE:** Criteria 15-16 (Test Magnitude, Test Complexity) have been removed as application testing is outside CTO scope.
 
 ---
 
 ## Classification Algorithm
 
 ### Step 1: Evaluate All Criteria
-For each criterion (1-16), determine which band the project falls into based on the criterion's value.
+For each criterion (1-14), determine which band the project falls into based on the criterion's value.
 
 ### Step 2: Apply "Most Restrictive" Rule
 The project is classified into the **highest band** that **at least one criterion** matches.
@@ -365,7 +355,7 @@ The project is classified into the **highest band** that **at least one criterio
 **Example:**
 - microservicesCount = 8 → LIGHT (0-15)
 - computeCores = 45 → MEDIUM (30-60)
-- testMagnitude = "Alta" (5,000 cases) → COMPLESSO (1,000-10,000)
+- pipeline = 25 → COMPLESSO (15-40)
 
 **Result:** Project is **COMPLESSO** (highest band matched by at least one criterion).
 
@@ -392,7 +382,6 @@ When classifying a project:
    - scheduledBatches
    - monitoringSystems
    - observability
-   - testMagnitude
 
 2. **Map Each Field to Band Thresholds:**
    - Compare field value against criteria table
@@ -409,7 +398,7 @@ When classifying a project:
 
 5. **Document Classification:**
    - List which criteria triggered the classification
-   - Example: "Project classified as COMPLESSO due to: computeCores=80 (60-200 range), testMagnitude=Alta (1,000-10,000 test cases)"
+   - Example: "Project classified as COMPLESSO due to: computeCores=80 (60-200 range), pipeline=25 (15-40 range)"
 
 ---
 
@@ -422,7 +411,6 @@ When classifying a project:
 - computeCores: 16
 - storageGb: 50
 - projectDuration: "3 mesi"
-- testMagnitude: "Bassa" (~50 test cases)
 
 **Analysis:**
 - Microservices: 5 → LIGHT (0-15)
@@ -444,7 +432,6 @@ When classifying a project:
 - computeCores: 40
 - storageGb: 300 (with hasDatabaseImpactDip = true → 0.3 TB DIP)
 - projectDuration: "6 mesi"
-- testMagnitude: "Media" (~500 test cases)
 
 **Analysis:**
 - Microservices: 20 → MEDIUM (16-30)
@@ -466,7 +453,6 @@ When classifying a project:
 - computeCores: 120
 - storageGb: 2000 (with hasDatabaseImpactDip = true → 2 TB DIP)
 - projectDuration: "18 mesi"
-- testMagnitude: "Alta" (~3,000 test cases)
 - serviceRisk: "Alto"
 
 **Analysis:**

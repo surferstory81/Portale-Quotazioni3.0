@@ -17,13 +17,33 @@ export interface ListQuotationsFilters {
 }
 
 export interface CreateQuotationPayload {
+  // Project Information
   projectCode: string;
   projectName: string;
   projectStartDate: string;
   projectEndDate: string;
   projectDuration: string;
   projectBudget: string;
+  projectType: string; // 'New' | 'Evolution' | 'CIF'
+  serviceRisk: string;
   architecturalImpact: string;
+
+  // Application Characteristics
+  isThirdPartyApp: boolean;
+  isAppliance: boolean;
+  developedInternally: boolean;
+  developedByExternalVendors: boolean;
+  hasCaIntellectualProperty: boolean;
+  serviceExposure: boolean;
+  marketProduct: boolean;
+  saasProduct: boolean;
+  monitoringOrSecurityTool: boolean;
+  serviceConsumer: string;
+  serviceVolumesPerDay: number;
+  technologicalImpact: string;
+  impactEntity: string;
+
+  // Infrastructure & Compute
   cloudSaas: boolean;
   cloudIaasPaasLandingZoneCa: boolean;
   hostMainframe: boolean;
@@ -31,34 +51,30 @@ export interface CreateQuotationPayload {
   needNewInfrastructure: boolean;
   infraOnVm: boolean;
   infraMicroservices: boolean;
-  impactEntity: string;
-  serviceConsumer: string;
-  serviceVolumesPerDay: number;
-  technologicalImpact: string;
-  developedInternally: boolean;
-  developedByExternalVendors: boolean;
-  hasCaIntellectualProperty: boolean;
-  serviceExposure: boolean;
-  marketProduct: boolean;
-  dependenciesWithExternalServices: boolean;
-  integrationsWithInternalSystems: boolean;
-  saasProduct: boolean;
-  monitoringOrSecurityTool: boolean;
-  expectedReleases: number;
-  projectType: string;
-  serviceRisk: string;
-  pipeline: string;
+  computeCores: number;
+  storageGb: number;
   microservicesCount: number;
+  scheduledBatches: number;
+
+  // Database & Data
   hasDatabaseImpactDip: boolean;
   hasSqlDbType: boolean;
   hasDatabaseImpactHostDb2: boolean;
-  storageGb: number;
-  computeCores: number;
-  scheduledBatches: number;
+  hasPostgresDatabase: boolean;
+  hasMongoDatabase: boolean;
+  dedicatedSqlCluster: boolean;
+
+  // Monitoring & DevOps
   monitoringSystems: string;
   observability: string;
-  testMagnitude: string;
+  pipeline: string;
+  hasExistingPipelines: boolean;
+  expectedReleases: number;
+  dependenciesWithExternalServices: boolean;
+  integrationsWithInternalSystems: boolean;
   qa: string;
+  requiresFeasibilityStudy: boolean;
+  requiresRfcSupport: boolean;
 }
 
 export type SaveDraftPayload = Partial<CreateQuotationPayload>;

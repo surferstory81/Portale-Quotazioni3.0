@@ -86,6 +86,9 @@ export interface AIQuotationData {
     database: {
       has_dip_impact: boolean;
       has_sql_db: boolean;
+      dedicated_sql_cluster: boolean;
+      has_postgres_db: boolean;
+      has_mongo_db: boolean;
       has_host_db2_impact: boolean;
     };
 
@@ -99,7 +102,7 @@ export interface AIQuotationData {
     // Testing & QA
     testing: {
       qa_required: string;
-      test_magnitude: string;
+      // test_magnitude removed - application testing is out of CTO scope
     };
   };
 }
@@ -172,6 +175,9 @@ export function transformQuotationForAI(backendQuotation: BackendQuotation): AIQ
       database: {
         has_dip_impact: fd.hasDatabaseImpactDip === true,
         has_sql_db: fd.hasSqlDbType === true,
+        dedicated_sql_cluster: fd.dedicatedSqlCluster === true,
+        has_postgres_db: fd.hasPostgresDatabase === true,
+        has_mongo_db: fd.hasMongoDatabase === true,
         has_host_db2_impact: fd.hasDatabaseImpactHostDb2 === true,
       },
 
@@ -183,7 +189,7 @@ export function transformQuotationForAI(backendQuotation: BackendQuotation): AIQ
 
       testing: {
         qa_required: fd.qa,
-        test_magnitude: fd.testMagnitude,
+        // testMagnitude removed - application testing is out of CTO scope
       },
     },
   };

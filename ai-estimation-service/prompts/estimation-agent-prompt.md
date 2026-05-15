@@ -62,17 +62,18 @@ Use `project-classification-bands.md` criteria:
 | **Microservices** | 0-15 | 16-30 | 31-100 | >100 |
 | **Cores** | 0-30 | 30-60 | 60-200 | >200 |
 | **DIP Storage** | <1 TB | 1-10 TB | 10-50 TB | >50 TB |
-| **Pipeline** | <10 | 10-30 | 30-60 | >60 |
-| **Test Cases** | <100 | 100-1,000 | 1,000-10,000 | >10,000 |
+| **Pipeline** | <5 | 5-15 | 15-40 | >40 |
 
 **Apply "at least one parameter" rule:** If ANY criterion matches a band, classify to that band (highest band wins).
 
 **Example:**
 - microservicesCount: 12 → LIGHT
 - computeCores: 45 → MEDIUM
-- testMagnitude: Alta (3,000 cases) → COMPLESSO
+- pipeline: 18 → COMPLESSO
 
 **Result:** Project is **COMPLESSO** (highest band matched).
+
+**⚠️ IMPORTANT:** Application testing (testMagnitude, testCases) is **OUT OF SCOPE** for CTO and must NOT be used for classification or cost estimation.
 
 ---
 
@@ -91,6 +92,13 @@ Use `project-classification-bands.md` criteria:
 - Radical risk (SPECIALE): +25-30%
 
 **Formula:** `Final_Estimate = Base_Estimate * (1 + Risk_Contingency)`
+
+**⚠️ CRITICAL - Line Items:**
+- Risk contingency is applied to subtotals, NOT as a separate line item
+- DO NOT create line items called "Risk Contingency", "Risk Buffer", or "Contingency Adjustment"
+- Instead: include contingency in the cost of each component
+- Document in assumptions: "All costs include {X}% risk contingency for {serviceRisk} risk level"
+- The line items should already reflect the contingency-adjusted costs
 
 ---
 
@@ -114,25 +122,64 @@ Use `project-classification-bands.md` criteria:
 
 Include:
 1. **Monitoring & Observability:**
-   - Dashboard creation
-   - Dynatrace licenses (initial setup)
+   - **Dynatrace Dashboard Implementation** (use `dynatrace-dashboard-costs.md`)
+     - LVL1 (€0): No monitoring or appliance
+     - LVL2 (€14,640): Low-criticality app or integrative monitoring
+     - LVL3 (€24,400): Medium/High-criticality app
+   - Selection logic:
+     - COMPLESSO/SPECIALE → LVL3
+     - serviceRisk Alto/Medio → LVL3
+     - New app + serviceRisk Basso → LVL2
+     - Appliance or already monitored (no changes) → LVL1
+   - ❌ Dynatrace licenses are OPEX, not CAPEX
    
-2. **Quality Assurance:**
-   - Based on `testMagnitude`:
-     - Bassa (<100 cases): 15% of development effort
-     - Media (100-1,000): 20% of development effort
-     - Alta (1,000-10,000): 25% of development effort
-     - Very High (>10,000): 30% of development effort
+2. **Quality Assurance (QA):**
+   - **QA Services** (use `qa-quality-assurance-costs.md`)
+     - LEVEL 0 (€0): qa='NO' OR mainframe OR exclusively SaaS OR below threshold
+     - LEVEL 1 (€10,980): MEDIUM + CAPEX ≥€500k (2 months × 0.5 FTE)
+     - LEVEL 2 (€27,450): COMPLESSO/SPECIALE (5 months × 0.5 FTE)
+   - Selection logic:
+     - Check `qa` field first (if 'NO' → €0)
+     - Exclude mainframe projects
+     - Exclude exclusively SaaS (no infrastructure)
+     - COMPLESSO/SPECIALE → LEVEL 2
+     - MEDIUM + estimated_capex ≥€500k → LEVEL 1
+   - ⚠️ IMPORTANT: QA covers **infrastructure testing only** (performance, DR, security)
+   - ❌ Application testing (unit, functional, UAT) is OUT OF SCOPE
    
-3. **Load Testing:**
-   - If `testMagnitude: "Alta"` → Include load test costs
-   
-4. **DevOps Pipeline:**
-   - Pipeline implementation (based on `pipeline` count and `expectedReleases`)
+3. **DevOps Pipeline & CI/CD:**
+   - **Pipeline Implementation** (use `devops-pipeline-costs.md`)
+     - LVL1 (€0): Evolutiva or existing pipelines
+     - LVL2 (€7,320): LIGHT/MEDIUM projects with standard CI/CD
+     - LVL3 (€12,200): COMPLESSO/SPECIALE with advanced pipelines
+   - Selection logic:
+     - Evolutiva or hasExistingPipelines → LVL1
+     - COMPLESSO/SPECIALE → LVL3
+     - LIGHT/MEDIUM (new project) → LVL2
+   - Pipeline thresholds: LIGHT <5, MEDIUM 5-15, COMPLESSO 15-40, SPECIALE >40
+
+4. **Load Testing Applicativo:**
+   - **Load Test Execution** (use `load-testing-costs.md`)
+     - Calculated as **percentage of estimated CAPEX**
+     - LVL0 (0%): Evolutiva OR SaaS only OR Mainframe
+     - LVL1 (3-5%): LIGHT or MEDIUM low-risk
+     - LVL2 (6-8%): MEDIUM high-risk or COMPLESSO
+     - LVL3 (10-12%): COMPLESSO/SPECIALE high-risk
+   - Selection logic:
+     - projectType = 'Evolution' → 0%
+     - saasProduct only (no infra) → 0%
+     - hostMainframe → 0%
+     - Otherwise apply percentage based on classification + serviceRisk
+   - ⚠️ Use **midpoint** of percentage range by default (4%, 7%, 11%)
+   - ⚠️ Calculate on CAPEX total BEFORE adding load testing cost
    
 5. **Professional Services:**
    - Setup, configuration, training
    - Use CA supplier rates if available in Knowledge Base
+
+**⚠️ DEPRECATED - DO NOT INCLUDE:**
+- Application QA/testing based on `testMagnitude` (out of scope)
+- Application test cases effort (managed by app teams)
 
 ---
 
@@ -181,39 +228,88 @@ Include:
 **Example:** Annual OPEX €57,672 for 6-month project:
 - `(€57,672 / 12) * 6 = €28,836`
 
+**⚠️ CRITICAL - Line Items:**
+- Each OPEX line item should show the ALREADY PRORATED cost
+- DO NOT create separate line items for "Project Duration Adjustment" or "Project Duration Proration"
+- Example: If annual infrastructure management is €24,000 for 18 months:
+  - Line item cost: €36,000 (€24,000 / 12 * 18)
+  - Line item description: "Infrastructure Management - On-premise (18 months prorated)"
+  - NO separate "Duration Adjustment" line item
+
 ---
 
 ### Step 8: Multi-Year Projection
 
-**On-premise infrastructure:** Costs depreciate over 5 years (decreasing)
-**Cloud infrastructure:** Flat annual fees (no depreciation)
+**CRITICAL: Different patterns for on-premise vs cloud**
+
+#### On-Premise Infrastructure (decreasing costs)
+OPEX decreases over time due to depreciation and efficiency gains:
 
 **Typical on-premise depreciation pattern:**
-- Year 1: 100% (initial investment)
-- Year 2: 91%
+- Year 1: 100% (initial full cost)
+- Year 2: 91% (efficiency gains, reduced support)
 - Year 3: 87%
 - Year 4: 84%
 - Year 5: 83%
+
+**Example:** Year 1 OPEX €120,000 on-premise
+- Year 2: €109,200 (91%)
+- Year 3: €104,400 (87%)
+- Year 4: €100,800 (84%)
+- Year 5: €99,600 (83%)
+
+#### Cloud Infrastructure (increasing costs)
+Cloud costs increase annually due to inflation and usage growth:
+
+**Typical cloud inflation pattern:**
+- Year 1: 100% (baseline)
+- Year 2: 103-105% (+3-5% inflation)
+- Year 3: 106-110%
+- Year 4: 109-116%
+- Year 5: 113-122%
+
+**Example:** Year 1 OPEX €120,000 cloud (4% annual increase)
+- Year 2: €124,800 (+4%)
+- Year 3: €129,792 (+4%)
+- Year 4: €134,984 (+4%)
+- Year 5: €140,383 (+4%)
+
+#### Hybrid Infrastructure (mixed pattern)
+If project uses both on-premise AND cloud:
+
+1. Calculate on-premise OPEX with decreasing pattern
+2. Calculate cloud OPEX with increasing pattern
+3. Sum both for total projection
+
+**Example:** €80k on-premise + €40k cloud in Year 1
+- Year 2: (€80k × 0.91) + (€40k × 1.04) = €72,800 + €41,600 = €114,400
+- Year 3: (€80k × 0.87) + (€40k × 1.08) = €69,600 + €43,200 = €112,800
+- And so on...
 
 **5-Year Total = Year 1 + Year 2 + Year 3 + Year 4 + Year 5**
 
 ---
 
-### Step 9: Validate Against Budget Band
+### Step 9: Validate Against Budget Band (Indicative Reference Only)
 
-**Compare your estimate with the band's typical range:**
+**⚠️ CRITICAL: Budget ranges are HIGH-LEVEL INDICATORS, not rigid constraints.**
 
-| Band | CAPEX Range | OPEX Range | Total Range |
-|------|-------------|------------|-------------|
+**Typical ranges (for reference only):**
+
+| Band | CAPEX Indicative | OPEX Indicative | Total Indicative |
+|------|------------------|-----------------|------------------|
 | LIGHT | €40-60k | €20-40k | €50-100k |
 | MEDIUM | €60-110k | €40-90k | €100-200k |
 | COMPLESSO | €110-225k | €90-275k | €200-500k |
 | SPECIALE | TBD | TBD | >€500k |
 
-**If estimate is outside band range by ±30%:**
-- Flag as warning in assumptions
-- Review classification or cost calculations
-- Explain discrepancy in assumptions section
+**Validation Rules:**
+1. **Bottom-up estimate is authoritative**: If your detailed calculation produces different costs, trust the calculation
+2. **Ranges are guidelines**: Projects may legitimately fall outside these ranges due to specific requirements (specialized licenses, cloud costs, vendor pricing, etc.)
+3. **Flag significant deviations**: If estimate differs by >30% from band range, add a note explaining why (e.g., "Higher OPEX due to cloud services €X/month" or "Lower CAPEX due to existing infrastructure reuse")
+4. **Do NOT force-fit**: Never artificially adjust costs to match the band range
+
+**Example**: A LIGHT project (by technical criteria) requiring specialized SaaS licenses may cost €140k total. This is valid - document the reason in assumptions, keep LIGHT classification.
 
 ---
 
@@ -234,8 +330,7 @@ You MUST respond with valid JSON in this exact structure:
   "breakdown": {
     "capex": {
       "monitoring_observability": <number>,
-      "qa_testing": <number>,
-      "load_testing": <number>,
+      "infrastructure_testing": <number>,
       "devops_pipeline": <number>,
       "professional_services": <number>,
       "other": <number>
@@ -313,6 +408,53 @@ You MUST respond with valid JSON in this exact structure:
 
 ---
 
+## ⚠️ MATHEMATICAL VALIDATION RULES
+
+**Before submitting your estimation, perform these checks:**
+
+### 1. Line Items Must Sum to Totals
+```
+SUM(line_items where category='CAPEX') MUST EQUAL summary.total_capex
+SUM(line_items where category='OPEX') MUST EQUAL summary.total_opex_year_1
+```
+
+### 2. No Double-Counting of Adjustments
+**❌ WRONG:**
+```json
+"line_items": [
+  {"category": "OPEX", "description": "Infrastructure Mgmt", "total_cost": 24000},
+  {"category": "OPEX", "description": "Database Mgmt", "total_cost": 12000},
+  {"category": "OPEX", "description": "Project Duration Adjustment (18 months)", "total_cost": 18000},
+  {"category": "OPEX", "description": "Risk Contingency (15%)", "total_cost": 8100}
+],
+"summary": {"total_opex_year_1": 62100}
+```
+This is WRONG because duration and risk are counted twice.
+
+**✅ CORRECT:**
+```json
+"line_items": [
+  {"category": "OPEX", "description": "Infrastructure Mgmt - On-premise (18 months, 15% contingency)", "total_cost": 41400},
+  {"category": "OPEX", "description": "Database Mgmt - DIP (18 months, 15% contingency)", "total_cost": 20700}
+],
+"summary": {"total_opex_year_1": 62100}
+```
+
+### 3. Breakdown Must Match Summary
+```
+breakdown.capex.* components sum MUST EQUAL summary.total_capex
+breakdown.opex_year_1.* components sum MUST EQUAL summary.total_opex_year_1
+```
+
+### 4. First Year Calculation
+```
+summary.total_first_year MUST EQUAL summary.total_capex + summary.total_opex_year_1
+```
+
+**If any of these validations fail, REVISE your estimation before submitting.**
+
+---
+
 ## 🔍 Example Estimation Flow
 
 **Input:**
@@ -321,14 +463,14 @@ You MUST respond with valid JSON in this exact structure:
 - storageGb: 300
 - projectDuration: "6 mesi"
 - hasDatabaseImpactDip: true
-- testMagnitude: "Media"
+- pipeline: 8
 - serviceRisk: "Medio"
 
 **Step 1: Classify**
 - Microservices: 20 → MEDIUM (16-30)
 - Cores: 40 → MEDIUM (30-60)
 - Storage: 0.3TB → LIGHT (<1TB)
-- Test: Media (500 cases) → MEDIUM (100-1,000)
+- Pipeline: 8 → MEDIUM (5-15)
 - **Result:** MEDIUM (most criteria align)
 
 **Step 2: Risk Buffer**
@@ -342,10 +484,10 @@ You MUST respond with valid JSON in this exact structure:
 - Oracle Exadata management (hasDatabaseImpactDip)
 
 **Step 4: CAPEX**
-- Pipeline: €15,348
-- QA (0.25 FTE, 6 months): €27,450
+- Pipeline (8 pipelines): €15,348
+- Infrastructure testing: €8,000
 - Observability: €8,662
-- **CAPEX Total:** €51,460
+- **CAPEX Total:** €32,010
 
 **Step 5: OPEX Year 1**
 - Infrastructure (PODs, VMs, storage): €14,803
@@ -357,17 +499,18 @@ You MUST respond with valid JSON in this exact structure:
 - OPEX Project: €26,178 / 12 * 6 = €13,089
 
 **Step 7: Apply Risk**
-- CAPEX: €51,460 * 1.15 = €59,179
+- CAPEX: €32,010 * 1.15 = €36,812
 - OPEX: €13,089 * 1.15 = €15,052
 
 **Step 8: Total**
-- Total First Year: €74,231
-- 5-Year Projection: €74,231 + (€26,178 * 0.91) + ... = ~€180,000
+- Total First Year: €51,864
+- 5-Year Projection: €51,864 + (€26,178 * 0.91) + ... = ~€145,000
 
 **Step 9: Validate**
-- MEDIUM range: €100-200k
-- Estimate: €74k (6 months) → pro-rated to 12 months: ~€148k
-- ✅ Within range (MEDIUM light)
+- MEDIUM indicative range: €100-200k
+- Estimate: €52k (6 months project, prorated OPEX)
+- ⚠️ Note: Lower than typical MEDIUM due to short duration (6 months) and no cloud services
+- ✅ Classification remains MEDIUM based on technical criteria (microservices, cores, pipeline count)
 
 ---
 

@@ -47,15 +47,9 @@ export const SERVICE_RISK_OPTIONS = [
   'Relevant',
   'Radical',
 ] as const;
-export const PIPELINE_OPTIONS = ['Max 10', '10–30', '30–60', '> 60'] as const;
+export const PIPELINE_OPTIONS = ['< 5', '5–15', '15–40', '> 40'] as const;
 export const MONITORING_OPTIONS = ['N/A', 'Existing (no action)', 'YES'] as const;
 export const QA_OPTIONS = ['N/A', 'YES', 'NO'] as const;
-export const TEST_MAGNITUDE_OPTIONS = [
-  'Up to 100',
-  '100–1,000',
-  '1,000–10,000',
-  '>10,000',
-] as const;
 
 export class CreateQuotationDto {
   @IsString({ message: 'Il codice progetto deve essere una stringa.' })
@@ -163,6 +157,12 @@ export class CreateQuotationDto {
   @IsBoolean()
   monitoringOrSecurityTool: boolean;
 
+  @IsBoolean()
+  isThirdPartyApp: boolean;
+
+  @IsBoolean()
+  isAppliance: boolean;
+
   @IsInt({ message: 'Numero release previste deve essere un intero.' })
   @Min(0, { message: 'Numero release previste non puo essere negativo.' })
   expectedReleases: number;
@@ -183,6 +183,9 @@ export class CreateQuotationDto {
   @IsIn(PIPELINE_OPTIONS, { message: 'Pipeline non valida.' })
   pipeline: string;
 
+  @IsBoolean()
+  hasExistingPipelines: boolean;
+
   @IsInt({ message: 'Numero microservizi deve essere un intero.' })
   @Min(0, { message: 'Numero microservizi non puo essere negativo.' })
   microservicesCount: number;
@@ -192,6 +195,15 @@ export class CreateQuotationDto {
 
   @IsBoolean()
   hasSqlDbType: boolean;
+
+  @IsBoolean()
+  dedicatedSqlCluster: boolean;
+
+  @IsBoolean()
+  hasPostgresDatabase: boolean;
+
+  @IsBoolean()
+  hasMongoDatabase: boolean;
 
   @IsBoolean()
   hasDatabaseImpactHostDb2: boolean;
@@ -217,14 +229,14 @@ export class CreateQuotationDto {
   observability: string;
 
   @IsString()
-  @IsIn(TEST_MAGNITUDE_OPTIONS, {
-    message: 'Magnitudo test non valida.',
-  })
-  testMagnitude: string;
-
-  @IsString()
   @IsIn(QA_OPTIONS, { message: 'Valore QA non valido.' })
   qa: string;
+
+  @IsBoolean()
+  requiresFeasibilityStudy: boolean;
+
+  @IsBoolean()
+  requiresRfcSupport: boolean;
 }
 
 export class UpdateQuotationDto extends CreateQuotationDto {}
@@ -349,6 +361,14 @@ export class SaveDraftDto {
   monitoringOrSecurityTool?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  isThirdPartyApp?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isAppliance?: boolean;
+
+  @IsOptional()
   @IsInt()
   @Min(0)
   expectedReleases?: number;
@@ -369,6 +389,10 @@ export class SaveDraftDto {
   pipeline?: string;
 
   @IsOptional()
+  @IsBoolean()
+  hasExistingPipelines?: boolean;
+
+  @IsOptional()
   @IsInt()
   @Min(0)
   microservicesCount?: number;
@@ -380,6 +404,18 @@ export class SaveDraftDto {
   @IsOptional()
   @IsBoolean()
   hasSqlDbType?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  dedicatedSqlCluster?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasPostgresDatabase?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasMongoDatabase?: boolean;
 
   @IsOptional()
   @IsBoolean()
@@ -412,13 +448,16 @@ export class SaveDraftDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(TEST_MAGNITUDE_OPTIONS)
-  testMagnitude?: string;
-
-  @IsOptional()
-  @IsString()
   @IsIn(QA_OPTIONS)
   qa?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  requiresFeasibilityStudy?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  requiresRfcSupport?: boolean;
 }
 
 export class ListQuotationsQueryDto {

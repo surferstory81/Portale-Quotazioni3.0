@@ -44,25 +44,20 @@ export class QuotationFormConfigService {
     'Radical',
   ];
 
-  private readonly pipelineOptions = ['Max 10', '10–30', '30–60', '> 60'];
+  private readonly pipelineOptions = ['< 5', '5–15', '15–40', '> 40'];
 
   private readonly monitoringOptions = ['N/A', 'Existing (no action)', 'YES'];
-
-  private readonly testMagnitudeOptions = [
-    'N/A',
-    'Up to 100',
-    '100–1,000',
-    '1,000–10,000',
-    '>10,000',
-  ];
 
   private readonly qaOptions = ['N/A', 'YES', 'NO'];
 
   // ── sezioni ────────────────────────────────────────────────────────────
   getSections(): QuotationFormSection[] {
     return [
+      // ═══════════════════════════════════════════════════════════════════
+      // 1. PROJECT INFORMATION
+      // ═══════════════════════════════════════════════════════════════════
       {
-        title: 'Project Information',
+        title: '1. Project Information',
         fields: [
           {
             key: 'projectCode',
@@ -110,6 +105,20 @@ export class QuotationFormConfigService {
             options: this.toOptions(this.projectBudgetOptions),
           },
           {
+            key: 'projectType',
+            label: 'Project Type',
+            type: 'select',
+            required: true,
+            options: this.toOptions(this.projectTypeOptions),
+          },
+          {
+            key: 'serviceRisk',
+            label: 'Service Risk',
+            type: 'select',
+            required: true,
+            options: this.toOptions(this.serviceRiskOptions),
+          },
+          {
             key: 'architecturalImpact',
             label: 'Architectural/Infrastructure Impact',
             type: 'select',
@@ -118,28 +127,22 @@ export class QuotationFormConfigService {
           },
         ],
       },
+
+      // ═══════════════════════════════════════════════════════════════════
+      // 2. APPLICATION CHARACTERISTICS
+      // ═══════════════════════════════════════════════════════════════════
       {
-        title: 'Infrastructure',
+        title: '2. Application Characteristics',
         fields: [
-          { key: 'cloudSaas',                  label: 'Cloud SaaS',                           type: 'checkbox' },
-          { key: 'cloudIaasPaasLandingZoneCa', label: 'Cloud IaaS / PaaS (CA Landing Zone)',  type: 'checkbox' },
-          { key: 'hostMainframe',              label: 'Host (Mainframe)',                      type: 'checkbox' },
-          { key: 'onPremiseDipartimentale',    label: 'OnPremise (Departmental)',              type: 'checkbox' },
-          { key: 'needNewInfrastructure',      label: 'Need for New Infrastructures',          type: 'checkbox' },
-          { key: 'infraOnVm',                  label: 'Infrastructure on VM',                  type: 'checkbox' },
-          { key: 'infraMicroservices',         label: 'Microservices-based Infrastructure',     type: 'checkbox' },
-          {
-            key: 'impactEntity',
-            label: 'Impact Level',
-            type: 'select',
-            required: true,
-            options: this.toOptions(this.impactEntityOptions),
-          },
-        ],
-      },
-      {
-        title: 'Services and Technology',
-        fields: [
+          { key: 'isThirdPartyApp',                  label: 'Third-Party Application',                  type: 'checkbox' },
+          { key: 'isAppliance',                      label: 'Appliance / Hardware Device',              type: 'checkbox' },
+          { key: 'developedInternally',              label: 'Developed Internally',                     type: 'checkbox' },
+          { key: 'developedByExternalVendors',       label: 'Developed Externally',                     type: 'checkbox' },
+          { key: 'hasCaIntellectualProperty',        label: 'CA Intellectual Property of the Code',     type: 'checkbox' },
+          { key: 'serviceExposure',                  label: 'Service Exposure',                         type: 'checkbox' },
+          { key: 'marketProduct',                    label: 'Market Product',                           type: 'checkbox' },
+          { key: 'saasProduct',                      label: 'SaaS Product',                             type: 'checkbox' },
+          { key: 'monitoringOrSecurityTool',         label: 'Monitoring/Security Tool',                 type: 'checkbox' },
           {
             key: 'serviceConsumer',
             label: 'Service Consumer',
@@ -166,58 +169,36 @@ export class QuotationFormConfigService {
             required: true,
             options: this.toOptions(this.technologicalImpactOptions),
           },
-          { key: 'developedInternally',              label: 'Developed Internally',                     type: 'checkbox' },
-          { key: 'developedByExternalVendors',       label: 'Developed Externally',                     type: 'checkbox' },
-          { key: 'hasCaIntellectualProperty',        label: 'CA Intellectual Property of the Code',     type: 'checkbox' },
-          { key: 'serviceExposure',                  label: 'Service Exposure',                         type: 'checkbox' },
-          { key: 'marketProduct',                    label: 'Market Product',                           type: 'checkbox' },
-          { key: 'dependenciesWithExternalServices', label: 'Dependencies with Outsourced Services',    type: 'checkbox' },
-          { key: 'integrationsWithInternalSystems',  label: 'Integrations with Internal Systems',       type: 'checkbox' },
-          { key: 'saasProduct',                      label: 'SaaS Product',                             type: 'checkbox' },
-          { key: 'monitoringOrSecurityTool',         label: 'Monitoring/Security Tool',                 type: 'checkbox' },
           {
-            key: 'expectedReleases',
-            label: 'Expected Number of Releases',
-            type: 'number',
-            required: true,
-            min: 0,
-          },
-          {
-            key: 'projectType',
-            label: 'Project Type',
+            key: 'impactEntity',
+            label: 'Impact Level',
             type: 'select',
             required: true,
-            options: this.toOptions(this.projectTypeOptions),
-          },
-          {
-            key: 'serviceRisk',
-            label: 'Service Risk',
-            type: 'select',
-            required: true,
-            options: this.toOptions(this.serviceRiskOptions),
-          },
-          {
-            key: 'pipeline',
-            label: 'Pipeline',
-            type: 'select',
-            required: true,
-            options: this.toOptions(this.pipelineOptions),
-          },
-          {
-            key: 'microservicesCount',
-            label: 'Number of Microservices',
-            type: 'number',
-            required: true,
-            min: 0,
+            options: this.toOptions(this.impactEntityOptions),
           },
         ],
       },
+
+      // ═══════════════════════════════════════════════════════════════════
+      // 3. INFRASTRUCTURE & COMPUTE
+      // ═══════════════════════════════════════════════════════════════════
       {
-        title: 'Operational Data',
+        title: '3. Infrastructure & Compute',
         fields: [
-          { key: 'hasDatabaseImpactDip',    label: 'Database Impact (Departmental)',             type: 'checkbox' },
-          { key: 'hasSqlDbType',            label: 'SQL DB Type (Oracle/PostgreSQL/MS SQL)',     type: 'checkbox' },
-          { key: 'hasDatabaseImpactHostDb2', label: 'Database Impact (Host/DB2)',                type: 'checkbox' },
+          { key: 'cloudSaas',                  label: 'Cloud SaaS',                           type: 'checkbox' },
+          { key: 'cloudIaasPaasLandingZoneCa', label: 'Cloud IaaS / PaaS (CA Landing Zone)',  type: 'checkbox' },
+          { key: 'hostMainframe',              label: 'Host (Mainframe)',                      type: 'checkbox' },
+          { key: 'onPremiseDipartimentale',    label: 'OnPremise (Departmental)',              type: 'checkbox' },
+          { key: 'needNewInfrastructure',      label: 'Need for New Infrastructures',          type: 'checkbox' },
+          { key: 'infraOnVm',                  label: 'Infrastructure on VM',                  type: 'checkbox' },
+          { key: 'infraMicroservices',         label: 'Microservices-based Infrastructure',     type: 'checkbox' },
+          {
+            key: 'computeCores',
+            label: 'Computing Power (cores)',
+            type: 'number',
+            required: true,
+            min: 0,
+          },
           {
             key: 'storageGb',
             label: 'Storage Space (GB)',
@@ -226,8 +207,8 @@ export class QuotationFormConfigService {
             min: 0,
           },
           {
-            key: 'computeCores',
-            label: 'Computing Power (cores)',
+            key: 'microservicesCount',
+            label: 'Number of Microservices',
             type: 'number',
             required: true,
             min: 0,
@@ -239,6 +220,30 @@ export class QuotationFormConfigService {
             required: true,
             min: 0,
           },
+        ],
+      },
+
+      // ═══════════════════════════════════════════════════════════════════
+      // 4. DATABASE & DATA
+      // ═══════════════════════════════════════════════════════════════════
+      {
+        title: '4. Database & Data',
+        fields: [
+          { key: 'hasDatabaseImpactDip',    label: 'Database Impact (DIP - Oracle Exadata)',     type: 'checkbox' },
+          { key: 'hasSqlDbType',            label: 'MS SQL Server Database',                      type: 'checkbox' },
+          { key: 'dedicatedSqlCluster',     label: 'Dedicated SQL Server Cluster (if SQL)',       type: 'checkbox' },
+          { key: 'hasPostgresDatabase',     label: 'PostgreSQL Database',                         type: 'checkbox' },
+          { key: 'hasMongoDatabase',        label: 'MongoDB Database',                            type: 'checkbox' },
+          { key: 'hasDatabaseImpactHostDb2', label: 'Database Impact (Host/DB2 Mainframe)',      type: 'checkbox' },
+        ],
+      },
+
+      // ═══════════════════════════════════════════════════════════════════
+      // 5. MONITORING & DEVOPS
+      // ═══════════════════════════════════════════════════════════════════
+      {
+        title: '5. Monitoring & DevOps',
+        fields: [
           {
             key: 'monitoringSystems',
             label: 'Monitoring Systems',
@@ -254,12 +259,22 @@ export class QuotationFormConfigService {
             options: this.toOptions(this.monitoringOptions),
           },
           {
-            key: 'testMagnitude',
-            label: 'Test Magnitude (Governance test)',
+            key: 'pipeline',
+            label: 'CI/CD Pipelines',
             type: 'select',
             required: true,
-            options: this.toOptions(this.testMagnitudeOptions),
+            options: this.toOptions(this.pipelineOptions),
           },
+          { key: 'hasExistingPipelines',             label: 'Has Existing CI/CD Pipelines (Reusable)', type: 'checkbox' },
+          {
+            key: 'expectedReleases',
+            label: 'Expected Number of Releases',
+            type: 'number',
+            required: true,
+            min: 0,
+          },
+          { key: 'dependenciesWithExternalServices', label: 'Dependencies with External Services',    type: 'checkbox' },
+          { key: 'integrationsWithInternalSystems',  label: 'Integrations with Internal Systems',       type: 'checkbox' },
           {
             key: 'qa',
             label: 'QA',
@@ -267,6 +282,8 @@ export class QuotationFormConfigService {
             required: true,
             options: this.toOptions(this.qaOptions),
           },
+          { key: 'requiresFeasibilityStudy',         label: 'Requires Infrastructure Feasibility Study (CTO Support)', type: 'checkbox' },
+          { key: 'requiresRfcSupport',               label: 'Requires RFC Support & Infrastructure Implementation',    type: 'checkbox' },
         ],
       },
     ];

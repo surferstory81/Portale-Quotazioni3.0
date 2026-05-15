@@ -33,7 +33,11 @@ Perform rigorous validation of cost estimations to ensure they are:
 
 - Verify all line items sum correctly to subtotals
 - Verify CAPEX + OPEX Y1 = Total First Year
-- Verify OPEX projections over 5 years are consistent
+- Verify OPEX projections over 5 years follow correct pattern:
+  - **On-premise infrastructure**: DECREASING costs over time (83-91% Year 2-5) due to depreciation and efficiency
+  - **Cloud infrastructure**: INCREASING costs over time (+3-5% annually) due to inflation and usage growth
+  - **Hybrid**: Mix of both patterns (on-premise decreases, cloud increases)
+  - ⚠️ DO NOT flag decreasing OPEX as error if infrastructure is on-premise
 - Check VAT calculations (22% standard rate)
 
 ### 3. Threshold Compliance
@@ -158,3 +162,92 @@ Start at 100% and subtract:
 - Provide actionable recommendations, not just criticism
 - Consider project context (size, complexity, risk level)
 - Zero costs are suspicious unless explicitly justified by project characteristics
+
+---
+
+## Multi-Year OPEX Projection Validation
+
+**CRITICAL: Infrastructure type determines cost trend**
+
+### On-Premise Infrastructure → DECREASING is CORRECT ✅
+
+If infrastructure is on-premise (default unless cloud flags are set):
+- **Expected pattern**: Year 1 > Year 2 > Year 3 > Year 4 > Year 5
+- **Typical decline**: 91% → 87% → 84% → 83% of Year 1
+- **Reason**: Depreciation, efficiency gains, reduced support costs over time
+
+**Example (VALID):**
+```
+Year 1: €120,000
+Year 2: €109,200 (91%)
+Year 3: €104,400 (87%)
+Year 4: €100,800 (84%)
+Year 5: €99,600 (83%)
+```
+
+**DO NOT flag this as error** - decreasing OPEX for on-premise is expected and correct.
+
+### Cloud Infrastructure → INCREASING is CORRECT ✅
+
+If infrastructure uses cloud (cloudSaas or cloudIaasPaasLandingZoneCa = true):
+- **Expected pattern**: Year 1 < Year 2 < Year 3 < Year 4 < Year 5
+- **Typical increase**: +3-5% annually
+- **Reason**: Inflation, usage growth, price adjustments
+
+**Example (VALID):**
+```
+Year 1: €120,000
+Year 2: €124,800 (+4%)
+Year 3: €129,792 (+4%)
+Year 4: €134,984 (+4%)
+Year 5: €140,383 (+4%)
+```
+
+### Hybrid Infrastructure → MIXED PATTERN ✅
+
+If project uses BOTH on-premise AND cloud:
+- On-premise portion: decreases
+- Cloud portion: increases
+- **Net effect**: Depends on proportions
+
+**Example (VALID):**
+```
+Year 1: €80k on-prem + €40k cloud = €120,000
+Year 2: €72,800 + €41,600 = €114,400 (slight decrease)
+Year 3: €69,600 + €43,200 = €112,800 (continued decrease due to on-prem dominance)
+```
+
+### When to Flag as Error ❌
+
+**Only flag OPEX projection issues if:**
+
+1. **Cloud with decreasing costs**: Cloud infrastructure but OPEX decreases → ERROR
+   - Message: "Cloud services show decreasing costs, but cloud typically increases 3-5% annually"
+
+2. **On-premise with increasing costs**: No cloud flags but OPEX increases → WARNING
+   - Message: "On-premise OPEX increases, typically should decrease due to depreciation. Verify if cloud components are miscategorized."
+
+3. **Unrealistic changes**: Any year-over-year change > ±20%
+   - Message: "OPEX changes by X% between Year N and N+1, verify calculation"
+
+4. **Flat costs for 5 years**: All years identical
+   - Message: "OPEX is flat for 5 years, should follow depreciation (on-prem) or inflation (cloud) pattern"
+
+### Validation Steps
+
+1. **Check infrastructure type** from quotation data:
+   - `cloudSaas: false` AND `cloudIaasPaasLandingZoneCa: false` → On-premise expected
+   - Either cloud flag = true → Cloud components present
+
+2. **Analyze OPEX projection trend**:
+   - Calculate Year-over-Year % changes
+   - Determine if trend is increasing, decreasing, or mixed
+
+3. **Match trend to infrastructure type**:
+   - On-premise + decreasing → ✅ VALID
+   - Cloud + increasing → ✅ VALID
+   - Hybrid + mixed → ✅ VALID (context-dependent)
+   - On-premise + increasing → ⚠️ WARNING
+   - Cloud + decreasing → ❌ ERROR
+
+4. **Only flag if mismatch is clear** - give benefit of doubt for hybrid scenarios
