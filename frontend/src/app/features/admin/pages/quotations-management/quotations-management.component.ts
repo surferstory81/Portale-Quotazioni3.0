@@ -34,6 +34,7 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
   deletingQuotationId: string | null = null;
   showProgressDialog = false;
   progressQuotationId: string = '';
+  progressModelId: string = '';
   approvingAIEstimationId: string | null = null;
   rejectingAIEstimationId: string | null = null;
 
@@ -107,9 +108,10 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
     this.clearMessages();
     this.statusLoading[quotation.id] = true;
     this.progressQuotationId = quotation.id;
-    this.showProgressDialog = true;
 
-    const selectedModel = this.getModelControl(quotation.id).value || undefined;
+    const selectedModel = this.getModelControl(quotation.id).value || 'claude-sonnet-4-5';
+    this.progressModelId = selectedModel;
+    this.showProgressDialog = true;
 
     this.adminService
       .takeInCharge(quotation.id, selectedModel)
