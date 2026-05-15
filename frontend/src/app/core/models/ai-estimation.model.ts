@@ -6,6 +6,7 @@ export interface AIEstimationSummary {
   total_first_year_with_vat?: number;
   total_5_years_with_vat?: number;
   vat_rate?: number;
+  project_classification?: 'LIGHT' | 'MEDIO' | 'COMPLESSO' | 'SPECIALE';
 }
 
 export interface CostBreakdown {
@@ -20,6 +21,13 @@ export interface CostBreakdown {
     support_maintenance?: any;
     total_opex_year_1: number;
     total_opex_5_years: number;
+  };
+  opex_projection?: {
+    year_1: number;
+    year_2: number;
+    year_3: number;
+    year_4: number;
+    year_5: number;
   };
 }
 
@@ -121,6 +129,10 @@ export interface AIEstimation {
   adminNotes?: string;
   createdAt: string;
   updatedAt: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  estimatedCostUsd?: number;
+  aiModel?: string;
 }
 
 export interface AIEstimationStatistics {

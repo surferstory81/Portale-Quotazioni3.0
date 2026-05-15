@@ -23,6 +23,7 @@ import {
   BlockUserDto,
   SetEconomicQuotationDto,
   SetManualCapexOpexDto,
+  TakeInChargeDto,
   UpdateQuotationStatusDto,
   UpdateSystemSettingDto,
 } from './dto/admin.dto';
@@ -43,8 +44,12 @@ export class AdminController {
   }
 
   @Post('quotations/:id/take-in-charge')
-  async takeInCharge(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.adminService.takeInCharge(id, user);
+  async takeInCharge(
+    @Param('id') id: string,
+    @Body() dto: TakeInChargeDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.adminService.takeInCharge(id, user, dto.model_id);
   }
 
   @Patch('quotations/:id/status')
@@ -53,7 +58,7 @@ export class AdminController {
     @Body() dto: UpdateQuotationStatusDto,
     @CurrentUser() admin: User,
   ) {
-    return this.adminService.updateQuotationStatus(id, dto.status, admin);
+    return this.adminService.updateQuotationStatus(id, dto.status, admin, dto.model_id);
   }
 
   @Patch('quotations/:id/reassign')

@@ -2,6 +2,7 @@ import {
   IsBoolean,
   IsIn,
   IsNumber,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -14,12 +15,34 @@ const ALLOWED_ADMIN_STATUS_TRANSITIONS = [
   'COMPLETATA',
 ] as const;
 
+const ALLOWED_AI_MODELS = [
+  'claude-sonnet-4-5',
+  'claude-opus-4-7',
+  'claude-haiku-4-5',
+] as const;
+
 export class UpdateQuotationStatusDto {
   @IsString({ message: 'Lo stato deve essere una stringa.' })
   @IsIn(ALLOWED_ADMIN_STATUS_TRANSITIONS, {
     message: `Lo stato deve essere uno tra: ${ALLOWED_ADMIN_STATUS_TRANSITIONS.join(', ')}`,
   })
   status: string;
+
+  @IsOptional()
+  @IsString({ message: 'Il model_id deve essere una stringa.' })
+  @IsIn(ALLOWED_AI_MODELS, {
+    message: `Il model_id deve essere uno tra: ${ALLOWED_AI_MODELS.join(', ')}`,
+  })
+  model_id?: string;
+}
+
+export class TakeInChargeDto {
+  @IsOptional()
+  @IsString({ message: 'Il model_id deve essere una stringa.' })
+  @IsIn(ALLOWED_AI_MODELS, {
+    message: `Il model_id deve essere uno tra: ${ALLOWED_AI_MODELS.join(', ')}`,
+  })
+  model_id?: string;
 }
 
 export class SetEconomicQuotationDto {

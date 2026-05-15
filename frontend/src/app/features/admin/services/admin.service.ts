@@ -57,17 +57,17 @@ export class AdminService {
     return this.apiService.get<AdminQuotation[]>('/admin/quotations');
   }
 
-  takeInCharge(id: string): Observable<AdminQuotation> {
+  takeInCharge(id: string, modelId?: string): Observable<AdminQuotation> {
     return this.apiService.post<AdminQuotation>(
       `/admin/quotations/${id}/take-in-charge`,
-      {},
+      modelId ? { model_id: modelId } : {},
     );
   }
 
-  updateStatus(id: string, status: string): Observable<AdminQuotation> {
+  updateStatus(id: string, status: string, modelId?: string): Observable<AdminQuotation> {
     return this.apiService.patch<AdminQuotation>(
       `/admin/quotations/${id}/status`,
-      { status },
+      modelId ? { status, model_id: modelId } : { status },
     );
   }
 

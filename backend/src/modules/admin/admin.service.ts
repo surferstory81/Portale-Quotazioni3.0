@@ -54,7 +54,7 @@ export class AdminService {
     });
   }
 
-  async takeInCharge(quotationId: string, adminUser: User): Promise<Quotation> {
+  async takeInCharge(quotationId: string, adminUser: User, modelId?: string): Promise<Quotation> {
     console.log(`[ADMIN-SERVICE] takeInCharge called for quotation ${quotationId} by admin ${adminUser.id}`);
     const quotation = await this.findQuotationOrFail(quotationId);
     const previousStatus = quotation.status;
@@ -82,12 +82,13 @@ export class AdminService {
     console.log(`[ADMIN-SERVICE] Email send initiated`);
 
     // Launch AI estimation when admin takes quotation in charge
-    console.log(`[ADMIN-SERVICE] Calling AI service for quotation ${savedQuotation.id}`);
+    console.log(`[ADMIN-SERVICE] Calling AI service for quotation ${savedQuotation.id}${modelId ? ` with model ${modelId}` : ''}`);
     this.aiServiceClient.requestQuotationProcessing({
       quotation_id: savedQuotation.id,
       user_id: adminUser.id,
       project_code: savedQuotation.projectCode,
       status: savedQuotation.status,
+      model_id: modelId,
     }).catch((error: Error) => {
       console.error(`[ADMIN-SERVICE] Failed to request AI processing: ${error.message}`);
     });
@@ -100,6 +101,7 @@ export class AdminService {
     quotationId: string,
     status: string,
     adminUser: User,
+    modelId?: string,
   ): Promise<Quotation> {
     const quotation = await this.findQuotationOrFail(quotationId);
     const previousStatus = quotation.status;
@@ -130,12 +132,13 @@ export class AdminService {
       console.log(`[ADMIN-SERVICE] Auto-assigned quotation ${quotationId} to admin ${adminUser.id}`);
 
       // Launch AI estimation when auto-assigning
-      console.log(`[ADMIN-SERVICE] Calling AI service for quotation ${quotationId}`);
+      console.log(`[ADMIN-SERVICE] Calling AI service for quotation ${quotationId}${modelId ? ` with model ${modelId}` : ''}`);
       this.aiServiceClient.requestQuotationProcessing({
         quotation_id: quotationId,
         user_id: adminUser.id,
         project_code: quotation.projectCode,
         status: nextStatus,
+        model_id: modelId,
       }).catch((error: Error) => {
         console.error(`[ADMIN-SERVICE] Failed to request AI processing: ${error.message}`);
       });

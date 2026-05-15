@@ -28,6 +28,7 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
   capexOpexMessages: Record<string, string> = {};
 
   statusControls: Record<string, FormControl<string | null>> = {};
+  modelControls: Record<string, FormControl<string | null>> = {};
   statusLoading: Record<string, boolean> = {};
   retryingQuotationId: string | null = null;
   deletingQuotationId: string | null = null;
@@ -35,6 +36,13 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
   progressQuotationId: string = '';
   approvingAIEstimationId: string | null = null;
   rejectingAIEstimationId: string | null = null;
+
+  // AI model selection
+  readonly aiModelOptions = [
+    { value: 'claude-sonnet-4-5', label: 'Claude Sonnet 4.5 (Balanced)' },
+    { value: 'claude-opus-4-7', label: 'Claude Opus 4.7 (Accurate)' },
+    { value: 'claude-haiku-4-5', label: 'Claude Haiku 4.5 (Fast)' },
+  ];
 
   // Expandable rows
   expandedRows: Set<string> = new Set();
@@ -88,14 +96,23 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
     });
   }
 
+  getModelControl(id: string): FormControl<string | null> {
+    if (!this.modelControls[id]) {
+      this.modelControls[id] = new FormControl<string | null>('claude-sonnet-4-5');
+    }
+    return this.modelControls[id];
+  }
+
   takeInCharge(quotation: AdminQuotation): void {
     this.clearMessages();
     this.statusLoading[quotation.id] = true;
     this.progressQuotationId = quotation.id;
     this.showProgressDialog = true;
 
+    const selectedModel = this.getModelControl(quotation.id).value || undefined;
+
     this.adminService
-      .takeInCharge(quotation.id)
+      .takeInCharge(quotation.id, selectedModel)
       .pipe(finalize(() => (this.statusLoading[quotation.id] = false)))
       .subscribe({
         next: (updated) => {
@@ -125,8 +142,13 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
 
     this.clearMessages();
     this.statusLoading[quotation.id] = true;
+
+    const selectedModel = status === 'IN VALUTAZIONE'
+      ? (this.getModelControl(quotation.id).value || undefined)
+      : undefined;
+
     this.adminService
-      .updateStatus(quotation.id, status)
+      .updateStatus(quotation.id, status, selectedModel)
       .pipe(finalize(() => (this.statusLoading[quotation.id] = false)))
       .subscribe({
         next: (updated) => {
@@ -439,8 +461,14 @@ export class QuotationsManagementComponent implements OnInit, OnDestroy {
     return tokens.toString();
   }
 
-  getProjectionBarWidth(projection: any, year: number, value: number): number {
-    const allYears = [1, 2, 3, 4, 5].map(y => projection['year_' + y] || 0);
+  getProjectionValue(projection: any, year: number): number {
+    const key = `year_${year}` as keyof typeof projection;
+    return projection[key] || 0;
+  }
+
+  getProjectionBarWidth(projection: any, year: number): number {
+    const value = this.getProjectionValue(projection, year);
+    const allYears = [1, 2, 3, 4, 5].map(y => this.getProjectionValue(projection, y));
     const maxValue = Math.max(...allYears);
     return maxValue > 0 ? (value / maxValue) * 100 : 0;
   }

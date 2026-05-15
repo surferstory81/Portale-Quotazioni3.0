@@ -88,32 +88,57 @@
               <span class="badge" [ngClass]="badgeClass(q.status)">{{ q.status }}</span>
             </td>
             <td class="actions-cell-compact">
-              <button
-                *ngIf="canTakeInCharge(q)"
-                type="button"
-                class="btn-sm"
-                [disabled]="statusLoading[q.id]"
-                (click)="takeInCharge(q)">
-                Prendi in carico
-              </button>
-
-              <ng-container *ngIf="canChangeStatus(q)">
+              <!-- Model selection + Take in charge button -->
+              <div *ngIf="canTakeInCharge(q)" style="display: flex; gap: 8px; align-items: center;">
                 <select
                   class="select-sm"
-                  [formControl]="getStatusControl(q.id)"
-                  [disabled]="statusLoading[q.id]">
-                  <option value="">-- Cambia stato --</option>
-                  <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+                  [formControl]="getModelControl(q.id)"
+                  [disabled]="statusLoading[q.id]"
+                  title="Seleziona il modello AI">
+                  <option *ngFor="let model of aiModelOptions" [value]="model.value">
+                    {{ model.label }}
+                  </option>
                 </select>
                 <button
                   type="button"
                   class="btn-sm"
-                  [class.btn-primary]="getStatusControl(q.id).value"
-                  [class.btn-disabled]="!getStatusControl(q.id).value"
-                  [disabled]="statusLoading[q.id] || !getStatusControl(q.id).value"
-                  (click)="updateStatus(q)">
-                  {{ statusLoading[q.id] ? '...' : 'Applica' }}
+                  [disabled]="statusLoading[q.id]"
+                  (click)="takeInCharge(q)">
+                  Prendi in carico
                 </button>
+              </div>
+
+              <!-- Status change + Model selection (for IN VALUTAZIONE) -->
+              <ng-container *ngIf="canChangeStatus(q)">
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                  <select
+                    class="select-sm"
+                    [formControl]="getModelControl(q.id)"
+                    [disabled]="statusLoading[q.id]"
+                    title="Seleziona il modello AI (usato solo se cambi stato a IN VALUTAZIONE)">
+                    <option *ngFor="let model of aiModelOptions" [value]="model.value">
+                      {{ model.label }}
+                    </option>
+                  </select>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <select
+                    class="select-sm"
+                    [formControl]="getStatusControl(q.id)"
+                    [disabled]="statusLoading[q.id]">
+                    <option value="">-- Cambia stato --</option>
+                    <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+                  </select>
+                  <button
+                    type="button"
+                    class="btn-sm"
+                    [class.btn-primary]="getStatusControl(q.id).value"
+                    [class.btn-disabled]="!getStatusControl(q.id).value"
+                    [disabled]="statusLoading[q.id] || !getStatusControl(q.id).value"
+                    (click)="updateStatus(q)">
+                    {{ statusLoading[q.id] ? '...' : 'Applica' }}
+                  </button>
+                </div>
               </ng-container>
 
               <span *ngIf="!canTakeInCharge(q) && !canChangeStatus(q)" class="muted">—</span>
@@ -142,7 +167,7 @@
                         <small class="text-muted">
                           Modello: {{ estimation.aiModel || 'Sonnet 4.5' }}
                         </small>
-                        <small class="text-muted" *ngIf="estimation.inputTokens">
+                        <small class="text-muted" *ngIf="estimation.inputTokens && estimation.outputTokens">
                           ~{{ formatTokens(estimation.inputTokens + estimation.outputTokens) }} tokens
                         </small>
                       </div>
@@ -198,10 +223,10 @@
                       <div class="projection-bar" *ngFor="let year of [1,2,3,4,5]">
                         <div class="bar-label">Y{{year}}</div>
                         <div class="bar-container">
-                          <div class="bar-fill" [style.width.%]="getProjectionBarWidth(projection, year, projection['year_' + year])">
+                          <div class="bar-fill" [style.width.%]="getProjectionBarWidth(projection, year)">
                           </div>
                         </div>
-                        <div class="bar-value">{{ formatCurrency(projection['year_' + year]) }}</div>
+                        <div class="bar-value">{{ formatCurrency(getProjectionValue(projection, year)) }}</div>
                       </div>
                     </div>
                   </div>
