@@ -86,6 +86,32 @@ Validates estimation results for accuracy, completeness, and governance complian
 - **Cost per validation**: $0.10-$0.15 (with prompt caching ~90% cost reduction)
 - **Prompt caching**: Knowledge base cached, saves ~$0.40 per validation
 
+## Logging
+
+The validation agent uses structured logging:
+
+```
+[VALIDATION-AGENT] Starting Validation Agent
+[VALIDATION-AGENT] Estimation ID: {id}
+[VALIDATION-AGENT] Quotation ID: {quotation_id}
+[VALIDATION-AGENT] Invoking AI model for validation...
+[VALIDATION-AGENT] Response received in 12000ms (12.0s)
+[VALIDATION-AGENT] Tokens: input=152000, output=2100 [CACHE HIT: 148000 tokens, ~90% cost savings]
+[VALIDATION-AGENT] Decision: AI_VALIDATED
+[VALIDATION-AGENT] Issues found: 2
+[VALIDATION-AGENT] Issues breakdown: HIGH=0, MEDIUM=1, LOW=1
+```
+
+**Log prefixes:**
+- `[VALIDATION-AGENT]` - All validation workflow events
+
+**What is logged:**
+- Estimation/Quotation IDs being validated
+- Response timing and token usage
+- Cache hit/miss information
+- Validation decision (APPROVE/REVIEW/SENIOR_REVIEW/REJECT)
+- Issue count and severity breakdown
+
 ## Governance Exemptions
 
 Some validation rules have explicit exemptions:

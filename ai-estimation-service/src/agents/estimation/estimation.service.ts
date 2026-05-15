@@ -78,10 +78,19 @@ export class EstimationAgentService {
     const maxTurns = 5; // Prevent infinite loops
 
     try {
+      // Log agent workflow start
+      this.logger.log(`[AGENT-WORKFLOW] ═══════════════════════════════════════════`);
+      this.logger.log(`[AGENT-WORKFLOW] Starting Estimation Agent for quotation ${quotationData.quotation_id}`);
+      this.logger.log(`[AGENT-WORKFLOW] Model: ${modelId || 'default (Sonnet 4.5)'}`);
+      this.logger.log(`[AGENT-WORKFLOW] Max turns: ${maxTurns}`);
+      this.logger.log(`[AGENT-WORKFLOW] ═══════════════════════════════════════════`);
+
       // Multi-turn conversation loop for tool use
       while (turnCount < maxTurns) {
         turnCount++;
-        this.logger.log(`Turn ${turnCount}: Invoking AI model`);
+        const turnStartTime = Date.now();
+        this.logger.log(`[AGENT-TURN-${turnCount}] ─────────────────────────────────────────`);
+        this.logger.log(`[AGENT-TURN-${turnCount}] Invoking AI model...`);
 
         const response = await this.bedrockService.invoke({
           system: systemPrompt,
@@ -93,8 +102,13 @@ export class EstimationAgentService {
           modelId, // Pass modelId override if provided
         });
 
+        const turnLatency = Date.now() - turnStartTime;
         totalTokensUsed.input += response.usage.inputTokens;
         totalTokensUsed.output += response.usage.outputTokens;
+
+        this.logger.log(`[AGENT-TURN-${turnCount}] Response received in ${turnLatency}ms`);
+        this.logger.log(`[AGENT-TURN-${turnCount}] Tokens: input=${response.usage.inputTokens}, output=${response.usage.outputTokens}`);
+        this.logger.log(`[AGENT-TURN-${turnCount}] Stop reason: ${response.stopReason}`);
 
         // Add assistant response to conversation
         messages.push({
@@ -104,13 +118,16 @@ export class EstimationAgentService {
 
         // Check if AI wants to use tools
         if (response.stopReason === 'tool_use' && response.toolUse) {
-          this.logger.log(`AI requested ${response.toolUse.length} tool(s)`);
+          this.logger.log(`[AGENT-TURN-${turnCount}] AI requested ${response.toolUse.length} tool(s)`);
 
           // Execute all requested tools
           const toolResults = await Promise.all(
             response.toolUse.map(async (tool) => {
-              this.logger.log(`Executing tool: ${tool.name}`);
+              this.logger.log(`[AGENT-TOOL] Executing: ${tool.name} with input: ${JSON.stringify(tool.input).substring(0, 100)}...`);
+              const toolStartTime = Date.now();
               const result = await this.pricingTools.executeTool(tool.name, tool.input);
+              const toolLatency = Date.now() - toolStartTime;
+              this.logger.log(`[AGENT-TOOL] ${tool.name} completed in ${toolLatency}ms`);
               return {
                 toolUseId: tool.toolUseId,
                 content: result,
@@ -124,19 +141,25 @@ export class EstimationAgentService {
             content: JSON.stringify({ tool_results: toolResults }),
           });
 
+          this.logger.log(`[AGENT-TURN-${turnCount}] Tool results added, continuing to next turn...`);
           // Continue to next turn
           continue;
         }
 
         // No more tools requested, we have final answer
-        this.logger.log(`Final answer received after ${turnCount} turn(s)`);
+        this.logger.log(`[AGENT-TURN-${turnCount}] Final answer received (stop_reason: ${response.stopReason})`);
+        this.logger.log(`[AGENT-WORKFLOW] Conversation completed after ${turnCount} turn(s)`);
         break;
       }
 
       const latency = Date.now() - startTime;
-      this.logger.log(
-        `Estimation generated in ${latency}ms, ${turnCount} turns (input: ${totalTokensUsed.input}, output: ${totalTokensUsed.output})`,
-      );
+      this.logger.log(`[AGENT-WORKFLOW] ═══════════════════════════════════════════`);
+      this.logger.log(`[AGENT-WORKFLOW] Estimation Agent completed successfully`);
+      this.logger.log(`[AGENT-WORKFLOW] Total time: ${latency}ms (${(latency/1000).toFixed(1)}s)`);
+      this.logger.log(`[AGENT-WORKFLOW] Total turns: ${turnCount}`);
+      this.logger.log(`[AGENT-WORKFLOW] Total tokens: input=${totalTokensUsed.input}, output=${totalTokensUsed.output}`);
+      this.logger.log(`[AGENT-WORKFLOW] Estimated cost: $${((totalTokensUsed.input / 1_000_000 * inputCostPerMillion) + (totalTokensUsed.output / 1_000_000 * outputCostPerMillion)).toFixed(4)}`);
+      this.logger.log(`[AGENT-WORKFLOW] ═══════════════════════════════════════════`);
 
       // Get final response content
       const finalResponse = messages[messages.length - 1];

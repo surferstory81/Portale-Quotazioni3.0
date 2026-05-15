@@ -60,6 +60,33 @@ Generates detailed cost estimations (CAPEX/OPEX) for IT infrastructure projects 
 - **Token usage**: ~150k input, ~8k output (with prompt caching)
 - **Cost per estimation**: $0.50-$0.80 (Sonnet 4.5)
 
+## Logging
+
+The agent uses structured logging to track the estimation workflow:
+
+```
+[AGENT-WORKFLOW] Starting Estimation Agent for quotation {id}
+[AGENT-TURN-1] Invoking AI model...
+[AGENT-TURN-1] Response received in 45000ms
+[AGENT-TURN-1] Tokens: input=152000, output=8500
+[AGENT-TURN-1] Stop reason: end_turn
+[AGENT-WORKFLOW] Conversation completed after 1 turn(s)
+[AGENT-WORKFLOW] Total time: 45200ms (45.2s)
+[AGENT-WORKFLOW] Total tokens: input=152000, output=8500
+[AGENT-WORKFLOW] Estimated cost: $0.5850
+```
+
+**Log prefixes:**
+- `[AGENT-WORKFLOW]` - Overall workflow events (start, end, summary)
+- `[AGENT-TURN-N]` - Individual AI invocation turns
+- `[AGENT-TOOL]` - Tool execution events (when AI uses tools)
+
+**What is logged per turn:**
+- Turn number and timing
+- Token usage (input/output)
+- Stop reason (end_turn, tool_use, max_tokens)
+- Tool requests and execution times
+
 ## Development
 
 ### Testing locally

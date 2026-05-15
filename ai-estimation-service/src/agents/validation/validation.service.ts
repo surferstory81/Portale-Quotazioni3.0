@@ -59,7 +59,11 @@ export class ValidationAgentService {
     estimationId: string,
     estimation: EstimationResult,
   ): Promise<ValidationResult> {
-    this.logger.log(`Validating estimation ${estimationId}`);
+    this.logger.log(`[VALIDATION-AGENT] ═══════════════════════════════════════════`);
+    this.logger.log(`[VALIDATION-AGENT] Starting Validation Agent`);
+    this.logger.log(`[VALIDATION-AGENT] Estimation ID: ${estimationId}`);
+    this.logger.log(`[VALIDATION-AGENT] Quotation ID: ${estimation.quotation_id}`);
+    this.logger.log(`[VALIDATION-AGENT] ═══════════════════════════════════════════`);
 
     const knowledgeBaseString = this.knowledgeLoader.getKnowledgeAsString();
 
@@ -69,6 +73,7 @@ export class ValidationAgentService {
     const startTime = Date.now();
 
     try {
+      this.logger.log(`[VALIDATION-AGENT] Invoking AI model for validation...`);
       const response = await this.bedrockService.invoke({
         system: systemPrompt,
         systemCacheable: true, // Enable prompt caching for validation rules
@@ -89,11 +94,20 @@ export class ValidationAgentService {
         ? ` [CACHE CREATED: ${response.usage.cacheCreationInputTokens} tokens]`
         : '';
 
-      this.logger.log(
-        `Validation completed in ${latency}ms (input: ${response.usage.inputTokens}, output: ${response.usage.outputTokens})${cacheInfo}`,
-      );
+      this.logger.log(`[VALIDATION-AGENT] Response received in ${latency}ms (${(latency/1000).toFixed(1)}s)`);
+      this.logger.log(`[VALIDATION-AGENT] Tokens: input=${response.usage.inputTokens}, output=${response.usage.outputTokens}${cacheInfo}`);
 
       const validationData = this.parseValidationResponse(response.content);
+
+      this.logger.log(`[VALIDATION-AGENT] Decision: ${validationData.decision}`);
+      this.logger.log(`[VALIDATION-AGENT] Issues found: ${validationData.issues?.length || 0}`);
+      if (validationData.issues && validationData.issues.length > 0) {
+        const high = validationData.issues.filter(i => i.severity === 'HIGH').length;
+        const medium = validationData.issues.filter(i => i.severity === 'MEDIUM').length;
+        const low = validationData.issues.filter(i => i.severity === 'LOW').length;
+        this.logger.log(`[VALIDATION-AGENT] Issues breakdown: HIGH=${high}, MEDIUM=${medium}, LOW=${low}`);
+      }
+      this.logger.log(`[VALIDATION-AGENT] ═══════════════════════════════════════════`);
 
       return {
         estimation_id: estimationId,
