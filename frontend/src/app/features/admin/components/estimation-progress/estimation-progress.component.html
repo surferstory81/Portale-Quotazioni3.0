@@ -14,8 +14,8 @@
 
     <div class="progress-details">
       <p class="detail-text">
-        🤖 Claude Sonnet 4.5 sta analizzando i requisiti e generando la stima economica.
-        Questo processo richiede circa 70-90 secondi.
+        🤖 {{ getModelDisplayName(modelId) }} sta analizzando i requisiti e generando la stima economica.
+        Questo processo richiede circa {{ getEstimatedDuration(modelId) }}.
       </p>
       <div class="spinner"></div>
     </div>

@@ -16,13 +16,22 @@ export class EstimationProgressComponent implements OnInit, OnDestroy {
 
   private currentStepIndex = 0;
 
-  private getModelDisplayName(modelId: string): string {
+  getModelDisplayName(modelId: string): string {
     const modelNames: Record<string, string> = {
       'claude-sonnet-4-5': 'Claude Sonnet 4.5',
       'claude-opus-4-7': 'Claude Opus 4.7',
       'claude-haiku-4-5': 'Claude Haiku 4.5',
     };
     return modelNames[modelId] || 'Claude Sonnet 4.5';
+  }
+
+  getEstimatedDuration(modelId: string): string {
+    const durations: Record<string, string> = {
+      'claude-sonnet-4-5': '70-90 secondi',
+      'claude-opus-4-7': '80-100 secondi',
+      'claude-haiku-4-5': '40-60 secondi',
+    };
+    return durations[modelId] || '70-90 secondi';
   }
 
   ngOnInit(): void {
