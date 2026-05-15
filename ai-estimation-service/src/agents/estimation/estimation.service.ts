@@ -153,6 +153,12 @@ export class EstimationAgentService {
       }
 
       const latency = Date.now() - startTime;
+
+      // Calculate cost based on model used (declare before using in logs)
+      const modelConfig = modelId ? getModelConfigById(modelId) : null;
+      const inputCostPerMillion = modelConfig?.inputCostPer1M || 3.0; // Default to Sonnet 4.5 pricing
+      const outputCostPerMillion = modelConfig?.outputCostPer1M || 15.0;
+
       this.logger.log(`[AGENT-WORKFLOW] ═══════════════════════════════════════════`);
       this.logger.log(`[AGENT-WORKFLOW] Estimation Agent completed successfully`);
       this.logger.log(`[AGENT-WORKFLOW] Total time: ${latency}ms (${(latency/1000).toFixed(1)}s)`);
@@ -164,11 +170,6 @@ export class EstimationAgentService {
       // Get final response content
       const finalResponse = messages[messages.length - 1];
       const estimationData = this.parseEstimationResponse(finalResponse.content);
-
-      // Calculate cost based on model used
-      const modelConfig = modelId ? getModelConfigById(modelId) : null;
-      const inputCostPerMillion = modelConfig?.inputCostPer1M || 3.0; // Default to Sonnet 4.5 pricing
-      const outputCostPerMillion = modelConfig?.outputCostPer1M || 15.0;
       const estimatedCost =
         (totalTokensUsed.input / 1_000_000 * inputCostPerMillion) +
         (totalTokensUsed.output / 1_000_000 * outputCostPerMillion);
