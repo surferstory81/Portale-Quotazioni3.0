@@ -92,7 +92,7 @@ export class AiServiceClientService {
               'Authorization': `Bearer ${this.serviceToken}`,
               'Content-Type': 'application/json',
             },
-            timeout: 120000, // 2 minutes timeout for sync call
+            timeout: 180000, // 3 minutes timeout for AI estimation
           },
         ),
       );
@@ -182,7 +182,7 @@ export class AiServiceClientService {
               'Authorization': `Bearer ${this.serviceToken}`,
               'Content-Type': 'application/json',
             },
-            timeout: 120000, // 2 minutes timeout for sync call
+            timeout: 180000, // 3 minutes timeout for AI estimation
           },
         ),
       );
