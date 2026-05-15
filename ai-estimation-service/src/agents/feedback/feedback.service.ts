@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { BedrockService } from '../../bedrock/bedrock.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
+import { FeedbackLoggerService } from './feedback-logger.service';
 import { firstValueFrom } from 'rxjs';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -55,6 +56,7 @@ export class FeedbackAgentService {
     private readonly bedrockService: BedrockService,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly feedbackLogger: FeedbackLoggerService,
   ) {
     this.backendUrl = this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
     this.serviceToken = this.configService.get<string>('SERVICE_TOKEN') || 'change-me-service-token';
@@ -143,6 +145,13 @@ export class FeedbackAgentService {
       this.logger.log(`[FEEDBACK-AGENT]   - HIGH: ${analysis.summary.high_priority_issues}`);
       this.logger.log(`[FEEDBACK-AGENT]   - MEDIUM: ${analysis.summary.medium_priority_issues}`);
       this.logger.log(`[FEEDBACK-AGENT]   - LOW: ${analysis.summary.low_priority_issues}`);
+
+      // Log to JSON and HTML files
+      const jsonPath = this.feedbackLogger.logAnalysisToJSON(analysis);
+      const htmlPath = this.feedbackLogger.logAnalysisToHTML(analysis);
+      this.logger.log(`[FEEDBACK-AGENT] Logs saved:`);
+      this.logger.log(`[FEEDBACK-AGENT]   - JSON: ${jsonPath}`);
+      this.logger.log(`[FEEDBACK-AGENT]   - HTML: ${htmlPath}`);
       this.logger.log(`[FEEDBACK-AGENT] ═══════════════════════════════════════════`);
 
       return analysis;
