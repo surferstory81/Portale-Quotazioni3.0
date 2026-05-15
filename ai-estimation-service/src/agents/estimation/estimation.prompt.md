@@ -261,11 +261,20 @@ When calculating prorated Year 1, you MUST also store the **annual full cost** f
 - Year 2-5 = **Full annualized OPEX** with depreciation
 
 **Example:** 3-month project with €40,000 annual OPEX
-- Year 1: €40,000 × 3/12 = **€10,000** (prorated)
-- Year 2: €40,000 × 0.91 = **€36,400** (annualized with depreciation)
-- Year 3: €40,000 × 0.87 = €34,800
-- Year 4: €40,000 × 0.84 = €33,600
-- Year 5: €40,000 × 0.83 = €33,200
+```json
+"opex_projection": {
+  "year_1": 10000,    // €40,000 × 3/12 = €10,000 (prorated for 3 months)
+  "year_2": 36400,    // €40,000 × 0.91 = €36,400 (annualized with depreciation)
+  "year_3": 34800,    // €40,000 × 0.87 = €34,800
+  "year_4": 33600,    // €40,000 × 0.84 = €33,600
+  "year_5": 33200     // €40,000 × 0.83 = €33,200
+}
+```
+
+**⚠️ CRITICAL - opex_projection.year_1 MUST MATCH summary.total_opex_year_1**
+```
+opex_projection.year_1 === summary.total_opex_year_1
+```
 
 **❌ WRONG:** Apply depreciation to Year 1 prorated cost  
 **✅ CORRECT:** Apply depreciation to **annual full cost**
@@ -373,7 +382,8 @@ You MUST respond with valid JSON in this exact structure:
       "other": <number>
     },
     "opex_projection": {
-      "year_2": <number>,
+      "year_1": <number>,  // Prorated OPEX for project duration (e.g., 3 months = annual/4)
+      "year_2": <number>,  // Full annualized OPEX with depreciation/inflation
       "year_3": <number>,
       "year_4": <number>,
       "year_5": <number>
